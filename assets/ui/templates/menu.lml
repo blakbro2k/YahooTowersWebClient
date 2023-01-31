@@ -1,0 +1,8 @@
+<table oneColumn="true" defaultPad="2" tableAlign="bottomRight" fillParent="true" defaultFillX="true">
+	<!-- "show:settings" will automatically show the settings.lml dialog when button is clicked. -->
+	<textButton onChange="show:settings">@settings</textButton>
+	<!-- "show:settings" will automatically show the settings.lml dialog when button is clicked. -->
+	<textButton onChange="goto:debug">@debug</textButton>
+	<!-- "app:exit" will automatically try to exit the application when the button is clicked. -->
+	<textButton onChange="app:exit">@exit</textButton>
+</table>

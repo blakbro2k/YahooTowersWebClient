@@ -1,0 +1,6 @@
+<dialog id="dialog" title="@nextGameStart" style="dialog">
+    <label row="true" size="8" />
+    <label id="timerLabel" row="true" size="4">@nextGameSeconds</label>
+    <label row="true" size="8" />
+    <label row="true">@nextGameSecondsTxt</label>
+</dialog>

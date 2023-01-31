@@ -1,0 +1,42 @@
+<dialog id="dialog" title="@settings" style="dialog">
+	<!-- Note that all values (like width and height) are in viewport units, not pixels.
+		Its somewhat safe to use "magic" values. Values in {= } are equations; values
+		proceeded with $ reference Java methods. -->
+	<tabbedPane selected="0" width="{=200 * ($getScale - X)}" height="{=100 * ($getScale - X)}">
+		<!-- :setting macro is defined at global.lml. -->
+		<:setting name="@music">
+			@musicVolume
+			<!-- Music-related methods are added by MusicService. -->
+			<slider value="$getMusicVolume" onChange="setMusicVolume" growX="true" />
+			<checkBox onChange="toggleMusic" checked="$musicOn">@toggleMusic</checkBox>
+		</:setting>
+		<:setting name="@sound">
+			@soundVolume
+			<!-- Sound-related methods are added by MusicService. -->
+			<slider value="$getSoundVolume" onChange="setSoundVolume" growX="true" />
+			<checkBox onChange="toggleSound" checked="$soundOn">@toggleSound</checkBox>
+		</:setting>
+		<:setting name="@locale">
+		<!-- {locales} and {currentLocale} are LML arguments automatically added by
+			LocaleService. "locale:name" action changes current locale and reloads UI.
+			For example, "locale:en" action would change current locale to English. -->
+			<:each locale="{locales}">
+				<:if test="{locale} != {currentLocale}">
+					<textButton onChange="locale:{locale}">@{locale}</textButton>
+				</:if>
+			</:each>
+		</:setting>
+		<:setting name="@gui">
+			@scale
+			<!-- Scale-related actions are registered by SettingsController and handled by our
+				custom ScaleService. -->
+			<:each scale="$scales">
+				<:if test="{scale} != $getScale">
+					<textButton id="{scale}" onChange="changeScale">{scale}</textButton>
+				</:if>
+			</:each>
+		</:setting>
+	</tabbedPane>
+	<!-- "close" action is defined in Global class. -->
+	<textButton onResult="close">@exit</textButton>
+</dialog>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC "-//Google Inc.//DTD Google Web Toolkit 2.8.2//EN" "http://www.gwtproject.org/doctype/2.8.2/gwt-module.dtd">
+<module rename-to="asg.games.yokel.client">
+    <source path="net/games/client" >
+        <include name="ui/actors/GameObject.java"/>
+    </source>
+
+    <inherits name="asg.games.Yokel" />
+
+    <!-- Logging module inherits                                      -->
+    <inherits name="com.google.gwt.logging.Logging"/>
+    <set-property name="gwt.logging.logLevel" value="FINEST"/>         <!-- # To change the default logLevel SEVERE -->
+    <!--
+    <set-property name="gwt.logging.enabled" value="FALSE"/>            # To disable logging
+    <set-property name="gwt.logging.consoleHandler" value="DISABLED"/>  # To disable a default Handler
+    -->
+    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.client.configuration" />
+    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.client.controller" />
+    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.client.factories" />
+    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.client.service" />
+    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.client.ui" />
+    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.client.utils" />
+    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.client.ui.provider.tags" />
+
+    <!-- Sometimes you'll get a cryptic "Couldn't find Type for class" GWT error - this is because Autumn relies on reflection:
+some class is expected in the reflection pool, but cannot be found. Simply including the class should solve the issue. -->
+    <extend-configuration-property name="gdx.reflect.include" value="com.badlogic.gdx.audio.Sound" />
+    <extend-configuration-property name="gdx.reflect.include" value="com.badlogic.gdx.graphics.g2d.TextureAtlas" />
+    <extend-configuration-property name="gdx.reflect.include" value="com.github.czyzby.autumn.mvc.component.preferences.dto" />
+    <extend-configuration-property name="gdx.reflect.include" value="com.badlogic.gdx.ApplicationAdapter" />
+    <extend-configuration-property name="gdx.reflect.include" value="com.github.czyzby.lml.parser.impl.tag.actor.AbstractActorLmlTag" />
+    <extend-configuration-property name="gdx.reflect.include" value="com.github.czyzby.lml.parser.impl.tag.actor.AbstractNonParentalActorLmlTag" />
+    <extend-configuration-property name="gdx.reflect.include" value="com.github.czyzby.lml.parser.impl.tag.actor.ImageButtonLmlTag" />
+    <extend-configuration-property name="gdx.reflect.include" value="com.github.czyzby.lml.parser.impl.tag.actor.ButtonLmlTag" />
+    <extend-configuration-property name="gdx.reflect.include" value="com.github.czyzby.lml.parser.impl.tag.actor.TableLmlTag" />
+
+</module>

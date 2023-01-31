@@ -1,0 +1,5 @@
+<table oneColumn="true" defaultPad="2"  fillParent="true" defaultFillX="true">
+	<textButton onClick="show:soundBoard" row="true">@debugSoundBoardBtn</textButton>
+	<textButton onClick="goto:uiblocktest" row="true">@debugGameSprites</textButton>
+	<textButton onChange="goto:menu" row="true">@back</textButton>
+</table>

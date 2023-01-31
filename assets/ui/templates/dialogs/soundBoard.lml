@@ -1,0 +1,5 @@
+<dialog id="soundBoard" title="Sound Board" style="dialog" onecolumn="false" closebutton="true">
+    <:each soundId="$getAllSoundIds">
+        <textButton id="{soundId}" row="$checkRow" onclick="playSound">@{soundId}</textButton>
+    </:each>
+</dialog>
