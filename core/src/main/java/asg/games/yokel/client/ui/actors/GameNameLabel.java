@@ -7,6 +7,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.Json;
 
+import asg.games.yokel.objects.AbstractYokelObject;
 import asg.games.yokel.objects.YokelPlayer;
 import asg.games.yokel.utils.YokelUtilities;
 
@@ -32,13 +33,13 @@ public class GameNameLabel extends Table implements GameObject {
     public void setData(String data) {
         Gdx.app.log("GameNameLabel","data: " + data);
 
-        //Json json = new Json();
-        //YokelPlayer player = YokelUtilities.getObjectFromJsonString(YokelPlayer.class, data);
-        //YokelPlayer player = json.fromJson(YokelPlayer.class, data);
-        YokelPlayer player = _blankPlayer;
-
+        YokelPlayer player = null;
         if(data != null) {
-            player = new YokelPlayer("data", 5, 8);
+            player = YokelPlayer.getObjectFromJson(YokelPlayer.class, data);
+        }
+
+        if(player == null) {
+            player = _blankPlayer;
         }
 
         setIcon(player.getIcon());

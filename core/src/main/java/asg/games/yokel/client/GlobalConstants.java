@@ -60,7 +60,7 @@ public class GlobalConstants {
     public final static String MENU_VIEW = "menu";
     public final static String POST_LOADER_VIEW = "postload";
     public final static String ROOM_VIEW = "room";
-    public final static String UI_CLIENT_VIEW = "uiclient";
+    public final static String UI_CLIENT_VIEW = "clientView";
     public final static String UI_BLOCK_TEST_VIEW = "uiblocktest";
     public final static String CREATE_GAME_DIALOG = "createGame";
     public final static String SOUND_BOARD_DIALOG = "soundBoard";
@@ -82,7 +82,7 @@ public class GlobalConstants {
     public final static String MENU_VIEW_PATH = "ui/templates/menu.lml";
     public final static String POST_LOADER_VIEW_PATH = "ui/templates/postloader.lml";
     public final static String ROOM_VIEW_PATH = "ui/templates/room.lml";
-    public final static String UI_CLIENT_VIEW_PATH = "ui/templates/uiclient.lml";
+    public final static String UI_CLIENT_VIEW_PATH = "ui/templates/clientView.lml";
     public final static String UI_BLOCK_TEST_VIEW_PATH = "ui/templates/uiblocktest.lml";
     public final static String CREATE_GAME_DIALOG_PATH = "ui/templates/dialogs/createGame.lml";
     public final static String SOUND_BOARD_DIALOG_PATH = "ui/templates/dialogs/soundBoard.lml";

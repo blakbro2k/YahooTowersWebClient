@@ -1,72 +1,91 @@
-<window defaultPad="2" width="800" debug="true">
-    <table row="true"  width="400" height="300">
+<window debug="true" defaultPad="2" width="800">
+    <table height="300" row="true" width="400">
         <table>
-         <gamenametag id="playerOne" row="true"/>
-     <gameJoinButton id="join" debug="false"/>
-</table>
-<table>
-<gamenametag id="playerTwo" row="true"/>
- <gameJoinButton id="joinReady" debug="false"/>
-</table>
-</table>
-<table row="true"  width="400" >
-<image width="8" height="8" id="power_Y_block_preview"/>
-<image width="8" height="8" id="power_O_block_preview"/>
-<image width="8" height="8" id="power_K_block_preview"/>
-<image width="8" height="8" id="power_E_block_preview"/>
-<image width="8" height="8" id="power_L_block_preview"/>
-<image width="8" height="8" id="power_Bash_block_preview" row="true"/>
-<image width="8" height="8" id="defense_Y_block_preview"/>
-<image width="8" height="8" id="defense_O_block_preview"/>
-<image width="8" height="8" id="defense_K_block_preview"/>
-<image width="8" height="8" id="defense_E_block_preview"/>
-<image width="8" height="8" id="defense_L_block_preview"/>
-<image width="8" height="8" id="defense_Bash_block_preview" row="true"/>
-<image width="8" height="8" id="Y_block_preview"/>
-<image width="8" height="8" id="O_block_preview"/>
-<image width="8" height="8" id="K_block_preview"/>
-<image width="8" height="8" id="E_block_preview"/>
-<image width="8" height="8" id="L_block_preview"/>
-<image width="8" height="8" id="Bash_block_preview" row="true"/>
-<image width="16" height="16" id="Y_block"/>
-<image width="16" height="16" id="O_block"/>
-<image width="16" height="16" id="K_block"/>
-<image width="16" height="16" id="E_block"/>
-<image width="16" height="16" id="L_block"/>
-<image width="16" height="16" id="Bash_block"/>
-<animatedimage width="16" height="16" id="medusa"/>
-<animatedimage width="16" height="16" id="top_midas" row="true"/>
-<animatedimage width="16" height="16" id="defense_Y_block"/>
-<animatedimage width="16" height="16" id="defense_O_block"/>
-<animatedimage width="16" height="16" id="defense_K_block"/>
-<animatedimage width="16" height="16" id="defense_E_block"/>
-<animatedimage width="16" height="16" id="defense_L_block"/>
-<animatedimage width="16" height="16" id="defense_Bash_block"/>
-<animatedimage width="16" height="16" id="medusa"/>
-<animatedimage width="16" height="16" id="mid_midas" row="true"/>
-<animatedimage width="16" height="16" id="power_Y_block"/>
-<animatedimage width="16" height="16" id="power_O_block"/>
-<animatedimage width="16" height="16" id="power_K_block"/>
-<animatedimage width="16" height="16" id="power_E_block"/>
-<animatedimage width="16" height="16" id="power_L_block"/>
-<animatedimage width="16" height="16" id="power_bash_block"/>
-<animatedimage width="16" height="16" id="medusa"/>
-<animatedimage width="16" height="16" id="bottom_midas" row="true"/>
-<animatedimage width="16" height="16" id="Y_block_Broken"/>
-<animatedimage width="16" height="16" id="O_block_Broken"/>
-<animatedimage width="16" height="16" id="K_block_Broken"/>
-<animatedimage width="16" height="16" id="E_block_Broken"/>
-<animatedimage width="16" height="16" id="L_block_Broken"/>
-<animatedimage width="16" height="16" id="Bash_block_Broken" row="true"/>
-<image width="16" height="16" id="stone"/>
-<image width="16" height="16" id="clear_block" row="true"/>
-<playericon row="true"/>
-<gameclock id="gameClock" colspan="6" row="true"/>
-</table>
-    <table row="true" width="400" >
-        <textButton onChange="resetAllBoards" row="true" fill="true">Reset Boards</textButton>
-        <textButton onChange="toggleGameStart" row="true" fill="true">Start</textButton>
-        <textButton onChange="stopClock" row="true" fill="true">Stop Clock</textButton>
-        <textButton onChange="goto:debug" row="true" fill="true">@back</textButton>
+            <gamenametag id="playerOne" row="true" />
+            <gameJoinButton debug="false" id="join" row="true"/>
+        </table>
+        <table>
+            <gamenametag id="playerTwo" row="true" />
+            <gameJoinButton debug="false" id="joinReady" row="true"/>
+        </table>
+    </table>
+    <table row="true" width="400">
+        <table row="true">
+            <animatedimage height="16" id="defense_Y_block" width="16" />
+            <animatedimage height="16" id="defense_O_block" width="16" />
+            <animatedimage height="16" id="defense_K_block" width="16" />
+            <animatedimage height="16" id="defense_E_block" width="16" />
+            <animatedimage height="16" id="defense_L_block" width="16" />
+            <animatedimage height="16" id="defense_Bash_block" width="16"  row="true"/>
+            <animatedimage height="16" id="power_Y_block" width="16" />
+            <animatedimage height="16" id="power_O_block" width="16" />
+            <animatedimage height="16" id="power_K_block" width="16" />
+            <animatedimage height="16" id="power_E_block" width="16" />
+            <animatedimage height="16" id="power_L_block" width="16" />
+            <animatedimage height="16" id="power_bash_block" width="16"  row="true"/>
+            <animatedimage height="16" id="Y_block_Broken" width="16" />
+            <animatedimage height="16" id="O_block_Broken" width="16" />
+            <animatedimage height="16" id="K_block_Broken" width="16" />
+            <animatedimage height="16" id="E_block_Broken" width="16" />
+            <animatedimage height="16" id="L_block_Broken" width="16" />
+            <animatedimage height="16" id="Bash_block_Broken" row="true" width="16" />
+            <image height="8" id="power_Y_block_preview" width="8" />
+            <image height="8" id="power_O_block_preview" width="8" />
+            <image height="8" id="power_K_block_preview" width="8" />
+            <image height="8" id="power_E_block_preview" width="8" />
+            <image height="8" id="power_L_block_preview" width="8" />
+            <image height="8" id="power_Bash_block_preview" row="true" width="8" />
+            <image height="8" id="defense_Y_block_preview" width="8" />
+            <image height="8" id="defense_O_block_preview" width="8" />
+            <image height="8" id="defense_K_block_preview" width="8" />
+            <image height="8" id="defense_E_block_preview" width="8" />
+            <image height="8" id="defense_L_block_preview" width="8" />
+            <image height="8" id="defense_Bash_block_preview" row="true" width="8" />
+            <image height="8" id="Y_block_preview" width="8" />
+            <image height="8" id="O_block_preview" width="8" />
+            <image height="8" id="K_block_preview" width="8" />
+            <image height="8" id="E_block_preview" width="8" />
+            <image height="8" id="L_block_preview" width="8" />
+            <image height="8" id="Bash_block_preview" row="true" width="8" />
+            <image height="16" id="Y_block" width="16" />
+            <image height="16" id="O_block" width="16" />
+            <image height="16" id="K_block" width="16" />
+            <image height="16" id="E_block" width="16" />
+            <image height="16" id="L_block" width="16" />
+            <image height="16" id="Bash_block" width="16" row="true"/>
+        </table>
+        <table row="true">
+            <table>
+                <image height="16" id="stone" width="16" row="true"/>
+                <image height="16" id="clear_block" row="true" width="16" />
+                <image height="16" id="stone" width="16" row="true"/>
+            </table>
+            <table>
+                <animatedimage height="16" id="medusa" width="16"  row="true"/>
+                <animatedimage height="16" id="medusa" width="16"  row="true"/>
+                <animatedimage height="16" id="medusa" width="16"  row="true"/>
+            </table>
+            <table>
+                <animatedimage height="16" id="top_midas" row="true" width="16" />
+                <animatedimage height="16" id="mid_midas" row="true" width="16" />
+                <animatedimage height="16" id="bottom_midas" row="true" width="16" />
+            </table>
+        </table>
+        <table row="true">
+            <gameclock id="gameClock" row="true" />
+        </table>
+        <table row="true">
+            <playericon id="icon1">-91</playericon>
+            <playericon id="icon1">5</playericon>
+            <playericon id="icon1">0</playericon>
+            <playericon id="icon1">81</playericon>
+            <playericon id="icon2" row="true">6</playericon>
+        </table>
+    </table>
+    <table row="true" width="400">
+        <textButton fill="true" onChange="resetAllBoards" row="true">Reset Boards</textButton>
+        <textButton fill="true" onChange="toggleGameStart" row="true">Start</textButton>
+        <textButton fill="true" onChange="stopClock" row="true">Stop Clock</textButton>
+        <textButton fill="true" onChange="goto:debug" row="true">@back</textButton>
     </table>
 </window>

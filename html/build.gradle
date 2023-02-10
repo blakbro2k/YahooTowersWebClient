@@ -23,8 +23,9 @@ gwt {
 
     compiler.strict = true
     compiler.disableCastChecking = true
+
     //// The next line can be useful to uncomment if you want output that hasn't been obfuscated.
-//	compiler.style = org.wisepersist.gradle.plugins.gwt.Style.DETAILED
+	compiler.style = org.wisepersist.gradle.plugins.gwt.Style.DETAILED
 }
 
 dependencies {
@@ -38,15 +39,14 @@ dependencies {
 	implementation "com.crashinvaders.lml:gdx-kiwi:$lmlVersion:sources"
 	implementation "com.crashinvaders.lml:gdx-lml-vis:$lmlVersion:sources"
 	implementation "com.crashinvaders.lml:gdx-lml:$lmlVersion:sources"
-	implementation "com.github.MrStahlfelge.gdx-websockets:core:$websocketVersion:sources"
-	implementation "com.github.MrStahlfelge.gdx-websockets:html:$websocketVersion"
-	implementation "com.github.MrStahlfelge.gdx-websockets:html:$websocketVersion:sources"
+    implementation "com.crashinvaders.lml:gdx-websocket-gwt:$lmlVersion:sources"
+    implementation "com.github.MrStahlfelge.gdx-websockets:core:$websocketVersion:sources"
+    implementation "com.github.MrStahlfelge.gdx-websockets:html:$websocketVersion"
+    implementation "com.github.MrStahlfelge.gdx-websockets:html:$websocketVersion:sources"
 	implementation "com.github.tommyettinger:regexodus:$regExodusVersion:sources"
 	implementation "com.kotcrab.vis:vis-ui:$visUiVersion:sources"
 	implementation "com.rafaskoberg.gdx:typing-label:$typingLabelVersion:sources"
 
-    //api "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
-    api "com.crashinvaders.lml:gdx-websocket-gwt:$lmlVersion:sources"
     api fileTree(dir:"U:\\yokelTowers\\core\\build\\libs", include: "yokel-towers-$yokelVersion-sources.jar")
 	implementation project(':core')
 

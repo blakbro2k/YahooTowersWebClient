@@ -22,7 +22,7 @@ import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
 
 import asg.games.yokel.client.controller.LoadingController;
-import asg.games.yokel.client.utils.factories.YokelObjectFactory;
+import asg.games.yokel.client.factories.YokelObjectFactory;
 import asg.games.yokel.utils.YokelUtilities;
 
 @Component

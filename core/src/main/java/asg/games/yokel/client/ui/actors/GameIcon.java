@@ -49,6 +49,8 @@ public class GameIcon extends ImageButton implements Disposable {
     }
 
     private void setDrawable(){
+        if(currentIconNumber > MAX_ICON) currentIconNumber = MAX_ICON;
+        if(currentIconNumber < NO_ICON) currentIconNumber = NO_ICON;
         String key = ICON_ATTR_NAME + currentIconNumber;
         ImageButtonStyle style = styles.get(key);
         if(style == null){
@@ -66,7 +68,7 @@ public class GameIcon extends ImageButton implements Disposable {
         setDrawable();
     }
 
-    void setIconNumber(int num){
+    public void setIconNumber(int num){
         currentIconNumber = num;
         setDrawable();
     }

@@ -6,18 +6,18 @@ import com.github.czyzby.lml.parser.impl.tag.AbstractNonParentalActorLmlTag;
 import com.github.czyzby.lml.parser.tag.LmlActorBuilder;
 import com.github.czyzby.lml.parser.tag.LmlTag;
 
-import asg.games.yokel.client.ui.actors.GameNameLabel;
+import asg.games.yokel.client.ui.actors.GameBoard;
 
-public class GameNameLabelLmlTag extends AbstractNonParentalActorLmlTag {
-    public GameNameLabelLmlTag(LmlParser parser, LmlTag parentTag, StringBuilder rawTagData) {
+public class GameBoardLmlTag extends AbstractNonParentalActorLmlTag {
+    public GameBoardLmlTag(LmlParser parser, LmlTag parentTag, StringBuilder rawTagData) {
         super(parser, parentTag, rawTagData);
     }
 
     @Override
     protected Actor getNewInstanceOfActor(final LmlActorBuilder builder) {
-        return new GameNameLabel(getSkin(builder));
+        return new GameBoard(getSkin(builder));
     }
 
     @Override
     protected void handlePlainTextLine(final String plainTextLine) {}
-}
+ }

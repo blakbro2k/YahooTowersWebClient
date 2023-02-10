@@ -21,7 +21,4 @@
     <set-property name="user.agent" value="gecko1_8, safari"/>
     <collapse-property name="user.agent" values="*" />
     <!-- Remove the "user.agent" lines above if you encounter issues with Safari or other Gecko browsers. -->
-
-	<!-- This can be used to make CssResource produce human-readable CSS -->
-	<set-configuration-property name="CssResource.style" value="DETAILED" />
 </module>

@@ -9,6 +9,8 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.utils.reflect.ClassReflection;
+import com.badlogic.gdx.utils.reflect.ReflectionException;
 import com.github.czyzby.autumn.annotation.Inject;
 import com.github.czyzby.autumn.mvc.component.sfx.MusicService;
 import com.github.czyzby.autumn.mvc.component.ui.InterfaceService;
@@ -31,7 +33,6 @@ import asg.games.yokel.objects.YokelBlock;
 import asg.games.yokel.objects.YokelBlockEval;
 import asg.games.yokel.objects.YokelGameBoard;
 import asg.games.yokel.objects.YokelPlayer;
-
 
 @View(id = GlobalConstants.UI_BLOCK_TEST_VIEW, value = GlobalConstants.UI_BLOCK_TEST_VIEW_PATH)
 public class BlocksUITestController extends ApplicationAdapter implements ViewRenderer, ViewInitializer, ActionContainer {
@@ -85,10 +86,13 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
     @LmlActor("L_block_Broken") private AnimatedImage brokenLBlockImage;
     @LmlActor("Bash_block_Broken") private AnimatedImage brokenBashBlockImage;
     @LmlActor("medusa") private AnimatedImage medusaImage;
+    @LmlActor("medusa") private AnimatedImage medusa2Image;
+    @LmlActor("medusa") private AnimatedImage medusa3Image;
     @LmlActor("top_midas") private AnimatedImage topMidasImage;
     @LmlActor("mid_midas") private AnimatedImage midMidasImage;
     @LmlActor("bottom_midas") private AnimatedImage bottomMidasImage;
     @LmlActor("stone") private Image stoneBlockImage;
+    @LmlActor("stone") private Image stone2BlockImage;
     @LmlActor("gameClock") private GameClock gameClock;
     @LmlActor("clear_block") private Image clearBlock;
     @LmlActor("clear_block_preview") private Image clearBlockPreview;
@@ -108,28 +112,37 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
 
     @Override
     public void initialize(Stage stage, ObjectMap<String, Actor> actorMappedByIds) {
-        initiate();
+        try {
+            initiate();
+        } catch (ReflectionException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void destroy(ViewController viewController) {
-        boardState.dispose();
+        //boardState.dispose();
     }
 
-    private void initiate(){
+    private void initiate() throws ReflectionException {
         initiateActors();
         //boardState = getTestBoard();
-        boardState = new YokelGameBoard(1L);
+        //boardState = new YokelGameBoard(1L);
         //area1.setPlayerView(true);
         //area1.setActive(true);
         //area1.setPreview(false);
         //area1.update(boardState);
-        YokelPlayer player = new YokelPlayer("test1",2000, 5);
-        playerOne.setData(player.toString());
+        YokelPlayer player = ClassReflection.newInstance(YokelPlayer.class);
+        player.setName("test");
+        player.setRating(2000);
+        player.setIcon(6);
+
+        System.out.println(player);
+
         //System.err.println("playerOne: " + playerOne.toString());
         //System.err.println("playerTwo: " + playerTwo.toString());
-        //playerOne.setLabel(player.getName(), player.getIcon());
-        //playerOne.setLabel(player);
+        playerOne.setData(player.toString());
+        //playerTwo.setData(player);
         joinReady.setIsGameReady(true);
 
        /*area = new GameBoard(uiService.getSkin());
@@ -170,6 +183,7 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
         uiService.loadDrawable(brokenLBlockImage);
         uiService.loadDrawable(brokenBashBlockImage);
         uiService.loadDrawable(stoneBlockImage);
+        uiService.loadDrawable(stone2BlockImage);
         uiService.loadDrawable(clearBlock);
         uiService.loadDrawable(clearBlockPreview);
         uiService.loadDrawable(yBlockImagePreview);
@@ -191,6 +205,8 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
         uiService.loadDrawable(defenseLBlockImagePreview);
         uiService.loadDrawable(defenseBashBlockImagePreview);
         uiService.loadDrawable(medusaImage);
+        uiService.loadDrawable(medusa2Image);
+        uiService.loadDrawable(medusa3Image);
         uiService.loadDrawable(topMidasImage);
         uiService.loadDrawable(midMidasImage);
         uiService.loadDrawable(bottomMidasImage);

@@ -22,5 +22,15 @@ public class GamePlayerIconLmlTag extends ImageButtonLmlTag {
 
     @Override
     protected void handlePlainTextLine(final String plainTextLine) {
+        final GameIcon icon = getIcon();
+        if(icon != null) {
+            icon.setIconNumber(Integer.parseInt(plainTextLine));
+        }
+
+    }
+
+    /** @return casted actor reference. */
+    protected GameIcon getIcon() {
+        return (GameIcon) getActor();
     }
 }

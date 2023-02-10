@@ -1,12 +1,14 @@
-package asg.games.yokel.client.utils.factories;
+package asg.games.yokel.client.factories;
 
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.GdxRuntimeException;
+import com.badlogic.gdx.utils.Pool;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 
 import asg.games.yokel.client.service.UserInterfaceService;
+import asg.games.yokel.client.ui.actors.GameBlock;
 import asg.games.yokel.objects.YokelBlock;
 import asg.games.yokel.objects.YokelBlockEval;
 
@@ -49,7 +51,7 @@ public class YokelObjectFactory implements Disposable {
     public void dispose() {
         //yokelGameBlockPool.clear();
     }
-/*
+
     // YokelBlock pool.
     private final Pool<GameBlock> yokelGameBlockPool = new Pool<GameBlock>() {
         @Override
@@ -82,7 +84,7 @@ public class YokelObjectFactory implements Disposable {
             yokelGameBlockPool.free(block);
         }
     }
-*/
+
     public int getBlockNumber(String blockName){
         switch (blockName) {
             case "Y_block":

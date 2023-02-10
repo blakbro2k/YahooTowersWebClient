@@ -1,32 +1,45 @@
 package asg.games.yokel.client.configuration;
 
-	import com.badlogic.gdx.utils.viewport.FitViewport;
-	import com.badlogic.gdx.utils.viewport.Viewport;
-	import com.github.czyzby.autumn.annotation.Component;
-	import com.github.czyzby.autumn.annotation.Initiate;
-	import com.github.czyzby.autumn.mvc.component.ui.SkinService;
-	import com.github.czyzby.autumn.mvc.stereotype.preference.AvailableLocales;
-	import com.github.czyzby.autumn.mvc.stereotype.preference.I18nBundle;
-	import com.github.czyzby.autumn.mvc.stereotype.preference.I18nLocale;
-	import com.github.czyzby.autumn.mvc.stereotype.preference.LmlMacro;
-	import com.github.czyzby.autumn.mvc.stereotype.preference.LmlParserSyntax;
-	import com.github.czyzby.autumn.mvc.stereotype.preference.Preference;
-	import com.github.czyzby.autumn.mvc.stereotype.preference.StageViewport;
-	import com.github.czyzby.autumn.mvc.stereotype.preference.sfx.MusicEnabled;
-	import com.github.czyzby.autumn.mvc.stereotype.preference.sfx.MusicVolume;
-	import com.github.czyzby.autumn.mvc.stereotype.preference.sfx.SoundEnabled;
-	import com.github.czyzby.autumn.mvc.stereotype.preference.sfx.SoundVolume;
-	import com.github.czyzby.kiwi.util.gdx.asset.lazy.provider.ObjectProvider;
-	import com.github.czyzby.lml.parser.LmlSyntax;
-	import com.github.czyzby.lml.util.Lml;
-	import com.github.czyzby.lml.vis.parser.impl.VisLmlSyntax;
-	import com.kotcrab.vis.ui.VisUI;
-	import asg.games.yokel.client.YahooTowersClient;
-	import asg.games.yokel.client.service.ScaleService;
-	import asg.games.yokel.client.ui.provider.tags.GameClockLmlTagProvider;
-	import asg.games.yokel.client.ui.provider.tags.GameJoinWindowLmlTagProvider;
-	import asg.games.yokel.client.ui.provider.tags.GameNameLabelLmlTagProvider;
-	import asg.games.yokel.client.ui.provider.tags.GamePlayerIconLmlTagProvider;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
+import com.github.czyzby.autumn.annotation.Component;
+import com.github.czyzby.autumn.annotation.Initiate;
+import com.github.czyzby.autumn.mvc.component.ui.SkinService;
+import com.github.czyzby.autumn.mvc.stereotype.preference.AvailableLocales;
+import com.github.czyzby.autumn.mvc.stereotype.preference.I18nBundle;
+import com.github.czyzby.autumn.mvc.stereotype.preference.I18nLocale;
+import com.github.czyzby.autumn.mvc.stereotype.preference.LmlMacro;
+import com.github.czyzby.autumn.mvc.stereotype.preference.LmlParserSyntax;
+import com.github.czyzby.autumn.mvc.stereotype.preference.Preference;
+import com.github.czyzby.autumn.mvc.stereotype.preference.StageViewport;
+import com.github.czyzby.autumn.mvc.stereotype.preference.sfx.MusicEnabled;
+import com.github.czyzby.autumn.mvc.stereotype.preference.sfx.MusicVolume;
+import com.github.czyzby.autumn.mvc.stereotype.preference.sfx.SoundEnabled;
+import com.github.czyzby.autumn.mvc.stereotype.preference.sfx.SoundVolume;
+import com.github.czyzby.kiwi.util.gdx.asset.lazy.provider.ObjectProvider;
+import com.github.czyzby.lml.parser.LmlSyntax;
+import com.github.czyzby.lml.util.Lml;
+import com.github.czyzby.lml.vis.parser.impl.VisLmlSyntax;
+import com.kotcrab.vis.ui.VisUI;
+
+import asg.games.yokel.client.YahooTowersClient;
+import asg.games.yokel.client.service.ScaleService;
+import asg.games.yokel.client.ui.provider.attributes.GameBlockAreaDataLmlAttribute;
+import asg.games.yokel.client.ui.provider.attributes.GameBlockAreaNumberLmlAttribute;
+import asg.games.yokel.client.ui.provider.attributes.GameBlockPreviewLmlAttribute;
+import asg.games.yokel.client.ui.provider.attributes.GameBlockTypeLmlAttribute;
+import asg.games.yokel.client.ui.provider.attributes.GamePieceOrientationLmlAttribute;
+import asg.games.yokel.client.ui.provider.tags.GameBlockAreaLmlTagProvider;
+import asg.games.yokel.client.ui.provider.tags.GameBlockLmlTagProvider;
+import asg.games.yokel.client.ui.provider.tags.GameBoardLmlTagProvider;
+import asg.games.yokel.client.ui.provider.tags.GameClockLmlTagProvider;
+import asg.games.yokel.client.ui.provider.tags.GameJoinWindowLmlTagProvider;
+import asg.games.yokel.client.ui.provider.tags.GameLabelLmlTagProvider;
+import asg.games.yokel.client.ui.provider.tags.GameNameLabelLmlTagProvider;
+import asg.games.yokel.client.ui.provider.tags.GamePieceLmlTagProvider;
+import asg.games.yokel.client.ui.provider.tags.GamePlayerIconLmlTagProvider;
+import asg.games.yokel.client.ui.provider.tags.GamePlayerListLmlTagProvider;
+import asg.games.yokel.client.ui.provider.tags.GamePowersQueueLmlTagProvider;
 
 /** Thanks to the Component annotation, this class will be automatically found and processed.
 	 *
@@ -91,7 +104,7 @@ package asg.games.yokel.client.configuration;
 			syntax.addTagProvider(new GameClockLmlTagProvider(), "gameclock");
 			syntax.addTagProvider(new GameJoinWindowLmlTagProvider(), "gameJoinButton");
 
-			/*syntax.addAttributeProcessor(new GameBlockTypeLmlAttribute(), "blocktype");
+			syntax.addAttributeProcessor(new GameBlockTypeLmlAttribute(), "blocktype");
 			syntax.addAttributeProcessor(new GameBlockAreaNumberLmlAttribute(), "areanumber");
 			syntax.addAttributeProcessor(new GameBlockAreaDataLmlAttribute(), "blockareadata");
 			syntax.addAttributeProcessor(new GameBlockPreviewLmlAttribute(), "preview");
@@ -103,6 +116,6 @@ package asg.games.yokel.client.configuration;
 			syntax.addTagProvider(new GamePieceLmlTagProvider(), "gamepiece");
 			syntax.addTagProvider(new GamePowersQueueLmlTagProvider(), "gamepowers");
 			syntax.addTagProvider(new GamePlayerListLmlTagProvider(), "gameplayerlist");
-			syntax.addTagProvider(new GameLabelLmlTagProvider(), "gameLabel");*/
+			syntax.addTagProvider(new GameLabelLmlTagProvider(), "gameLabel");
 		}
 	}

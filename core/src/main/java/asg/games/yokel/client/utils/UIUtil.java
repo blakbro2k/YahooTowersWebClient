@@ -1,12 +1,14 @@
 package asg.games.yokel.client.utils;
 
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
 
-import asg.games.yokel.client.utils.factories.YokelObjectFactory;
+import asg.games.yokel.client.factories.YokelObjectFactory;
+import asg.games.yokel.client.ui.actors.GameBlock;
 import asg.games.yokel.objects.YokelBlockEval;
 import asg.games.yokel.utils.YokelUtilities;
 
@@ -55,7 +57,7 @@ public class UIUtil {
         }
         return drawables;
     }
-/*
+
     public GameBlock getGameBlock(int blockId, boolean preview){
         return getFactory().getGameBlock(blockId, preview);
     }
@@ -93,7 +95,7 @@ public class UIUtil {
         } else {
             freeBlock(incoming);
         }
-    }*/
+    }
 
     public static int getTrueBlock(int block) {
         if(YokelBlockEval.hasAddedByYahooFlag(block) || YokelBlockEval.hasBrokenFlag(block)){
