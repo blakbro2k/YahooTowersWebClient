@@ -39,5 +39,9 @@
     <extend-configuration-property name="gdx.reflect.include" value="com.github.czyzby.lml.parser.impl.tag.actor.ImageButtonLmlTag" />
     <extend-configuration-property name="gdx.reflect.include" value="com.github.czyzby.lml.parser.impl.tag.actor.ButtonLmlTag" />
     <extend-configuration-property name="gdx.reflect.include" value="com.github.czyzby.lml.parser.impl.tag.actor.TableLmlTag" />
--
+    <extend-configuration-property name="gdx.reflect.include" value="com.github.czyzby.lml.parser.impl.tag.actor.LabelLmlTag" />
+    <extend-configuration-property name="gdx.reflect.include" value="com.github.czyzby.kiwi.log.LoggerService" />
+    <extend-configuration-property name="gdx.reflect.include" value="jsinterop.annotations.JsType" />
+
+
 </module>

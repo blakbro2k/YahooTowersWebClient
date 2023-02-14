@@ -1,13 +1,10 @@
 package asg.games.yokel.client.ui.actors;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.utils.Json;
 
-import asg.games.yokel.objects.AbstractYokelObject;
 import asg.games.yokel.objects.YokelPlayer;
 import asg.games.yokel.utils.YokelUtilities;
 
@@ -17,11 +14,9 @@ public class GameNameLabel extends Table implements GameObject {
 
     private GameIcon icon;
     private Label playerName;
-    private final YokelPlayer _blankPlayer;
 
     public GameNameLabel(Skin skin){
         super(skin);
-        _blankPlayer = new YokelPlayer("", 1500, 0);
         //padTop(4);
         //padBottom(4);
         resetData();
@@ -31,15 +26,13 @@ public class GameNameLabel extends Table implements GameObject {
 
     @Override
     public void setData(String data) {
-        Gdx.app.log("GameNameLabel","data: " + data);
-
         YokelPlayer player = null;
         if(data != null) {
-            player = YokelPlayer.getObjectFromJson(YokelPlayer.class, data);
+            player = YokelUtilities.getObjectFromJsonString(YokelPlayer.class, data);
         }
 
         if(player == null) {
-            player = _blankPlayer;
+            player = YokelPlayer.BLANK_PLAYER;
         }
 
         setIcon(player.getIcon());
@@ -57,7 +50,7 @@ public class GameNameLabel extends Table implements GameObject {
 
     private void setNameTag(String name) {
         if(playerName == null){
-            playerName = new Label(_blankPlayer.getName(), getSkin());
+            playerName = new Label(YokelPlayer.BLANK_PLAYER.getName(), getSkin());
         }
         playerName.setText(name);
     }

@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<!DOCTYPE dialog SYSTEM "core/lml.dtd">
+<dialog style="dialog" closebutton="true">
+    <label>$getCurrentErrorMessage</label>
+</dialog>

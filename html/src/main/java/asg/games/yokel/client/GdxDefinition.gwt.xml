@@ -6,7 +6,6 @@
 	<inherits name="asg.games.yokel.client.YahooTowersClient" />
 	<inherits name="com.github.czyzby.autumn.gwt.GdxAutumnGwt" />
 	<inherits name="com.github.czyzby.autumn.mvc.GdxAutumnMvc" />
-	<inherits name="com.github.czyzby.websocket.GdxWebSocket" />
 	<inherits name="com.github.czyzby.websocket.GdxWebSocketGwt" />
 	<inherits name="com.github.czyzby.kiwi.GdxKiwi" />
 	<inherits name="com.github.czyzby.lml.GdxLml" />

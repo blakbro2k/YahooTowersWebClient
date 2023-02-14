@@ -1,5 +1,7 @@
 package asg.games.yokel.client.utils;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
@@ -15,6 +17,7 @@ import asg.games.yokel.utils.YokelUtilities;
 public class UIUtil {
     private static final UIUtil myInstance = new UIUtil();
     static final private String PREVIEW_TAG = "_preview";
+    private SoundUtil soundUtil;
 
     private YokelObjectFactory factory;
     public static UIUtil getInstance(){
@@ -30,11 +33,31 @@ public class UIUtil {
         return factory;
     }
 
+    public void setSoundUtil(SoundUtil soundUtil) {
+        if(soundUtil != null) {
+            this.soundUtil = soundUtil;
+        }
+    }
+
+    public float getSoundDuration(Sound sound) {
+        if(soundUtil != null) {
+            return soundUtil.getDuration(sound);
+        }
+        throw new GdxRuntimeException("Cannot get Sound Duration, was SoundtUtil initialized?");
+    }
+
     public Image getBlockImage(String blockName){
+        Gdx.app.log(this.getClass().getSimpleName(), "getBlockImage()=" + blockName);
         return (Image) getFactory().getUserInterfaceService().getActor(blockName);
     }
 
     public Image getPreviewBlockImage(String blockName){
+        Gdx.app.log(this.getClass().getSimpleName(), "getPreviewBlockImage()=" + blockName);
+        if(YokelUtilities.containsIgnoreCase(blockName, PREVIEW_TAG)) {
+            Gdx.app.log(this.getClass().getSimpleName(), "contains preview tag");
+            blockName = blockName.substring(0, blockName.indexOf(PREVIEW_TAG));
+            Gdx.app.log(this.getClass().getSimpleName(), "blockName=" + blockName);
+        }
         return getBlockImage(blockName + PREVIEW_TAG);
     }
 
@@ -43,6 +66,7 @@ public class UIUtil {
     }
 
     public Image getPreviewBlockImage(int blockId){
+        Gdx.app.log(this.getClass().getSimpleName(), "getPreviewBlockImage()=" + blockId);
         return getBlockImage(getFactory().getBlockImageName(blockId) + PREVIEW_TAG);
     }
 

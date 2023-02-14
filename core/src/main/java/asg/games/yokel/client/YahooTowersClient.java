@@ -1,5 +1,9 @@
 package asg.games.yokel.client;
 
+import com.badlogic.gdx.audio.Sound;
+
+import asg.games.yokel.client.service.SoundFXService;
+
 /** This class serves only as the application scanning root. Any classes in its package (or any of the sub-packages)
  * with proper Autumn MVC annotations will be found, scanned and initiated. */
 public class YahooTowersClient {

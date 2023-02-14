@@ -1,5 +1,6 @@
 package asg.games.yokel.client.factories;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
@@ -128,7 +129,10 @@ public class YokelObjectFactory implements Disposable {
     }
 
     public String getBlockImageName(int blockValue){
-         if(YokelBlockEval.hasBrokenFlag(blockValue)){
+        Gdx.app.log(this.getClass().getSimpleName(), "blockValue()=" + blockValue);
+        Gdx.app.log(this.getClass().getSimpleName(), "isBroken?()=" + YokelBlockEval.hasBrokenFlag(blockValue));
+
+        if(YokelBlockEval.hasBrokenFlag(blockValue)){
              return getBrokenBlockImageName(YokelBlockEval.getCellFlag(blockValue));
          }
         switch (blockValue) {

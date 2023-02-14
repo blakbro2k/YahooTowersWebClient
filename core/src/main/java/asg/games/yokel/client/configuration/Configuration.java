@@ -103,13 +103,6 @@ import asg.games.yokel.client.ui.provider.tags.GamePowersQueueLmlTagProvider;
 			syntax.addTagProvider(new GamePlayerIconLmlTagProvider(), "playericon");
 			syntax.addTagProvider(new GameClockLmlTagProvider(), "gameclock");
 			syntax.addTagProvider(new GameJoinWindowLmlTagProvider(), "gameJoinButton");
-
-			syntax.addAttributeProcessor(new GameBlockTypeLmlAttribute(), "blocktype");
-			syntax.addAttributeProcessor(new GameBlockAreaNumberLmlAttribute(), "areanumber");
-			syntax.addAttributeProcessor(new GameBlockAreaDataLmlAttribute(), "blockareadata");
-			syntax.addAttributeProcessor(new GameBlockPreviewLmlAttribute(), "preview");
-			syntax.addAttributeProcessor(new GamePieceOrientationLmlAttribute(), "left");
-
 			syntax.addTagProvider(new GameBoardLmlTagProvider(), "gameboard");
 			syntax.addTagProvider(new GameBlockAreaLmlTagProvider(), "gameblockarea");
 			syntax.addTagProvider(new GameBlockLmlTagProvider(), "gameblock");
@@ -117,5 +110,11 @@ import asg.games.yokel.client.ui.provider.tags.GamePowersQueueLmlTagProvider;
 			syntax.addTagProvider(new GamePowersQueueLmlTagProvider(), "gamepowers");
 			syntax.addTagProvider(new GamePlayerListLmlTagProvider(), "gameplayerlist");
 			syntax.addTagProvider(new GameLabelLmlTagProvider(), "gameLabel");
+
+			syntax.addAttributeProcessor(new GameBlockTypeLmlAttribute(), "blocktype");
+			syntax.addAttributeProcessor(new GameBlockAreaNumberLmlAttribute(), "areanumber");
+			syntax.addAttributeProcessor(new GameBlockAreaDataLmlAttribute(), "blockareadata");
+			syntax.addAttributeProcessor(new GameBlockPreviewLmlAttribute(), "preview");
+			syntax.addAttributeProcessor(new GamePieceOrientationLmlAttribute(), "left");
 		}
 	}

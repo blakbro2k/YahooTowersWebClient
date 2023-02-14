@@ -102,9 +102,9 @@ public class GameLabel extends Label {
             setVisible(true);
         }
     }
-/*
 
-
+     */
+    /*
     @Override
     public void setColor(Color color) {
         super.setColor(color);
@@ -129,12 +129,6 @@ public class GameLabel extends Label {
     public float getVelocity(){
         return velocity;
     }
-
-
-
-
-
-
 
     public void draw (Batch batch, float parentAlpha) {
         validate();

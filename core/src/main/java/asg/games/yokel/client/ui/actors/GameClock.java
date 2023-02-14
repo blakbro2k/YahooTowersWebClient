@@ -6,7 +6,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.TimeUtils;
 
-public class GameClock extends Table {
+import asg.games.yokel.objects.YokelClock;
+import asg.games.yokel.utils.YokelUtilities;
+
+public class GameClock extends Table implements GameObject {
     private final static String NO_DIGIT_NME = "no_digit";
     private final static String COLON_NME = "colon";
     private final static String DIGIT_NME = "_digit";
@@ -140,5 +143,14 @@ public class GameClock extends Table {
 
     private void setDigit_4(){
         digit_4.setDrawable(getDigit(getSeconds() % 10));
+    }
+
+    @Override
+    public void setData(String data) {
+        YokelClock clock = YokelUtilities.getObjectFromJsonString(YokelClock.class, data);
+        if(clock != null){
+            start = clock.getStart();
+            isRunning = clock.getIsRunning();
+        }
     }
 }

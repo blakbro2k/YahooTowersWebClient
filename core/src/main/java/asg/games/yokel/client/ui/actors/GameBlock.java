@@ -1,5 +1,6 @@
 package asg.games.yokel.client.ui.actors;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -56,11 +57,13 @@ public class GameBlock extends Table implements Pool.Poolable, GameObject, Copya
     }
 
     public void setImage(String blockName) {
+        Gdx.app.log(this.getClass().getSimpleName(), "start setImage()=" + blockName);
         if(isPreview){
             setImage(UIUtil.getInstance().getPreviewBlockImage(blockName));
         } else {
             setImage(UIUtil.getInstance().getBlockImage(blockName));
         }
+        Gdx.app.log(this.getClass().getSimpleName(), "end setImage()=" + blockName);
     }
 
     public void setImage(int blockValue) {
@@ -72,7 +75,7 @@ public class GameBlock extends Table implements Pool.Poolable, GameObject, Copya
     }
 
     public AnimatedImage getImage() {
-        return this.uiBlock;
+        return uiBlock;
     }
 
     public void setActive(boolean b) {
@@ -196,35 +199,53 @@ public class GameBlock extends Table implements Pool.Poolable, GameObject, Copya
     }
 
     public void update(int block, boolean isPreview) {
+        Gdx.app.log(this.getClass().getSimpleName(), "start update()");
+
         if(needsUpdate(block, isPreview)){
             GameBlock blockUi = UIUtil.getBlock(block, isPreview);
+            Gdx.app.log(this.getClass().getSimpleName(), "blockUi="+blockUi);
 
             if(blockUi != null){
                 AnimatedImage clone = blockUi.deepCopy().getImage();
+                Gdx.app.log(this.getClass().getSimpleName(), "clone=" + clone);
+
                 setImage(clone);
                 setName(blockUi.getName());
                 UIUtil.freeBlock(blockUi);
             }
         }
+        Gdx.app.log(this.getClass().getSimpleName(), "end update()");
     }
 
     private boolean needsUpdate(int block, boolean isPreview) {
+        Gdx.app.log(this.getClass().getSimpleName(), "start needsUpdate()");
+        Gdx.app.log(this.getClass().getSimpleName(), "block=" + block);
+
         String blockName = "";
         Image blockImage;
         boolean isBroken = YokelBlockEval.hasBrokenFlag(block);
+        Gdx.app.log(this.getClass().getSimpleName(), "isBroken=" + isBroken);
+
         block = UIUtil.getTrueBlock(block);
+        Gdx.app.log(this.getClass().getSimpleName(), "true block=" + block);
+
         if(isBroken) block = YokelBlockEval.addBrokenFlag(block);
 
         if (isPreview) {
+            Gdx.app.log(this.getClass().getSimpleName(), "#getting Preview image#");
             blockImage = UIUtil.getInstance().getPreviewBlockImage(block);
         } else {
+            Gdx.app.log(this.getClass().getSimpleName(), "#getting NON-Preview image#");
             blockImage = UIUtil.getInstance().getBlockImage(block);
         }
+
+        Gdx.app.log(this.getClass().getSimpleName(), "blockImage=" + blockImage);
 
         if (blockImage != null) {
             blockName = blockImage.getName();
         }
-
+        Gdx.app.log(this.getClass().getSimpleName(), "blockName=" + blockName);
+        Gdx.app.log(this.getClass().getSimpleName(), "end needsUpdate()= " + !YokelUtilities.equalsIgnoreCase(blockName, uiBlock.getName()));
         return !YokelUtilities.equalsIgnoreCase(blockName, uiBlock.getName());
     }
 
@@ -248,9 +269,16 @@ public class GameBlock extends Table implements Pool.Poolable, GameObject, Copya
 
     @Override
     public GameBlock deepCopy() {
+        System.out.println("start DeepCopy()");
+
         GameBlock deep = copy();
+        System.out.println("### this: \n" + this);
+        System.out.println("### deep: " + deep);
         deep.setImage(this.getImage());
         deep.setActive(this.isActive());
+        System.out.println("end DeepCopy()");
+
+
         return deep;
     }
 }

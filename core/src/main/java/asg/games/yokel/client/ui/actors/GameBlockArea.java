@@ -1,5 +1,6 @@
 package asg.games.yokel.client.ui.actors;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -123,7 +124,7 @@ public class GameBlockArea extends Stack {
         float height = block.getHeight();
         Rectangle bounds = new Rectangle(0, 0, width * YokelGameBoard.MAX_COLS, height * YokelGameBoard.MAX_PLAYABLE_ROWS);
         grid.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
-        grid.setCullingArea(bounds);
+        //grid.setCullingArea(bounds);
     }
 
     private GameBlock getClearBlock(){
@@ -153,11 +154,16 @@ public class GameBlockArea extends Stack {
     }
 
     private void setBlock(int block, int r, int c){
+        Gdx.app.log(this.getClass().getSimpleName(), "start setBlock()");
+
         GameBlock uiCell = uiBlocks.get(getCellAttrName(r, c));
+        Gdx.app.log(this.getClass().getSimpleName(), "uiCell=" + uiCell);
 
         if(uiCell != null){
             uiCell.update(block, isPreview);
         }
+        Gdx.app.log(this.getClass().getSimpleName(), "end setBlock()");
+
     }
 
     private boolean isDownCellFree(int column, int row) {
@@ -194,11 +200,6 @@ public class GameBlockArea extends Stack {
                 uiblock.act(delta * YokelUtilities.otof(0.03));
             }
         }
-    }
-
-    @Override
-    public void draw(Batch batch, float alpha){
-        super.draw(batch, alpha);
     }
 
     private boolean validatePiece(){
@@ -343,14 +344,18 @@ public class GameBlockArea extends Stack {
     }
 
     public void updateData(YokelGameBoard gameBoard) {
+        Gdx.app.log(this.getClass().getSimpleName(), "start updateData()");
+
         if(gameBoard != null) {
             this.board = gameBoard;
             update();
             setPieceSprite(gameBoard, board.fetchCurrentPieceFallTimer());
         }
+        Gdx.app.log(this.getClass().getSimpleName(), "end updateData()");
     }
 
     private void update(){
+        Gdx.app.log(this.getClass().getSimpleName(), "start update()");
         if(board != null){
             for(int r = 0; r < YokelGameBoard.MAX_PLAYABLE_ROWS; r++){
                 for(int c = 0; c < YokelGameBoard.MAX_COLS; c++){
@@ -358,13 +363,19 @@ public class GameBlockArea extends Stack {
                 }
             }
         }
+        Gdx.app.log(this.getClass().getSimpleName(), "end update()");
     }
 
     private int updateGameBoard(YokelGameBoard board, int r, int c) {
+        Gdx.app.log(this.getClass().getSimpleName(), "start updateGameBoard()");
+        int block = YokelBlock.CLEAR_BLOCK;
         if(board != null){
-            return board.getBlockValueAt(c, r);
+            Gdx.app.log(this.getClass().getSimpleName(), "board=" + board);
+            block = board.getBlockValueAt(c, r);
+            Gdx.app.log(this.getClass().getSimpleName(),"Setting block at c: " + c + ", r: " + r + " Block: " + block);
         }
-        return YokelBlock.CLEAR_BLOCK;
+        Gdx.app.log(this.getClass().getSimpleName(), "end updateGameBoard()");
+        return block;
     }
 
     void setActive(boolean b){
@@ -378,7 +389,7 @@ public class GameBlockArea extends Stack {
         }
     }
 
-    void setGameReady(boolean gameReady) {
+    public void setGameReady(boolean gameReady) {
         joinWindow.setIsGameReady(gameReady);
     }
 

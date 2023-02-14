@@ -12,6 +12,8 @@ import com.github.czyzby.autumn.mvc.stereotype.Asset;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 
 import asg.games.yokel.client.GlobalConstants;
+import asg.games.yokel.client.YahooTowersClient;
+import asg.games.yokel.client.utils.UIUtil;
 
 //import asg.games.yokel.utils.YokelUtilities;
 
@@ -42,9 +44,7 @@ public class SoundFXService {
     }
 
     public float getSoundDuration(Sound soundFile) {
-        //OpenALSound k = null;
-        //WebAudioAPISound e = null;
-        return -1;
+        return UIUtil.getInstance().getSoundDuration(soundFile);
     }
 
     /**
@@ -78,7 +78,8 @@ public class SoundFXService {
      * @param delay
      */
     private void playDelayedSound(Sound sound, String soundName, float delay){
-        Gdx.app.log("SoundFXService", "Playing  " + soundName + ": " + sound);
+        Gdx.app.log("SoundFXService", "Playing  " + soundName + ": " + sound + "-" + UIUtil.getInstance().getSoundDuration(sound));
+
         if(sound == null || isEmpty(soundName)) return;
         double lastPlayed = getLastPlayed(soundName);
         long now = TimeUtils.millis();

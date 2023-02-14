@@ -802,7 +802,7 @@ player_icon9
   orig: 31, 28
   offset: 0, 0
   index: -1
-power_Bash_block_preview
+power_bash_block_preview
   rotate: false
   xy: 927, 69
   size: 9, 8
