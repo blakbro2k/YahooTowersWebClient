@@ -9,8 +9,6 @@ import com.github.czyzby.websocket.data.WebSocketException;
 import com.github.czyzby.websocket.net.ExtendedNet;
 import com.github.czyzby.websocket.serialization.impl.ManualSerializer;
 
-import java.util.concurrent.TimeUnit;
-
 import asg.games.yokel.enums.ServerRequest;
 import asg.games.yokel.objects.YokelPlayer;
 import asg.games.yokel.objects.YokelTable;
@@ -25,7 +23,7 @@ public class ClientManager implements Disposable {
     //private static final com.github.czyzby.kiwi.log.Logger LOGGER = LoggerService.forClass(ClientManager.class);
     private final static String[] EMPTY_PAYLOAD = new String[]{""};
     private final static PayloadType EMPTY_PAYLOAD_TYPE = new PayloadType(ServerRequest.REQUEST_EMPTY, new String[]{""});
-    private final static long CONFIG_SLEEP_SECONDS = 1;
+    private final static int CONFIG_SLEEP_SECONDS = 1;
     private final static int DEFAULT_WAIT = 30;
     private WebSocket socket;
     private boolean isConnected  = false;;
@@ -70,6 +68,11 @@ public class ClientManager implements Disposable {
 
     private boolean initializeSockets() throws WebSocketException, InterruptedException {
         socket = ExtendedNet.getNet().newWebSocket(host, port);
+        //socket = WebSockets.newSocket(WebSockets.toWebSocketUrl(host, port));
+        socket.setSendGracefully(true);
+
+        //socket.addListener(new WebsocketListener() { ... });
+
         // Creating a new ManualSerializer - this replaces the default JsonSerializer and allows to use the
         // serialization mechanism from gdx-websocket-serialization library.
         final ManualSerializer serializer = new ManualSerializer();
@@ -218,7 +221,7 @@ public class ClientManager implements Disposable {
                 if(timeout > maxWait){
                     throw new InterruptedException("Timed out waiting for WebSocket Request.");
                 } else {
-                    TimeUnit.SECONDS.sleep(CONFIG_SLEEP_SECONDS);
+                    YokelUtilities.sleep(CONFIG_SLEEP_SECONDS);
                     ++timeout;
                 }
             }

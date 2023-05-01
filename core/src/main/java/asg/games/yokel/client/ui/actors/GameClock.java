@@ -148,9 +148,14 @@ public class GameClock extends Table implements GameObject {
     @Override
     public void setData(String data) {
         YokelClock clock = YokelUtilities.getObjectFromJsonString(YokelClock.class, data);
-        if(clock != null){
+        if (clock != null) {
             start = clock.getStart();
-            isRunning = clock.getIsRunning();
+            isRunning = clock.isRunning();
         }
+    }
+
+    @Override
+    public void setDebug(boolean debug) {
+        super.setDebug(YokelUtilities.setDebug(debug, digit_1, digit_2, digit_3, digit_4, colon));
     }
 }

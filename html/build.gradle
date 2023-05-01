@@ -25,7 +25,7 @@ gwt {
     compiler.disableCastChecking = true
 
     //// The next line can be useful to uncomment if you want output that hasn't been obfuscated.
-	compiler.style = org.wisepersist.gradle.plugins.gwt.Style.DETAILED
+	compiler.style = Style.DETAILED
 }
 
 dependencies {
@@ -39,16 +39,16 @@ dependencies {
     api "com.crashinvaders.lml:gdx-kiwi:$lmlVersion:sources"
     api "com.crashinvaders.lml:gdx-lml-vis:$lmlVersion:sources"
     api "com.crashinvaders.lml:gdx-lml:$lmlVersion:sources"
-    //implementation "com.crashinvaders.lml:gdx-websocket-gwt:$lmlVersion:sources"
-    api "com.github.MrStahlfelge.gdx-websockets:core:$websocketVersion:sources"
-    api "com.github.MrStahlfelge.gdx-websockets:html:$websocketVersion"
-    api "com.github.MrStahlfelge.gdx-websockets:html:$websocketVersion:sources"
+    api "com.crashinvaders.lml:gdx-websocket:$lmlVersion:sources"
+    api "com.crashinvaders.lml:gdx-websocket-gwt:$lmlVersion"
+    api "com.crashinvaders.lml:gdx-websocket-gwt:$lmlVersion:sources"
+    api "com.crashinvaders.lml:gdx-websocket-serialization:$lmlVersion:sources"
     api "com.github.tommyettinger:regexodus:$regExodusVersion:sources"
     api "com.kotcrab.vis:vis-ui:$visUiVersion:sources"
     api "com.rafaskoberg.gdx:typing-label:$typingLabelVersion:sources"
 
-    api fileTree(dir:"U:\\yokelTowers\\core\\build\\libs", include: "yokel-towers-$yokelVersion-sources.jar")
-	implementation project(':core')
+    api fileTree(dir: "U:\\yokelTowers\\core\\build\\libs", include: "yokel-towers-$yokelVersion-sources.jar")
+    implementation project(':core')
 
 //// You can use the lines below instead of the "com.badlogicgames.gdx:gdx-backend-gwt" dependencies.
 //// If you do, follow the steps at https://github.com/tommyettinger/gdx-backends#gwt-290-support
@@ -60,6 +60,7 @@ dependencies {
 
 import org.akhikhl.gretty.AppBeforeIntegrationTestTask
 import org.wisepersist.gradle.plugins.gwt.GwtSuperDev
+import org.wisepersist.gradle.plugins.gwt.Style
 
 gretty.httpPort = 8080
 gretty.resourceBase = project.buildDir.path + "/gwt/draftOut"

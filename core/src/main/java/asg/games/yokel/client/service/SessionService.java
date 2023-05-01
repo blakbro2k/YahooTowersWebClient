@@ -11,13 +11,16 @@ import com.github.czyzby.autumn.annotation.Inject;
 import com.github.czyzby.autumn.mvc.component.ui.InterfaceService;
 import com.github.czyzby.autumn.mvc.component.ui.controller.ViewController;
 import com.github.czyzby.kiwi.log.Logger;
+import com.github.czyzby.kiwi.log.LoggerService;
 import com.github.czyzby.kiwi.util.gdx.asset.Disposables;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 import com.github.czyzby.websocket.data.WebSocketException;
 
 import asg.games.yokel.client.controller.dialog.ErrorController;
+import asg.games.yokel.client.factories.Log4LibGDXLogger;
 import asg.games.yokel.client.managers.ClientManager;
+import asg.games.yokel.client.utils.LogUtil;
 import asg.games.yokel.enums.ServerRequest;
 import asg.games.yokel.managers.GameManager;
 import asg.games.yokel.objects.YokelKeyMap;
@@ -27,18 +30,26 @@ import asg.games.yokel.utils.PayloadUtil;
 import asg.games.yokel.utils.YokelUtilities;
 
 
-/** Manages an authorized user's current session
+/**
+ * Manages an authorized user's current session
  * Includes the client and communicates with the server
  *
- * @author Blakbro2k */
+ * @author Blakbro2k
+ */
 @Component
 public class SessionService {
     long lastBlockDown = 0;
     private boolean downKeyPressed = false;
 
-    @Inject private InterfaceService interfaceService;
-    @Inject private UserInterfaceService userInterfaceService;
-    @Inject private SoundFXService soundFXService;
+    @Inject
+    private InterfaceService interfaceService;
+    @Inject
+    private UserInterfaceService userInterfaceService;
+    @Inject
+    private SoundFXService soundFXService;
+    @Inject
+    private LoggerService loggerService;
+    Log4LibGDXLogger logger;
 
     private final String CONNECT_MSG = "Connecting...";
     private ClientManager client;
@@ -49,27 +60,29 @@ public class SessionService {
     private String userName;
     private YokelPlayer player;
     private ObjectMap<String, ViewController> views = GdxMaps.newObjectMap();
-    private YokelKeyMap keyMap = new YokelKeyMap();
+    private final YokelKeyMap keyMap = new YokelKeyMap();
     private String currentErrorMessage;
 
     @Initiate
     public void initialize() throws WebSocketException {
-        //logger.enter("initialize");
+        logger = LogUtil.getLogger(loggerService, this.getClass());
+        logger.setDebug();
+        logger.enter("initialize");
         client = new ClientManager("localhost", 8000);
 
         //TODO: Create PHPSESSION token6
         //TODO: Create CSRF Token
         //TODO: Get host and port from configuration or preferences
-        //logger.exit("initialize");
+        logger.exit("initialize");
     }
 
     @Destroy
     public void destroy() {
-        //logger.enter("destroy");
+        logger.enter("destroy");
         closeClient();
         Disposables.disposeOf(currentTable);
         views.clear();
-        //logger.exit("destroy");
+        logger.exit("destroy");
     }
 
     public void closeClient() {
@@ -77,14 +90,17 @@ public class SessionService {
     }
 
     public boolean connectToServer() throws InterruptedException {
+        logger.enter("connectToServer");
         return client.connectToServer();
     }
 
     public void registerPlayer() throws InterruptedException {
+        logger.enter("registerPlayer");
         if(player == null) throw new InterruptedException("No Authorized player in current session!");
         client.requestPlayerRegister(getCurrentPlayer());
+        logger.exit("registerPlayer");
     }
-/*
+    /*
     public Array<YokelLounge> getAllLounges() throws InterruptedException {
         client.requestLounges();
         client.waitForOneRequest();
@@ -92,9 +108,12 @@ public class SessionService {
     }*/
 
     public Array<YokelPlayer> getAllPlayers() throws InterruptedException {
+        logger.enter("getAllPlayers");
         client.requestPlayers();
         client.waitForOneRequest();
-        return PayloadUtil.getAllRegisteredPlayersRequest(client.getNextRequest().getPayload());
+        String[] payload = client.getNextRequest().getPayload();
+        logger.exit("getAllPlayers", payload);
+        return PayloadUtil.getAllRegisteredPlayersRequest(payload);
     }
 
     public void requestTableSitRequest(String tableNumber, int seatNumber) throws InterruptedException {
@@ -268,9 +287,9 @@ public class SessionService {
     }
 
     public void handlePlayerSimulatedInput(GameManager game){
-        //logger.enter("handleLocalPlayerInput");
+        logger.enter("handleLocalPlayerInput");
         int currentSeat = getCurrentSeat();
-        //logger.debug("currentSeat={}", currentSeat);
+        logger.debug("currentSeat={}", currentSeat);
 
         if(game == null || currentSeat < 0) return;
 
@@ -288,7 +307,6 @@ public class SessionService {
         if (Gdx.input.isKeyJustPressed(Input.Keys.V)) {
             game.testGameBoard(currentSeat);
         }
-
 
         if (Gdx.input.isKeyJustPressed(keyMap.getRightKey())) {
             game.handleMoveRight(currentSeat);
@@ -343,14 +361,14 @@ public class SessionService {
         if (Gdx.input.isKeyJustPressed(keyMap.getTarget8())) {
             game.handleTargetAttack(currentSeat,8);
         }*/
-        //logger.exit("handleLocalPlayerInput");
+        logger.exit("handleLocalPlayerInput");
     }
 
     public void handlePlayerInputToServer() throws InterruptedException {
-        //logger.enter("handlePlayerInput");
+        logger.enter("handlePlayerInput");
 
         int currentSeat = getCurrentSeat();
-        //logger.debug("currentSeat={}", currentSeat);
+        logger.debug("currentSeat={}", currentSeat);
 
         if (Gdx.input.isKeyJustPressed(keyMap.getRightKey())) {
             asyncMoveRightRequest();
@@ -397,7 +415,7 @@ public class SessionService {
         if (Gdx.input.isKeyJustPressed(keyMap.getTarget8())) {
             asyncTargetAttackRequest(currentSeat,8);
         }
-        //logger.exit("handlePlayerInput");
+        logger.exit("handlePlayerInput");
     }
 
     public void handleException(Logger logger, Throwable throwable) {
@@ -420,6 +438,6 @@ public class SessionService {
     }
 
     public void showError(Throwable throwable) {
-        showError(null, throwable);
+        showError(logger, throwable);
     }
 }

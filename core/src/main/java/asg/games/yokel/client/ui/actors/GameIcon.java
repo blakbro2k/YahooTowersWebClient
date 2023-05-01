@@ -49,15 +49,16 @@ public class GameIcon extends ImageButton implements Disposable {
     }
 
     private void setDrawable(){
-        if(currentIconNumber > MAX_ICON) currentIconNumber = MAX_ICON;
-        if(currentIconNumber < NO_ICON) currentIconNumber = NO_ICON;
+        if (currentIconNumber > MAX_ICON) currentIconNumber = MAX_ICON;
+        if (currentIconNumber < NO_ICON) currentIconNumber = NO_ICON;
         String key = ICON_ATTR_NAME + currentIconNumber;
         ImageButtonStyle style = styles.get(key);
-        if(style == null){
+        if (style == null) {
             style = getGameIconStyle(getSkin(), currentIconNumber);
             styles.put(key, style);
         }
-        YokelUtilities.setSizeFromDrawable(this, style.imageUp);
+        YokelUtilities.setWidthFromDrawable(this, style.imageUp);
+        YokelUtilities.setHeightFromDrawable(this, style.imageUp);
         setStyle(style);
     }
 

@@ -16,23 +16,37 @@
     <set-property name="gwt.logging.enabled" value="FALSE"/>            # To disable logging
     <set-property name="gwt.logging.consoleHandler" value="DISABLED"/>  # To disable a default Handler
     -->
-    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.client.configuration" />
-    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.client.controller" />
-    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.client.factories" />
-    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.client.service" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="asg.games.yokel.client.configuration" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="asg.games.yokel.client.controller" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="asg.games.yokel.client.factories" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="asg.games.yokel.client.service" />
     <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.client.ui" />
-    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.client.utils" />
-    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.client.ui.provider.tags" />
-    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.objects.AbstractYokelObject" />
-    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.objects.YokelPlayer" />
-    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yokel.objects.YokelObject" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="asg.games.yokel.client.utils" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="asg.games.yokel.client.ui.provider.tags" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="asg.games.yokel.client.managers" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="asg.games.yokel.objects.AbstractYokelObject" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="asg.games.yokel.objects.YokelPlayer" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="asg.games.yokel.objects.YokelObject" />
     <extend-configuration-property name="gdx.reflect.include" value="java.lang.Long" />
 
     <!-- Sometimes you'll get a cryptic "Couldn't find Type for class" GWT error - this is because Autumn relies on reflection:
     some class is expected in the reflection pool, but cannot be found. Simply including the class should solve the issue. -->
-    <extend-configuration-property name="gdx.reflect.include" value="com.badlogic.gdx.audio.Sound" />
-    <extend-configuration-property name="gdx.reflect.include" value="com.badlogic.gdx.graphics.g2d.TextureAtlas" />
-    <extend-configuration-property name="gdx.reflect.include" value="com.github.czyzby.autumn.mvc.component.preferences.dto" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.badlogic.gdx.audio.Sound" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.badlogic.gdx.graphics.g2d.TextureAtlas" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.github.czyzby.autumn.mvc.component.preferences.dto" />
     <extend-configuration-property name="gdx.reflect.include" value="com.badlogic.gdx.ApplicationAdapter" />
     <extend-configuration-property name="gdx.reflect.include" value="com.github.czyzby.lml.parser.impl.tag.actor.AbstractActorLmlTag" />
     <extend-configuration-property name="gdx.reflect.include" value="com.github.czyzby.lml.parser.impl.tag.actor.AbstractNonParentalActorLmlTag" />

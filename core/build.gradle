@@ -8,10 +8,9 @@ dependencies {
 	api "com.crashinvaders.lml:gdx-kiwi:$lmlVersion"
 	api "com.crashinvaders.lml:gdx-lml-vis:$lmlVersion"
 	api "com.crashinvaders.lml:gdx-lml:$lmlVersion"
+	api "com.crashinvaders.lml:gdx-websocket:$lmlVersion"
 	api "com.crashinvaders.lml:gdx-websocket-serialization:$lmlVersion"
-	//api "com.crashinvaders.lml:gdx-websocket-common:$lmlVersion"
-	//api "com.crashinvaders.lml:gdx-websocket:$lmlVersion"
-	api "com.github.MrStahlfelge.gdx-websockets:core:$websocketVersion"
+
 	api "com.github.tommyettinger:regexodus:$regExodusVersion"
 	api "com.kotcrab.vis:vis-ui:$visUiVersion"
 	api "com.rafaskoberg.gdx:typing-label:$typingLabelVersion"

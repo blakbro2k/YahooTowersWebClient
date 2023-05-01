@@ -24,9 +24,11 @@ sourceCompatibility = 1.8
 
 dependencies {
 	implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+	implementation 'com.badlogicgames.gdx:gdx-tools:1.5.4'
 	implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
 	implementation "com.crashinvaders.lml:gdx-autumn-fcs:$lmlVersion"
 	implementation "com.github.MrStahlfelge.gdx-websockets:common:$websocketVersion"
+
 	implementation project(':core')
 }
 

@@ -1,6 +1,5 @@
 package asg.games.yokel.client.utils;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -40,33 +39,32 @@ public class UIUtil {
     }
 
     public float getSoundDuration(Sound sound) {
-        if(soundUtil != null) {
+        if (soundUtil != null) {
             return soundUtil.getDuration(sound);
         }
         throw new GdxRuntimeException("Cannot get Sound Duration, was SoundtUtil initialized?");
     }
 
-    public Image getBlockImage(String blockName){
-        Gdx.app.log(this.getClass().getSimpleName(), "getBlockImage()=" + blockName);
+    public Image getBlockImage(String blockName) {
         return (Image) getFactory().getUserInterfaceService().getActor(blockName);
     }
 
-    public Image getPreviewBlockImage(String blockName){
-        Gdx.app.log(this.getClass().getSimpleName(), "getPreviewBlockImage()=" + blockName);
-        if(YokelUtilities.containsIgnoreCase(blockName, PREVIEW_TAG)) {
-            Gdx.app.log(this.getClass().getSimpleName(), "contains preview tag");
+    public Image getBrokenBlockImage(String brokenBlockName) {
+        return (Image) getFactory().getUserInterfaceService().getActor(brokenBlockName);
+    }
+
+    public Image getPreviewBlockImage(String blockName) {
+        if (YokelUtilities.containsIgnoreCase(blockName, PREVIEW_TAG)) {
             blockName = blockName.substring(0, blockName.indexOf(PREVIEW_TAG));
-            Gdx.app.log(this.getClass().getSimpleName(), "blockName=" + blockName);
         }
         return getBlockImage(blockName + PREVIEW_TAG);
     }
 
-    public Image getBlockImage(int blockId){
+    public Image getBlockImage(int blockId) {
         return getBlockImage(getFactory().getBlockImageName(blockId));
     }
 
-    public Image getPreviewBlockImage(int blockId){
-        Gdx.app.log(this.getClass().getSimpleName(), "getPreviewBlockImage()=" + blockId);
+    public Image getPreviewBlockImage(int blockId) {
         return getBlockImage(getFactory().getBlockImageName(blockId) + PREVIEW_TAG);
     }
 
@@ -90,16 +88,20 @@ public class UIUtil {
         factory.freeObject(block);
     }
 
-    public static GameBlock getBlock(int block){
+    public static GameBlock getBlock(int block) {
         return UIUtil.getInstance().getGameBlock(block, false);
     }
 
-    public static GameBlock getBlock(int block, boolean isPreview){
+    public static GameBlock getBlock(int block, boolean isPreview) {
         return UIUtil.getInstance().getGameBlock(block, isPreview);
     }
 
+    public static Image getBrokenBlock(String brokenBlockName) {
+        return UIUtil.getInstance().getBrokenBlockImage(brokenBlockName);
+    }
+
     public static void setActorNameFromActor(Actor actor, Actor actorToName) {
-        if(actor != null && actorToName != null){
+        if (actor != null && actorToName != null) {
             actor.setName(actorToName.getName());
         }
     }
@@ -110,10 +112,7 @@ public class UIUtil {
 
     public static void updateGameBlock(GameBlock original, int block, boolean isPreview) {
         GameBlock incoming = getBlock(block, isPreview);
-        //System.out.println("original=" + original);
-        //System.out.println("incoming=" + incoming);
         if(original != null && !original.equals(incoming)){
-            //System.out.println("equals?=" + original.equals(incoming));
             freeBlock(original);
             original = incoming;
         } else {

@@ -5,12 +5,10 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.backends.gwt.GwtApplication;
 import com.badlogic.gdx.backends.gwt.GwtApplicationConfiguration;
-import com.badlogic.gdx.backends.gwt.webaudio.WebAudioAPIManager;
 import com.badlogic.gdx.backends.gwt.webaudio.WebAudioAPISound;
 import com.github.czyzby.autumn.gwt.scanner.GwtClassScanner;
 import com.github.czyzby.autumn.mvc.application.AutumnApplication;
 import com.github.czyzby.websocket.GwtWebSockets;
-import com.google.gwt.core.client.JavaScriptObject;
 
 import asg.games.yokel.client.YahooTowersClient;
 import asg.games.yokel.client.utils.SoundUtil;
@@ -35,33 +33,24 @@ public class GwtLauncher extends GwtApplication {
 	private static class GwtSoundUtil extends SoundUtil {
 		@Override
 		protected float getDuration(Sound soundFile) {
-			if(soundFile instanceof WebAudioAPISound){
-				WebAudioAPIManager manager = new WebAudioAPIManager();
-				//JavaScriptObject context = manager.getAudioContext();
-
-				//getDurationFromJSFile(soundFile);
+			if (soundFile instanceof WebAudioAPISound) {
 				Gdx.app.log("SoundFXService", "Playing  " + soundFile.getClass());
-				return -1;
+				return getDurationFromJSFile((WebAudioAPISound) soundFile);
 			} else {
 				return -1;
 			}
 		}
 
-		private native void getDurationFromJSFile(String filePath) /*{
-			function getDuration(src) {
-			return new Promise(function(resolve) {
-				var audio = new Audio();
-				$(audio).on("loadedmetadata", function(){
-					resolve(audio.duration);
-				});
-				audio.src = src;
-				});
-			}
-			getDuration(filePath)
-					.then(function(length) {
-				console.log('I got length ' + length);
-				document.getElementById("duration").textContent = length;
-			});
+		private native int getDurationFromJSFile(WebAudioAPISound sound) /*{
+			//Console.log("getDurationFromJSFile");
+			//Console.log("audioBuffer" + audioBuffer);
+			//var audioBuffer = sound::audioBuffer;
+
+			var duration = -10
+			//if(audioBuffer != null) {
+				//duration = audioBuffer.duration;
+			//}
+			return duration;
 		}*/;
 	}
 }

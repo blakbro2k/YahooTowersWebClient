@@ -1,6 +1,5 @@
 package asg.games.yokel.client.service;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -21,8 +20,6 @@ import com.github.czyzby.kiwi.util.gdx.asset.Disposables;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
-
-import java.util.Arrays;
 
 import asg.games.yokel.client.controller.LoadingController;
 import asg.games.yokel.client.factories.YokelObjectFactory;
@@ -180,12 +177,6 @@ public class UserInterfaceService {
     }
 
     public Actor getActor(String name) {
-        Gdx.app.log(this.getClass().getSimpleName(), "start getActor()=" + uiAssetMap);
-        Gdx.app.log(this.getClass().getSimpleName(), "##" + uiAssetMap.get(name));
-        Gdx.app.log(this.getClass().getSimpleName(), "#name#" + name);
-        Gdx.app.log(this.getClass().getSimpleName(), "##" + Arrays.toString(YokelUtilities.toStringArray(YokelUtilities.getMapKeys(uiAssetMap))));
-        Gdx.app.log(this.getClass().getSimpleName(), "##" + Arrays.toString(YokelUtilities.toStringArray(YokelUtilities.getMapValues(uiAssetMap))));
-
         return uiAssetMap.get(name);
     }
 

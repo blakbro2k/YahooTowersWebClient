@@ -1,6 +1,5 @@
 package asg.games.yokel.client.factories;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
@@ -50,7 +49,7 @@ public class YokelObjectFactory implements Disposable {
 
     @Override
     public void dispose() {
-        //yokelGameBlockPool.clear();
+        yokelGameBlockPool.clear();
     }
 
     // YokelBlock pool.
@@ -63,6 +62,7 @@ public class YokelObjectFactory implements Disposable {
 
     public GameBlock getGameBlock(int blockType, boolean isPreview){
         GameBlock block = yokelGameBlockPool.obtain();
+        //block.setUseActualImageSize(false);
 
         boolean isBroken = YokelBlockEval.hasBrokenFlag(blockType);
         if(blockType != YokelBlock.CLEAR_BLOCK){
@@ -75,18 +75,37 @@ public class YokelObjectFactory implements Disposable {
 
         block.setActive(true);
         block.setPreview(isPreview);
-        if(isBroken) blockType = YokelBlockEval.addBrokenFlag(blockType);
+        if (isBroken) blockType = YokelBlockEval.addBrokenFlag(blockType);
         block.setImage(blockType);
         return block;
     }
 
-    public void freeObject(GameBlock block){
-        if(block != null){
+    public void freeObject(GameBlock block) {
+        if (block != null) {
             yokelGameBlockPool.free(block);
         }
     }
 
-    public int getBlockNumber(String blockName){
+    public static String getBrokenBlockName(int block) {
+        switch (block) {
+            case YokelBlock.Y_BLOCK:
+                return "Y_block_broken";
+            case YokelBlock.A_BLOCK:
+                return "O_block_broken";
+            case YokelBlock.H_BLOCK:
+                return "K_block_broken";
+            case YokelBlock.Op_BLOCK:
+                return "E_block_broken";
+            case YokelBlock.Oy_BLOCK:
+                return "L_block_broken";
+            case YokelBlock.EX_BLOCK:
+                return "bash_block_broken";
+            default:
+                return "clear_block";
+        }
+    }
+
+    public int getBlockNumber(String blockName) {
         switch (blockName) {
             case "Y_block":
             case "power_Y_block":
@@ -108,7 +127,7 @@ public class YokelObjectFactory implements Disposable {
             case "power_L_block":
             case "defense_L_block":
                 return YokelBlock.Oy_BLOCK;
-            case "Bash_block":
+            case "bash_block":
             case "power_bash_block":
             case "defense_bash_block":
                 return YokelBlock.EX_BLOCK;
@@ -129,9 +148,6 @@ public class YokelObjectFactory implements Disposable {
     }
 
     public String getBlockImageName(int blockValue){
-        Gdx.app.log(this.getClass().getSimpleName(), "blockValue()=" + blockValue);
-        Gdx.app.log(this.getClass().getSimpleName(), "isBroken?()=" + YokelBlockEval.hasBrokenFlag(blockValue));
-
         if(YokelBlockEval.hasBrokenFlag(blockValue)){
              return getBrokenBlockImageName(YokelBlockEval.getCellFlag(blockValue));
          }
@@ -149,7 +165,7 @@ public class YokelObjectFactory implements Disposable {
             case YokelBlock.Oy_BLOCK:
                 return "L_block";
             case YokelBlock.EX_BLOCK:
-                return "Bash_block";
+                return "bash_block";
             case YokelBlock.TOP_MIDAS:
             case YokelBlock.ACTIVE_TOP_MIDAS:
                 return "top_midas";
@@ -211,7 +227,7 @@ public class YokelObjectFactory implements Disposable {
             case YokelBlock.DEFENSIVE_BASH_BLOCK_MINOR:
             case YokelBlock.DEFENSIVE_BASH_BLOCK_REGULAR:
             case YokelBlock.DEFENSIVE_BASH_BLOCK_MEGA:
-                return "defense_Bash_block";
+                return "defense_bash_block";
             default:
                 return "";
         }
@@ -220,17 +236,17 @@ public class YokelObjectFactory implements Disposable {
     private String getBrokenBlockImageName(int cellFlag) {
         switch (cellFlag) {
             case YokelBlock.Y_BLOCK:
-                return "Y_block_Broken";
+                return "Y_block_broken";
             case YokelBlock.A_BLOCK:
-                return "O_block_Broken";
+                return "O_block_broken";
             case YokelBlock.H_BLOCK:
-                return "K_block_Broken";
+                return "K_block_broken";
             case YokelBlock.Op_BLOCK:
-                return "E_block_Broken";
+                return "E_block_broken";
             case YokelBlock.Oy_BLOCK:
-                return "L_block_Broken";
+                return "L_block_broken";
             case YokelBlock.EX_BLOCK:
-                return "Bash_block_Broken";
+                return "bash_block_broken";
             default:
                 return "";
         }

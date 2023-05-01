@@ -11,6 +11,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 
+import asg.games.yokel.utils.YokelUtilities;
+
 /*******************************************************************************
  * Copyright 2011 See AUTHORS file.
  *
@@ -110,12 +112,17 @@ public class GameJoinWidget extends Table {
         }
     }
 
+    @Override
+    public void setDebug(boolean debug) {
+        super.setDebug(YokelUtilities.setDebug(debug, joinButton, startButton, spaceButton, waitingLabel, readyLabel));
+    }
+
     private void setButtonsVisibility(boolean isVisible) {
         joinButton.setVisible(isVisible);
         spaceButton.setVisible(isVisible);
     }
 
-    private void setUpClickListener(){
+    private void setUpClickListener() {
         switchJoinText = new ClickListener() {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 handleJoinButtonClick();

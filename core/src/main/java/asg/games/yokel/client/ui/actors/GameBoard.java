@@ -1,6 +1,5 @@
 package asg.games.yokel.client.ui.actors;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -102,19 +101,17 @@ public class GameBoard extends Table implements GameObject {
     }
 
     public void update(YokelGameBoard board){
-        Gdx.app.log(this.getClass().getSimpleName(), "startUpdate()");
         if(board != null){
             area.updateData(board);
             powers.updateQueue(blockToGameBlocks(board.getPowers()));
             setUpNext(board);
         }
-        Gdx.app.log(this.getClass().getSimpleName(), "endUpdate()");
     }
 
     private void setUpNext(YokelGameBoard board){
         YokelPiece piece = board.fetchCurrentNextPiece();
         if(piece != null){
-            next.setData(piece.toString());
+            next.setData(piece.getJsonString());
         }
     }
 
@@ -135,7 +132,7 @@ public class GameBoard extends Table implements GameObject {
     public void sitPlayerDown(YokelPlayer player){
         if(player != null){
             area.sitPlayerDown(player);
-            setPlayerLabel(player.toString());
+            setPlayerLabel(player.getJsonString());
         }
         setUpBoard();
     }

@@ -52,7 +52,7 @@ public class GamePiece extends Table implements GameObject {
     }
 
     public void setDebug(boolean enabled) {
-        super.setDebug(enabled);
+        super.setDebug(YokelUtilities.setDebug(enabled, top, mid, bot));
     }
 
     @Override

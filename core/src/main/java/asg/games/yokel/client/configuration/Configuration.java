@@ -93,6 +93,7 @@ import asg.games.yokel.client.ui.provider.tags.GamePowersQueueLmlTagProvider;
 			VisUI.load(scaleService.getScale());
 			// Registering VisUI skin with "default" name - this skin will be the default one for all LML widgets:
 			skinService.addSkin("default", VisUI.getSkin());
+			skinService.addSkin("font-small", VisUI.getSkin());
 			// Thanks to this setting, only methods annotated with @LmlAction will be available in views, significantly
 			// speeding up method look-up:
 			Lml.EXTRACT_UNANNOTATED_METHODS = false;
