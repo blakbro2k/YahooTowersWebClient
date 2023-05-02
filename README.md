@@ -4,6 +4,10 @@ A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://git
 
 Project template included launchers with [Autumn](https://github.com/crashinvaders/gdx-lml/tree/master/autumn) class scanners and a basic [Autumn MVC](https://github.com/czyzby/gdx-lml/tree/master/mvc) application.
 
+Here is a demo of the client
+Yahoo! Towers alpha (https://blakbro2k.itch.io/yahoo-towers-dev)
+
+# Wish to contribute? Great to hear! below are acouple of commands you can use when you clone the project.
 ## Gradle
 
 This project uses [Gradle](http://gradle.org/) to manage dependencies.
