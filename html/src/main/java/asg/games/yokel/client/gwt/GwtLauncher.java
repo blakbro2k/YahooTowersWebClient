@@ -18,8 +18,7 @@ import asg.games.yokel.client.utils.UIUtil;
 public class GwtLauncher extends GwtApplication {
 	@Override
 	public GwtApplicationConfiguration getConfig() {
-		GwtApplicationConfiguration configuration = new GwtApplicationConfiguration(YahooTowersClient.WIDTH, YahooTowersClient.HEIGHT);
-		return configuration;
+		return new GwtApplicationConfiguration(YahooTowersClient.WIDTH, YahooTowersClient.HEIGHT);
 	}
 
 	@Override
@@ -33,24 +32,30 @@ public class GwtLauncher extends GwtApplication {
 	private static class GwtSoundUtil extends SoundUtil {
 		@Override
 		protected float getDuration(Sound soundFile) {
+			int duration = -1;
 			if (soundFile instanceof WebAudioAPISound) {
-				Gdx.app.log("SoundFXService", "Playing  " + soundFile.getClass());
-				return getDurationFromJSFile((WebAudioAPISound) soundFile);
-			} else {
-				return -1;
+				Gdx.app.log("SoundFXService", "Playing  " + soundFile.getClass() + ":");
+				WebAudioAPISound waapi = (WebAudioAPISound) soundFile;
+				try {
+					duration = getDurationFromJSFile(waapi);
+				} catch (Exception e) {
+					Gdx.app.log("SoundFXService", "Logging unknown JS exception  " + e.getMessage());
+					Gdx.app.log("SoundFXService", "Logging unknown JS exception  " + e.getCause());
+				}
 			}
+			return duration;
 		}
 
-		private native int getDurationFromJSFile(WebAudioAPISound sound) /*{
-			//Console.log("getDurationFromJSFile");
-			//Console.log("audioBuffer" + audioBuffer);
-			//var audioBuffer = sound::audioBuffer;
+		public native int getDurationFromJSFile(WebAudioAPISound sound) /*-{
+			// Get the Java values here, for readability
+			var audioContext = sound.@com.badlogic.gdx.backends.gwt.webaudio.WebAudioAPISound::audioContext;
+			var audioBuffer = sound.@com.badlogic.gdx.backends.gwt.webaudio.WebAudioAPISound::audioBuffer;
 
-			var duration = -10
-			//if(audioBuffer != null) {
-				//duration = audioBuffer.duration;
-			//}
+			var duration = -1
+			if(audioBuffer != null) {
+				duration = audioBuffer.duration;
+			}
 			return duration;
-		}*/;
+		}-*/;
 	}
 }

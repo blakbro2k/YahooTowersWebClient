@@ -47,7 +47,7 @@ public class GameBlockArea extends Stack {
     private int boardNumber;
     private YokelGameBoard board;
 
-    private Skin skin;
+    private final Skin skin;
 
     private Table grid;
     private Table bgNumber;
@@ -247,7 +247,7 @@ public class GameBlockArea extends Stack {
     }
 
     private static class PieceDrawable extends Actor {
-        private GameBlock[] blocks = new GameBlock[3];
+        private final GameBlock[] blocks = new GameBlock[3];
         private int row;
         private int col;
         private boolean isActive;

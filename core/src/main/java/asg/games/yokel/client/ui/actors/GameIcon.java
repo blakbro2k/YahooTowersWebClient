@@ -18,7 +18,7 @@ public class GameIcon extends ImageButton implements Disposable {
     private static final int START_ICON = 1;
     private static final int MAX_ICON = 18;
     private int currentIconNumber = 0;
-    private ObjectMap<String, ImageButtonStyle> styles = GdxMaps.newObjectMap();
+    private final ObjectMap<String, ImageButtonStyle> styles = GdxMaps.newObjectMap();
 
     public GameIcon(ImageButtonStyle imageButtonStyle, Skin skin){
         super(imageButtonStyle);

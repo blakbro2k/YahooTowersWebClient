@@ -25,12 +25,12 @@ public class GameBoard extends Table implements GameObject {
     private GamePiece next;
     private GamePowersQueue powers;
     private GameBlockArea area;
-    private GamePiece clearPiece;
+    private final GamePiece clearPiece;
 
-    private float blockWidth;
-    private float blockPrevWidth;
-    private float blockHeight;
-    private float blockPrevHeight;
+    private final float blockWidth;
+    private final float blockPrevWidth;
+    private final float blockHeight;
+    private final float blockPrevHeight;
 
     private boolean isLeftBar = true;
 

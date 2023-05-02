@@ -32,17 +32,26 @@ public class ClientViewTestController extends ApplicationAdapter implements View
     @Inject
     private UserInterfaceService uiService;
     //@Inject private SessionService sessionService;
-    @Inject private InterfaceService interfaceService;
-    @Inject private MusicService musicService;
-    @Inject private LoadingController assetController;
+    @Inject
+    private InterfaceService interfaceService;
+    @Inject
+    private MusicService musicService;
+    @Inject
+    private LoadingController assetController;
 
-    @LmlActor("1:area") private GameBoard area1;
-    @LmlActor("2:area") private GameBoard area2;
-    @LmlActor("3:area") private GameBoard area3;
-    @LmlActor("4:area") private GameBoard area4;
+    @LmlActor("1:area")
+    private GameBoard area1;
+    @LmlActor("2:area")
+    private GameBoard area2;
+    @LmlActor("3:area")
+    private GameBoard area3;
+    @LmlActor("4:area")
+    private GameBoard area4;
 
     private YokelGameBoard boardState;
-    private boolean nextGameDialog, attemptGameStart, isGameReady = false;
+    private boolean nextGameDialog;
+    private boolean attemptGameStart;
+    private final boolean isGameReady = false;
     private long nextGame = 0;
     private boolean yahoo = false;
     //private GameOverText gameOverText;
