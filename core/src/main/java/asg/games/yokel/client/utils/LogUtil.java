@@ -52,10 +52,8 @@ public class LogUtil {
     }
 
     private static int getLogLevelFromPropertiesFile(String packageName) {
-        System.out.println("Loading file properties for class: " + packageName);
-        System.out.println("logPropertiesPath: " + logPropertiesPath);
         FileHandle fileHandle = Gdx.files.internal(logPropertiesPath);
-        System.out.println("Gdx: " + Gdx.files.getLocalStoragePath());
+
         int logLevel = 0;
         if (fileHandle != null) {
             String fileContents = fileHandle.readString();
@@ -66,7 +64,7 @@ public class LogUtil {
                     if (getLevel) {
                         String[] level = contentLine.split("=");
                         String levelString = level[1];
-                        System.out.println("level: " + levelString);
+
                         if (levelString.equals("debug")) {
                             logLevel = 3;
                         } else if (levelString.equals("info")) {
@@ -83,7 +81,6 @@ public class LogUtil {
                 }
             }
         }
-        System.out.println("logLevel: " + logLevel);
         return logLevel;
     }
 
@@ -92,7 +89,6 @@ public class LogUtil {
     }
 
     static void setLoggerLevel(final Log4LibGDXLogger logger, int logLevel) {
-        System.out.println("Setting log level to : " + logLevel);
         if (logger != null) {
             if (logLevel <= Application.LOG_NONE) {
                 logger.setNone();

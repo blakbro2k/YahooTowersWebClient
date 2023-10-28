@@ -16,23 +16,24 @@ public class YokelObjectFactory implements Disposable {
     private final UserInterfaceService userInterfaceService;
 
     public YokelObjectFactory(UserInterfaceService userInterfaceService, Array<String> images, Array<String> animatedImages){
-        if(userInterfaceService == null) throw new GdxRuntimeException("userInterfaceService was not initialized.");
-        if(images == null) throw new GdxRuntimeException("Images to load cannot be null.");
+        if (userInterfaceService == null)
+            throw new GdxRuntimeException("UserInterfaceService was not initialized.");
+        if (images == null) throw new GdxRuntimeException("Images to load cannot be null.");
         if(animatedImages == null) throw new GdxRuntimeException("Animated Images to load cannot be null.");
         this.userInterfaceService = userInterfaceService;
-        userInterfaceService.loadActors(createActors(images, animatedImages));
+        userInterfaceService.loadActors(createActorsArray(images, animatedImages));
         userInterfaceService.loadDrawables();
     }
 
-    private Iterable<? extends Actor> createActors(Array<String> imageNames, Array<String> animatedImageNames) {
+    private Iterable<? extends Actor> createActorsArray(Array<String> imageNames, Array<String> animatedImageNames) {
         Array<Actor> actors = new Array<>();
 
-        for(String imageName : GdxArrays.newSnapshotArray(imageNames)){
-            addActor(actors, userInterfaceService.getImage(imageName));
+        for (String imageName : GdxArrays.newSnapshotArray(imageNames)) {
+            addActor(actors, userInterfaceService.getNewImage(imageName));
         }
 
-        for(String aniImageName : GdxArrays.newSnapshotArray(animatedImageNames)){
-            addActor(actors, userInterfaceService.getAnimatedImage(aniImageName));
+        for (String aniImageName : GdxArrays.newSnapshotArray(animatedImageNames)) {
+            addActor(actors, userInterfaceService.getNewAnimatedImage(aniImageName));
         }
         return actors;
     }
@@ -62,6 +63,7 @@ public class YokelObjectFactory implements Disposable {
 
     public GameBlock getGameBlock(int blockType, boolean isPreview){
         GameBlock block = yokelGameBlockPool.obtain();
+        System.err.println("block pool: " + yokelGameBlockPool);
         //block.setUseActualImageSize(false);
 
         boolean isBroken = YokelBlockEval.hasBrokenFlag(blockType);

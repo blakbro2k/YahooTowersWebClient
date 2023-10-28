@@ -168,11 +168,14 @@ public class GameBlockArea extends Stack {
     }
 
     private void setBlock(int block, int r, int c){
+        System.out.println("GBA: start setting Block");
         GameBlock uiCell = uiBlocks.get(getCellAttrName(r, c));
+        System.out.println("uiCell: " + uiCell);
 
         if(uiCell != null){
             uiCell.update(block, isPreview);
         }
+        System.out.println("GBA: end setting Block");
     }
 
     private boolean isDownCellFree(int column, int row) {
@@ -204,7 +207,7 @@ public class GameBlockArea extends Stack {
     public void act(float delta) {
         super.act(delta);
 
-        for (GameBlock uiblock : uiBlocks.values()) {
+        for (GameBlock uiblock : YokelUtilities.getMapValues(uiBlocks)) {
             if (uiblock != null) {
                 uiblock.act(delta * YokelUtilities.otof(ANIMATION_OFFSET));
             }
@@ -246,100 +249,6 @@ public class GameBlockArea extends Stack {
         joinWindow.setVisible(true);
     }
 
-    private static class PieceDrawable extends Actor {
-        private final GameBlock[] blocks = new GameBlock[3];
-        private int row;
-        private int col;
-        private boolean isActive;
-        private float fallOffset;
-        private GameBlockArea parent;
-
-        PieceDrawable(){
-            blocks[0] = UIUtil.getBlock(YokelBlock.CLEAR_BLOCK);
-            blocks[1] = UIUtil.getBlock(YokelBlock.CLEAR_BLOCK);
-            blocks[2] = UIUtil.getBlock(YokelBlock.CLEAR_BLOCK);
-        }
-
-        void setActive(boolean b){
-            isActive = b;
-        }
-
-        @Override
-        public void act(float delta){
-            super.act(delta);
-            if(isActive) {
-                for(int i = 0; i < 3; i++){
-                    if(blocks[i] != null){
-                        blocks[i].act(delta);
-                    }
-                }
-            }
-        }
-
-        @Override
-        public void draw(Batch batch, float alpha){
-            super.draw(batch, alpha);
-            if(isActive){
-                computePosition();
-                float x = getX();
-                float y = getY();
-
-                for(int i = 0; i < 3; i++){
-                    if(this.blocks[i] != null){
-                        this.blocks[i].setPosition(x, y + (i * blocks[i].getHeight() / 2));
-                        this.blocks[i].draw(batch, alpha);
-                    }
-                }
-            }
-        }
-
-        void setBlocks(YokelPiece piece){
-            if(piece != null && isActive){
-                updateIndex(0, piece.getBlock1());
-                updateIndex(1, piece.getBlock2());
-                updateIndex(2, piece.getBlock3());
-                this.row = piece.row;
-                this.col = piece.column;
-            }
-        }
-
-        private void updateIndex(int index, int block){
-            if(index > -1 && index < blocks.length && blocks[index] != null){
-                blocks[index].update(block,false);
-            }
-        }
-
-        private void setParent(GameBlockArea area){
-            this.parent = area;
-        }
-
-        private void computePosition() {
-            GameBlock block = blocks[0];
-
-            if(block != null){
-                //Set the x to the position of the grid
-                Vector2 pos = localToParentCoordinates(new Vector2(0, 0));
-
-                float SIDE_BAR_OFFSET = 12;
-                pos.x = pos.x / 2 + SIDE_BAR_OFFSET;
-                pos.y = pos.y / 2;
-
-                pos.x -= block.getWidth();
-                if(parent != null && parent.isDownCellFree(col, row)){
-                    pos.y -= ((1 - fallOffset) * block.getHeight() / 2);
-                }
-
-                float offSetX = block.getWidth() / 2 * col;
-                float offSetY = block.getHeight() / 2 * row;
-
-                this.setPosition(pos.x + offSetX, pos.y + offSetY);
-            }
-        }
-        private void setFallOffset(float fallOffset) {
-            this.fallOffset = fallOffset;
-        }
-    }
-
     private void setPieceSprite(YokelGameBoard board, float fallOffset){
         if(board != null) {
             YokelPiece piece = board.fetchCurrentPiece();
@@ -371,12 +280,9 @@ public class GameBlockArea extends Stack {
             this.board = gameBoard;
             update();
             setPieceSprite(gameBoard, board.fetchCurrentPieceFallTimer());
-            System.out.print(board);
             Queue<YokelBrokenBlock> brokenCells = board.fetchBrokenCells();
 
             Vector2 pos = localToScreenCoordinates(new Vector2(this.grid.getX(), this.grid.getY()));
-            //System.out.println("pieceSprite=" + pieceSprite.getX() + "," + pieceSprite.getY());
-            //System.out.println("pieceSprite localCords=" + pos);
 
             int count = 0;
             if (brokenCells != null && brokenCells.size > 0) {
@@ -389,12 +295,6 @@ public class GameBlockArea extends Stack {
                     float delay = count * 0.1f;
                     count++;
 
-                    System.out.println("broken pos: " + pos);
-                    //System.out.println("broken cell: " + brokenBlockImageRight);
-                    System.out.println("broken row: " + row);
-                    System.out.println("broken col: " + col);
-
-
                     Image tempRight = UIUtil.getBrokenBlock(brokenName + "_right");
                     Image brokenBlockImageRight = null;
                     if (tempRight != null) {
@@ -403,8 +303,6 @@ public class GameBlockArea extends Stack {
                         YokelUtilities.setWidthFromDrawable(brokenBlockImageRight, brokenBlockImageRight.getDrawable());
                         float offSetX = brokenBlockImageRight.getWidth() * col;
                         float offSetY = brokenBlockImageRight.getHeight() * row + (brokenBlockImageRight.getHeight());
-                        System.out.println("broken offSetX: " + offSetX);
-                        System.out.println("broken offSetY: " + offSetY);
 
                         brokenBlockImageRight.setPosition(pos.x + offSetX, pos.y + offSetY - (16 * 13));
                         brokenBlockImageRight.addAction(Actions.sequence(Actions.delay(delay), Actions.moveTo(pos.x, 0, localDuration, Interpolation.slowFast)
@@ -500,12 +398,107 @@ public class GameBlockArea extends Stack {
         }
     }
 
-    void killPlayer(){
+    void killPlayer() {
         bgColor.setBackground(skin.getDrawable(DEAD_BACKGROUND));
         setActive(false);
     }
 
-    YokelGameBoard getBoard(){
+    YokelGameBoard getBoard() {
         return board;
+    }
+
+    private static class PieceDrawable extends Actor {
+        private final GameBlock[] blocks = new GameBlock[3];
+        private int row;
+        private int col;
+        private boolean isActive;
+        private float fallOffset;
+        private GameBlockArea parent;
+
+        PieceDrawable() {
+            blocks[0] = UIUtil.getBlock(YokelBlock.CLEAR_BLOCK);
+            blocks[1] = UIUtil.getBlock(YokelBlock.CLEAR_BLOCK);
+            blocks[2] = UIUtil.getBlock(YokelBlock.CLEAR_BLOCK);
+        }
+
+        void setActive(boolean b) {
+            isActive = b;
+        }
+
+        @Override
+        public void act(float delta) {
+            super.act(delta);
+            if (isActive) {
+                for (int i = 0; i < 3; i++) {
+                    if (blocks[i] != null) {
+                        blocks[i].act(delta);
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void draw(Batch batch, float alpha) {
+            super.draw(batch, alpha);
+            if (isActive) {
+                computePosition();
+                float x = getX();
+                float y = getY();
+
+                for (int i = 0; i < 3; i++) {
+                    if (this.blocks[i] != null) {
+                        this.blocks[i].setPosition(x, y + (i * blocks[i].getHeight() / 2));
+                        this.blocks[i].draw(batch, alpha);
+                    }
+                }
+            }
+        }
+
+        void setBlocks(YokelPiece piece) {
+            if (piece != null && isActive) {
+                updateIndex(0, piece.getBlock1());
+                updateIndex(1, piece.getBlock2());
+                updateIndex(2, piece.getBlock3());
+                this.row = piece.row;
+                this.col = piece.column;
+            }
+        }
+
+        private void updateIndex(int index, int block) {
+            if (index > -1 && index < blocks.length && blocks[index] != null) {
+                blocks[index].update(block, false);
+            }
+        }
+
+        private void setParent(GameBlockArea area) {
+            this.parent = area;
+        }
+
+        private void computePosition() {
+            GameBlock block = blocks[0];
+
+            if (block != null) {
+                //Set the x to the position of the grid
+                Vector2 pos = localToParentCoordinates(new Vector2(0, 0));
+
+                float SIDE_BAR_OFFSET = 12;
+                pos.x = pos.x / 2 + SIDE_BAR_OFFSET;
+                pos.y = pos.y / 2;
+
+                pos.x -= block.getWidth();
+                if (parent != null && parent.isDownCellFree(col, row)) {
+                    pos.y -= ((1 - fallOffset) * block.getHeight() / 2);
+                }
+
+                float offSetX = block.getWidth() / 2 * col;
+                float offSetY = block.getHeight() / 2 * row;
+
+                this.setPosition(pos.x + offSetX, pos.y + offSetY);
+            }
+        }
+
+        private void setFallOffset(float fallOffset) {
+            this.fallOffset = fallOffset;
+        }
     }
 }

@@ -194,7 +194,7 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
 
     @Override
     public void initialize(Stage stage, ObjectMap<String, Actor> actorMappedByIds) {
-        logger = LogUtil.getLogger(loggerService, this.getClass());
+        logger = LogUtil.getLogger(loggerService, BlocksUITestController.class);
 
         try {
             initiate();

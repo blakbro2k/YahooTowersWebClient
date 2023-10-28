@@ -113,8 +113,8 @@ public class UserInterfaceService {
         return interfaceService.getCurrentController().getStage();
     }
 
-    public Image getImage(String name){
-        if(name != null){
+    public Image getNewImage(String name) {
+        if (name != null) {
             Image image = new Image();
             image.setName(name);
             return image;
@@ -122,8 +122,8 @@ public class UserInterfaceService {
         return null;
     }
 
-    public AnimatedImage getAnimatedImage(String name){
-        if(name != null){
+    public AnimatedImage getNewAnimatedImage(String name) {
+        if (name != null) {
             AnimatedImage animatedImage = new AnimatedImage();
             animatedImage.setName(name);
             return animatedImage;
@@ -146,9 +146,9 @@ public class UserInterfaceService {
     }
 
     private void loadDrawable(Actor actor, String name){
-        if(actor instanceof AnimatedImage){
-            AnimatedImage image = (AnimatedImage) actor;
-            image.setFrames(getDrawableFrames(name));
+        if(actor instanceof AnimatedImage) {
+            AnimatedImage animatedImage = (AnimatedImage) actor;
+            animatedImage.setFrames(getDrawableFrames(name));
         } else if(actor instanceof Image){
             Image image = (Image) actor;
             image.setDrawable(interfaceService.getSkin(), name);

@@ -316,7 +316,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
 
         //Update current game
         if(isGameRunning(game)){
-            //TODO: game state will not need to be updated anymore, it will be updated from server
+            //TODO: implement gameState generation which will be used locally for player
             game.update(delta);
 
             for(int board = 0; board < order.length; board++){

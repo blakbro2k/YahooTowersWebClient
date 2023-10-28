@@ -4,6 +4,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.Pool;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
@@ -27,6 +28,7 @@ public class GameBlock extends Table implements Pool.Poolable, GameObject, Copya
     private final static float MIDAS_ANIMATION_DELAY = 0.2f;
 
     private AnimatedImage uiBlock;
+    private YokelBlock block;
     private boolean isActive;
     private boolean isPreview;
     private final float preferredHeight = 16;
@@ -54,12 +56,31 @@ public class GameBlock extends Table implements Pool.Poolable, GameObject, Copya
         add(uiBlock);
     }
 
+    //New block via block type
+    public GameBlock(Skin skin, YokelBlock block, boolean isPreview) {
+        super(skin);
+        if (block == null) throw new GdxRuntimeException("Block cannot be null.");
+        setBlock(block);
+        reset();
+        this.isPreview = isPreview;
+        setImage(block.getBlockType());
+        add(uiBlock);
+    }
+
+    public void setBlock(YokelBlock block) {
+        this.block = block;
+    }
+
+    public YokelBlock getBlock() {
+        return block;
+    }
+
     public void setImage(Image image) {
         setDrawable(image);
     }
 
     public void setImage(String blockName) {
-        if(isPreview){
+        if (isPreview) {
             setImage(UIUtil.getInstance().getPreviewBlockImage(blockName));
         } else {
             setImage(UIUtil.getInstance().getBlockImage(blockName));
@@ -215,9 +236,13 @@ public class GameBlock extends Table implements Pool.Poolable, GameObject, Copya
     }
 
     public void update(int block, boolean isPreview) {
+        System.out.println("GBA: start update Block");
+
         if (needsUpdate(block, isPreview)) {
-            System.out.println("### block: " + block + " needs updating");
+            System.out.println("this: " + this.uiBlock);
+
             GameBlock blockUi = UIUtil.getBlock(block, isPreview);
+            System.out.println("blockUi: " + blockUi);
 
             if (blockUi != null) {
                 AnimatedImage clone = blockUi.deepCopy().getImage();
@@ -226,6 +251,7 @@ public class GameBlock extends Table implements Pool.Poolable, GameObject, Copya
                 UIUtil.freeBlock(blockUi);
             }
         }
+        System.out.println("GB: end update Block");
     }
 
     private boolean needsUpdate(int block, boolean isPreview) {

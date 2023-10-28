@@ -34,10 +34,8 @@ public class GwtLauncher extends GwtApplication {
 		protected float getDuration(Sound soundFile) {
 			int duration = -1;
 			if (soundFile instanceof WebAudioAPISound) {
-				Gdx.app.log("SoundFXService", "Playing  " + soundFile.getClass() + ":");
-				WebAudioAPISound waapi = (WebAudioAPISound) soundFile;
 				try {
-					duration = getDurationFromJSFile(waapi);
+					duration = getDurationFromJSAudio((WebAudioAPISound) soundFile);
 				} catch (Exception e) {
 					Gdx.app.log("SoundFXService", "Logging unknown JS exception  " + e.getMessage());
 					Gdx.app.log("SoundFXService", "Logging unknown JS exception  " + e.getCause());
@@ -46,7 +44,7 @@ public class GwtLauncher extends GwtApplication {
 			return duration;
 		}
 
-		public native int getDurationFromJSFile(WebAudioAPISound sound) /*-{
+		public native int getDurationFromJSAudio(WebAudioAPISound sound) /*-{
 			// Get the Java values here, for readability
 			var audioContext = sound.@com.badlogic.gdx.backends.gwt.webaudio.WebAudioAPISound::audioContext;
 			var audioBuffer = sound.@com.badlogic.gdx.backends.gwt.webaudio.WebAudioAPISound::audioBuffer;

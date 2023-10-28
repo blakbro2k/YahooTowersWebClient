@@ -42,7 +42,7 @@ public class UIUtil {
         if (soundUtil != null) {
             return soundUtil.getDuration(sound);
         }
-        throw new GdxRuntimeException("Cannot get Sound Duration, was SoundtUtil initialized?");
+        throw new GdxRuntimeException("Cannot get Sound Duration, was SoundUtil initialized?");
     }
 
     public Image getBlockImage(String blockName) {

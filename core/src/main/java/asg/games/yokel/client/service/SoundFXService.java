@@ -12,7 +12,6 @@ import com.github.czyzby.autumn.mvc.stereotype.Asset;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 
 import asg.games.yokel.client.GlobalConstants;
-import asg.games.yokel.client.YahooTowersClient;
 import asg.games.yokel.client.utils.UIUtil;
 
 //import asg.games.yokel.utils.YokelUtilities;
