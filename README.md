@@ -4,6 +4,10 @@ A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://git
 
 Project template included launchers with [Autumn](https://github.com/crashinvaders/gdx-lml/tree/master/autumn) class scanners and a basic [Autumn MVC](https://github.com/czyzby/gdx-lml/tree/master/mvc) application.
 
+Here is a demo of the client
+Yahoo! Towers alpha (https://blakbro2k.itch.io/yahoo-towers-dev)
+
+### Wish to contribute? Great to hear! below are acouple of commands you can use when you clone the project.
 ## Gradle
 
 This project uses [Gradle](http://gradle.org/) to manage dependencies.
@@ -28,3 +32,7 @@ Useful Gradle tasks and flags:
 
 Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should be replaced with the ID of a specific project.
 For example, `core:clean` removes `build` folder only from the `core` project.
+
+
+<a href="https://www.paypal.com/donate/?hosted_button_id=Q3B297GYMH6DQ"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" height="40"></a>  
+If you enjoyed this project — or just feeling generous, consider buying me a beer. Cheers! :beers:
