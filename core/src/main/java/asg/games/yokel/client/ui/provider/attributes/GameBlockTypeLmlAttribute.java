@@ -5,6 +5,8 @@ import com.github.czyzby.lml.parser.tag.LmlAttribute;
 import com.github.czyzby.lml.parser.tag.LmlTag;
 
 import asg.games.yokel.client.ui.actors.GameBlock;
+import asg.games.yokel.objects.YokelBlock;
+import asg.games.yokel.utils.YokelUtilities;
 
 public class GameBlockTypeLmlAttribute implements LmlAttribute<GameBlock> {
     public GameBlockTypeLmlAttribute() {
@@ -15,6 +17,13 @@ public class GameBlockTypeLmlAttribute implements LmlAttribute<GameBlock> {
     }
 
     public void process(final LmlParser parser, final LmlTag tag, final GameBlock actor, final String rawAttributeData) {
-        actor.setImage(parser.parseString(rawAttributeData, actor));
+        String parsedString = parser.parseString(rawAttributeData, actor);
+        int block = YokelBlock.CLEAR_BLOCK;
+        try {
+            block = YokelUtilities.otoi(parsedString);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        actor.setBlock(block);
     }
 }

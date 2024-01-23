@@ -8,9 +8,9 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.utils.reflect.ReflectionException;
 import com.github.czyzby.autumn.annotation.Inject;
 import com.github.czyzby.autumn.mvc.component.sfx.MusicService;
 import com.github.czyzby.autumn.mvc.component.ui.InterfaceService;
@@ -36,12 +36,13 @@ import asg.games.yokel.client.factories.Log4LibGDXLogger;
 import asg.games.yokel.client.service.SessionService;
 import asg.games.yokel.client.service.SoundFXService;
 import asg.games.yokel.client.service.UserInterfaceService;
-import asg.games.yokel.client.ui.actors.GameBoard;
 import asg.games.yokel.client.ui.actors.GameClock;
+import asg.games.yokel.client.ui.actors.GamePlayerBoard;
 import asg.games.yokel.client.utils.LogUtil;
 import asg.games.yokel.managers.GameManager;
 import asg.games.yokel.objects.YokelBlock;
 import asg.games.yokel.objects.YokelGameBoard;
+import asg.games.yokel.objects.YokelGameBoardState;
 import asg.games.yokel.objects.YokelPlayer;
 import asg.games.yokel.objects.YokelSeat;
 import asg.games.yokel.objects.YokelTable;
@@ -51,23 +52,39 @@ import asg.games.yokel.utils.YokelUtilities;
 public class ClientViewController extends ApplicationAdapter implements ViewRenderer, ViewInitializer, ActionContainer {
     // Getting a utility logger:
 
-    @Inject private UserInterfaceService uiService;
-    @Inject private SoundFXService soundFXService;
-    @Inject private SessionService sessionService;
-    @Inject private LoggerService loggerService;
-    @Inject private InterfaceService interfaceService;
-    @Inject private MusicService musicService;
-    @Inject private LoadingController assetLoader;
+    @Inject
+    private UserInterfaceService uiService;
+    @Inject
+    private SoundFXService soundFXService;
+    @Inject
+    private SessionService sessionService;
+    @Inject
+    private LoggerService loggerService;
+    @Inject
+    private InterfaceService interfaceService;
+    @Inject
+    private MusicService musicService;
+    @Inject
+    private LoadingController assetLoader;
 
-    @LmlActor("gameClock") private GameClock gameClock;
-    @LmlActor("1:area") private GameBoard uiArea1;
-    @LmlActor("2:area") private GameBoard uiArea2;
-    @LmlActor("3:area") private GameBoard uiArea3;
-    @LmlActor("4:area") private GameBoard uiArea4;
-    @LmlActor("5:area") private GameBoard uiArea5;
-    @LmlActor("6:area") private GameBoard uiArea6;
-    @LmlActor("7:area") private GameBoard uiArea7;
-    @LmlActor("8:area") private GameBoard uiArea8;
+    @LmlActor("gameClock")
+    private GameClock gameClock;
+    @LmlActor("1:area")
+    private GamePlayerBoard uiArea1;
+    @LmlActor("2:area")
+    private GamePlayerBoard uiArea2;
+    @LmlActor("3:area")
+    private GamePlayerBoard uiArea3;
+    @LmlActor("4:area")
+    private GamePlayerBoard uiArea4;
+    @LmlActor("5:area")
+    private GamePlayerBoard uiArea5;
+    @LmlActor("6:area")
+    private GamePlayerBoard uiArea6;
+    @LmlActor("7:area")
+    private GamePlayerBoard uiArea7;
+    @LmlActor("8:area")
+    private GamePlayerBoard uiArea8;
 
     private boolean isGameOver;
     private boolean isYahooActive;
@@ -77,7 +94,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
     private boolean attemptGameStart;
     private boolean isGameReady = false;
     private long nextGame = 0;
-    private GameBoard[] uiAreas;
+    private GamePlayerBoard[] uiAreas;
     private final YokelSeat[] order = new YokelSeat[8];
     private final boolean[] isYahooPlaying = new boolean[8];
     private final boolean[] isAlive = new boolean[8];
@@ -90,94 +107,104 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
     @Override
     public void initialize(Stage stage, ObjectMap<String, Actor> actorMappedByIds) {
         logger = LogUtil.getLogger(loggerService, this.getClass());
-        logger.setDebug();
-
-        /*try {
-            sessionService.asyncGameManagerFromServerRequest();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            sessionService.showError(e);
-        }*/
-        logger.enter("initialize");
-        isUsingServer = false;
-
-        //UIManager.UIManagerUserConfiguration config = new UIManager.UIManagerUserConfiguration();
-
-        if (!isUsingServer) {
-            //UI Configuration manager needs to handle these.
-            YokelPlayer player1 = new YokelPlayer("enboateng");
-            YokelPlayer player2 = new YokelPlayer("lholtham", 1400, 1);
-            YokelPlayer player3 = new YokelPlayer("rmeyers", 1700, 1);
-
-            //setTable
-            YokelTable table = new YokelTable("sim:table:1", 1);
-            //config.setTableNumber(1);
-            int currentSeatNumber = 3;
-
-            //this needs to be set outside of the UI manager
-            sessionService.setCurrentPlayer(player1);
-            sessionService.setCurrentLoungeName("Social");
-            sessionService.setCurrentRoomName("Eiffel Tower");
-            sessionService.setCurrentSeat(-1);
-            sessionService.setCurrentTable(table);
-            //config.updateConfig(sessionService);
-            //config.setSeat(5, player2);
-            //config.setCurrentPlayer(sessionService.getCurrentPlayer());
-            //config.setCurrentSeat(sessionService.getCurrentSeat());
-
-            setSeat(6, player3, table);
-            setSeat(1, player2, table);
-            simulatedGame = new GameManager(table);
-        } else {
-            //TODO: Fetch table state from server
+        try {
+            logger.enter("initialize");
             isUsingServer = false;
-        }
 
-        uiAreas = new GameBoard[]{uiArea1, uiArea2, uiArea3, uiArea4, uiArea5, uiArea6, uiArea7, uiArea8};
-        setUpDefaultSeats(sessionService.getCurrentTable());
-        setUpJoinButtons(uiAreas);
-        //uiManager = new UIManager(uiAreas, isUsingServer, config);
-        logger.exit("initialize");
+            //UIManager.UIManagerUserConfiguration config = new UIManager.UIManagerUserConfiguration();
+
+            if (!isUsingServer) {
+                //UI Configuration manager needs to handle these.
+                YokelPlayer player1 = new YokelPlayer("enboateng");
+                YokelPlayer player2 = new YokelPlayer("lholtham", 1400, 1);
+                YokelPlayer player3 = new YokelPlayer("rmeyers", 1700, 1);
+
+                //setTable
+                YokelTable table = new YokelTable("sim:table:1", 1);
+                //config.setTableNumber(1);
+                int currentSeatNumber = 3;
+
+                //this needs to be set outside of the UI manager
+                sessionService.setCurrentPlayer(player1);
+                sessionService.setCurrentLoungeName("Social");
+                sessionService.setCurrentRoomName("Eiffel Tower");
+                sessionService.setCurrentSeat(-1);
+                sessionService.setCurrentTable(table);
+                //config.updateConfig(sessionService);
+                //config.setSeat(5, player2);
+                //config.setCurrentPlayer(sessionService.getCurrentPlayer());
+                //config.setCurrentSeat(sessionService.getCurrentSeat());
+
+                setSeat(6, player3, table);
+                setSeat(1, player2, table);
+                simulatedGame = new GameManager(table);
+            } else {
+                //TODO: Fetch table state from server
+                isUsingServer = false;
+            }
+
+            uiAreas = new GamePlayerBoard[]{uiArea1, uiArea2, uiArea3, uiArea4, uiArea5, uiArea6, uiArea7, uiArea8};
+            setUpDefaultSeats(sessionService.getCurrentTable());
+            setUpJoinButtons(uiAreas);
+            //uiManager = new UIManager(uiAreas, isUsingServer, config);
+            logger.exit("initialize");
+        } catch (ReflectionException e) {
+            String errorMsg = "Error in initialize()";
+            logger.error(errorMsg, e);
+            sessionService.handleException(logger, e);
+        }
     }
 
-    public void setSeat(int seatNumber, YokelPlayer player, YokelTable table){
-        logger.error("setting player {} @ seat[{}]", player, seatNumber);
-        if(table != null){
-            if(seatNumber < 0 || seatNumber > YokelTable.MAX_SEATS) return;
-            YokelSeat seat = table.getSeat(seatNumber);
-            if(seat != null) {
-                if(player == null) {
-                    seat.standUp();
-                } else {
-                    seat.sitDown(player);
-                    seat.setSeatReady(true);
+    public void setSeat(int seatNumber, YokelPlayer player, YokelTable table) throws ReflectionException {
+        try {
+            logger.enter("setSeat");
+            if (table != null) {
+                if (seatNumber < 0 || seatNumber > YokelTable.MAX_SEATS) return;
+                YokelSeat seat = table.getSeat(seatNumber);
+                if (seat != null) {
+                    if (player == null) {
+                        seat.standUp();
+                    } else {
+                        seat.sitDown(player);
+                        seat.setSeatReady(true);
+                    }
                 }
             }
+            logger.exit("setSeat");
+        } catch (Exception e) {
+            logger.error(e, "setting player {} @ seat[{}]", player, seatNumber);
+            throw new ReflectionException();
         }
     }
 
     @Override
     public void destroy(ViewController viewController) {
-        logger.enter("destroy");
-        logger.info("destroying viewID: {}", GlobalConstants.UI_CLIENT_VIEW);
-        Disposables.disposeOf(simulatedGame);
+        try {
+            logger.enter("destroy");
+            logger.info("destroying viewID: {}", GlobalConstants.UI_CLIENT_VIEW);
+            Disposables.disposeOf(simulatedGame);
 
-        for (YokelSeat seat : order) {
-            if (seat != null) {
-                seat.dispose();
+            for (YokelSeat seat : order) {
+                if (seat != null) {
+                    seat.dispose();
+                }
             }
+            logger.exit("destroy");
+        } catch (Exception e) {
+            String errorMsg = "Error in destroy()";
+            logger.error(errorMsg, e);
+            sessionService.handleException(logger, e);
         }
-        //logger.info("files={}", YokelUtilities.getFiles("U:\\YokelTowersMVC\\assets\\music"));
-        logger.exit("destroy");
     }
 
     @Override
     public void render(Stage stage, float delta) {
-        //logger.enter("render");
         try{
+            logger.enter("render");
             //Fetch GameManager from Server
             //fetch game state from server
             GameManager game = fetchGameManagerFromServer(delta);
+            YokelGameBoardState gameState = fetchGameStateFromServer(delta);
 
             //Check if game is ready to start
             checkIsGameReady(game);
@@ -204,470 +231,718 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
 
             stage.act(delta);
             stage.draw();
-        } catch (Exception e){
+            logger.exit("render");
+        } catch (Exception e) {
+            String errorMsg = "error render()";
+            logger.error(errorMsg, e);
             sessionService.handleException(logger, e);
         }
-        //logger.exit("render");
     }
 
-    private void updateTimers() {
-        if (yahTimer > -1) {
-            --yahTimer;
-        }
-
-        if (brokenCellTimer > -1) {
-            --brokenCellTimer;
-        }
-        logger.error("###yahTimer={}", yahTimer);
-        logger.error("###brokenCellTimer={}", brokenCellTimer);
-    }
-
-    private void setUpDefaultSeats(YokelTable table){
-        if(table != null){
-            for(int i = 0; i < YokelTable.MAX_SEATS; i++){
-                order[i] = table.getSeat(i);
+    private void updateTimers() throws ReflectionException {
+        try {
+            logger.enter("updateTimers");
+            if (yahTimer > -1) {
+                --yahTimer;
             }
+
+            if (brokenCellTimer > -1) {
+                --brokenCellTimer;
+            }
+            logger.error("###yahTimer={}", yahTimer);
+            logger.error("###brokenCellTimer={}", brokenCellTimer);
+            logger.exit("updateTimers");
+        } catch (Exception e) {
+            String errorMsg = "Error in updateTimers()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
     }
 
-    private void updateGameBoardPreStart() {
-        logger.enter("updateGameBoardPreStart");
+    private void setUpDefaultSeats(YokelTable table) throws ReflectionException {
+        try {
+            logger.enter("setUpDefaultSeats");
+            if (table != null) {
+                for (int i = 0; i < YokelTable.MAX_SEATS; i++) {
+                    order[i] = table.getSeat(i);
+                }
+            }
+            logger.exit("setUpDefaultSeats");
+        } catch (Exception e) {
+            String errorMsg = "Error in setUpDefaultSeats()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
+        }
+    }
 
-        YokelTable table = sessionService.getCurrentTable();
-        int currentPlayerSeat = sessionService.getCurrentSeat();
-        int currentPartnerSeat = getPlayerPartnerSeatNum(currentPlayerSeat);
+    private void updateGameBoardPreStart() throws ReflectionException {
+        try {
+            logger.enter("updateGameBoardPreStart");
 
-        if (table != null) {
-            Array<YokelSeat> seats = table.getSeats();
-            if (currentPlayerSeat > -1) {
-                int playerOneSeat = currentPlayerSeat % 2;
-                int playerPartnerSeat = currentPartnerSeat % 2;
-                order[playerOneSeat] = table.getSeat(currentPlayerSeat);
-                order[playerPartnerSeat] = table.getSeat(currentPartnerSeat);
+            YokelTable table = sessionService.getCurrentTable();
+            int currentPlayerSeat = sessionService.getCurrentSeat();
+            int currentPartnerSeat = getPlayerPartnerSeatNum(currentPlayerSeat);
 
-                //Set up rest of active players+
-                Array<Integer> remaining = GdxArrays.newArray();
-                for (int i = 2; i < YokelTable.MAX_SEATS; i++) {
-                    remaining.add(i);
+            if (table != null) {
+                Array<YokelSeat> seats = table.getSeats();
+                if (currentPlayerSeat > -1) {
+                    int playerOneSeat = currentPlayerSeat % 2;
+                    int playerPartnerSeat = currentPartnerSeat % 2;
+                    order[playerOneSeat] = table.getSeat(currentPlayerSeat);
+                    order[playerPartnerSeat] = table.getSeat(currentPartnerSeat);
+
+                    //Set up rest of active players+
+                    Array<Integer> remaining = GdxArrays.newArray();
+                    for (int i = 2; i < YokelTable.MAX_SEATS; i++) {
+                        remaining.add(i);
+                    }
+
+                    Iterator<Integer> iterator = YokelUtilities.getArrayIterator(remaining);
+
+                    for (int i = 0; i < YokelTable.MAX_SEATS; i++) {
+                        if (i != currentPlayerSeat && i != currentPartnerSeat) {
+                            if (iterator.hasNext()) {
+                                order[iterator.next()] = seats.get(i);
+                            }
+                        }
+                    }
+                } else {
+                    setUpDefaultSeats(table);
                 }
 
-                Iterator<Integer> iterator = YokelUtilities.getArrayIterator(remaining);
+                for (int i = 0; i < order.length; i++) {
+                    YokelSeat seat = order[i];
+                    logger.debug("seat = {}", seat);
+                    if (seat != null) {
+                        YokelPlayer player = seat.getSeatedPlayer();
+                        logger.debug("player = {}", player);
 
-                for(int i = 0; i < YokelTable.MAX_SEATS; i++){
-                    if(i != currentPlayerSeat && i != currentPartnerSeat){
-                        if(iterator.hasNext()){
-                            order[iterator.next()] = seats.get(i);
+                        String playerJsonObj = null;
+                        logger.debug("getting seat number from seat = {}:", seat);
+                        logger.debug("seat Name= {}", seat.getName());
+                        int seatNumber = seat.getSeatNumber();
+
+                        if (player != null) {
+                            playerJsonObj = player.getJsonString();
+                            isAlive[seatNumber] = true;
+                        } else {
+                            isAlive[seatNumber] = false;
+                        }
+
+                        GamePlayerBoard area = uiAreas[i];
+
+                        if (area != null) {
+                            area.setData(playerJsonObj);
+                            area.setPlayerView(sessionService.isCurrentPlayer(player));
+                            area.setActive(sessionService.isCurrentPlayer(player));
                         }
                     }
                 }
-            } else {
-                setUpDefaultSeats(table);
             }
-
-            for(int i = 0; i < order.length; i++) {
-                YokelSeat seat = order[i];
-                logger.debug("seat = {}", seat);
-                if (seat != null) {
-                    YokelPlayer player = seat.getSeatedPlayer();
-                    logger.debug("player = {}", player);
-
-                    String playerJsonObj = null;
-                    logger.debug("getting seat number from seat = {}:", seat);
-                    logger.debug("seat Name= {}", seat.getName());
-                    int seatNumber = seat.getSeatNumber();
-
-                    if (player != null) {
-                        playerJsonObj = player.getJsonString();
-                        isAlive[seatNumber] = true;
-                    } else {
-                        isAlive[seatNumber] = false;
-                    }
-
-                    GameBoard area = uiAreas[i];
-
-                    if (area != null) {
-                        area.setData(playerJsonObj);
-                        area.setPlayerView(sessionService.isCurrentPlayer(player));
-                        area.setActive(sessionService.isCurrentPlayer(player));
-                    }
-                }
-            }
+            logger.exit("updateGameBoardPreStart");
+        } catch (Exception e) {
+            String errorMsg = "Error in updateGameBoardPreStart()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
-        logger.exit("updateGameBoardPreStart");
+
     }
 
-    private int getPlayerPartnerSeatNum(int seatNumber) {
-        if (seatNumber % 2 == 0) {
-            return seatNumber + 1;
-        } else {
-            return seatNumber - 1;
+    private int getPlayerPartnerSeatNum(int seatNumber) throws ReflectionException {
+        try {
+            logger.enter("getPlayerPartnerSeatNum");
+            int seatNumReturn = 0;
+            if (seatNumber % 2 == 0) {
+                seatNumReturn = seatNumber + 1;
+            } else {
+                seatNumReturn = seatNumber - 1;
+            }
+            logger.exit("getPlayerPartnerSeatNum", seatNumReturn);
+            return seatNumReturn;
+        } catch (Exception e) {
+            String errorMsg = "Error in getPlayerPartnerSeatNum()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
     }
 
     //Needs to update the simulated game with the server state.
-    private void updateGameState(GameManager game, float delta, Stage stage) throws GdxRuntimeException {
-        if (logger.isDebugOn()) {
-            ObjectMap<String, Object> map = GdxMaps.newObjectMap();
-            map.put("game", game);
-            map.put("delta", delta);
-            map.put("stage", stage);
-            logger.enter("updateGameState", map);
-        }
+    private void updateGameState(GameManager game, float delta, Stage stage) throws ReflectionException {
+        try {
+            logger.enter("setUpDefaultSeats");
+            if (logger.isDebugOn()) {
+                ObjectMap<String, Object> map = GdxMaps.newObjectMap();
+                map.put("game", game);
+                map.put("delta", delta);
+                map.put("stage", stage);
+                logger.enter("updateGameState", map);
+            }
 
-        //Update current game
-        if(isGameRunning(game)){
-            //TODO: implement gameState generation which will be used locally for player
-            game.update(delta);
+            //Update current game
+            if (isGameRunning(game)) {
+                //TODO: implement gameState generation which will be used locally for player
+                game.update(delta);
 
-            for(int board = 0; board < order.length; board++){
-                //Get Game seat
-                int gameSeat = order[board].getSeatNumber();
-                boolean isPlayerDead = game.isPlayerDead(gameSeat);
+                for (int board = 0; board < order.length; board++) {
+                    //Get Game seat
+                    int gameSeat = order[board].getSeatNumber();
+                    boolean isPlayerDead = game.isPlayerDead(gameSeat);
 
-                if(isPlayerDead && isAlive[gameSeat]){
-                    isAlive[gameSeat] = false;
-                    killPlayer(uiAreas[board]);
-                } else {
-                    updateUiBoard(uiAreas[board], game.getGameBoard(gameSeat));
+                    if (isPlayerDead && isAlive[gameSeat]) {
+                        isAlive[gameSeat] = false;
+                        killPlayer(uiAreas[board]);
+                    } else {
+                        updateUiBoard(uiAreas[board], game.getGameBoard(gameSeat));
+                    }
                 }
             }
+            logger.exit("updateGameState");
+        } catch (Exception e) {
+            String errorMsg = "Error in setUpDefaultSeats()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
-        logger.exit("updateGameState");
+
     }
 
-    private void updateUiBoard(GameBoard uiArea, YokelGameBoard gameBoard) {
-        if (logger.isDebugOn()) {
-            ObjectMap<String, Object> map = GdxMaps.newObjectMap();
-            map.put("uiArea", uiArea);
-            map.put("gameBoard", gameBoard);
-            logger.enter("updateUiBoard", map);
-        }
-        if (uiArea != null) {
-            uiArea.update(gameBoard);
-            int yahooDuration = gameBoard.fetchYahooDuration();
-            int gameBoardSeat = Integer.parseInt(gameBoard.getName());
+    private void updateUiBoard(GamePlayerBoard uiArea, YokelGameBoard gameBoard) throws ReflectionException {
+        try {
+            if (logger.isDebugOn()) {
+                ObjectMap<String, Object> map = GdxMaps.newObjectMap();
+                map.put("uiArea", uiArea);
+                map.put("gameBoard", gameBoard);
+                logger.enter("updateUiBoard", map);
+            }
+            if (uiArea != null) {
+                //uiArea.renderPlayerBoard(gameBoard);
+                int yahooDuration = 3;//gameBoard.fetchYahooDuration();
+                int gameBoardSeat = Integer.parseInt(gameBoard.getName());
 
-            if (isPlayerBoard(gameBoardSeat)) {
-                if (gameBoard.hasPieceSet()) {
+                if (isPlayerBoard(gameBoardSeat)) {
+                /*if (gameBoard.hasPieceSet()) {
                     soundFXService.playPiecePlacedSound();
+                }*/
+                    Vector<YokelBlock> brokenCells = gameBoard.getBrokenCells();
+                    logger.error("gameboard Name={}: gameboard broken cells={}", gameBoard.getName(), gameBoard.getBrokenCells());
+                    if (!YokelUtilities.isEmpty(brokenCells)) {
+                        //Play broken cell sound
+                        soundFXService.playBrokenCell();
+                        logger.error("Broken Cells={}", brokenCells);
+                    }
                 }
-                Vector<YokelBlock> brokenCells = gameBoard.getBrokenCells();
-                logger.error("gameboard Name={}: gameboard broken cells={}", gameBoard.getName(), gameBoard.getBrokenCells());
-                if (!YokelUtilities.isEmpty(brokenCells)) {
-                    //Play broken cell sound
-                    soundFXService.playBrokenCell();
-                    logger.error("Broken Cells={}", brokenCells);
-                }
-            }
 
-            isYahooActive = yahooDuration > 0;
-            uiArea.setYahooDuration(isYahooActive);
-            if(isYahooActive) {
-                if(isPlayerBoard(gameBoardSeat)){
-                    soundFXService.startYahooFanfare(gameBoardSeat);
+                isYahooActive = yahooDuration > 0;
+                uiArea.setYahooDuration(isYahooActive);
+                if (isYahooActive) {
+                    if (isPlayerBoard(gameBoardSeat)) {
+                        soundFXService.startYahooFanfare(gameBoardSeat);
+                    } else {
+                        soundFXService.playYahooSound();
+                    }
                 } else {
-                    soundFXService.playYahooSound();
+                    soundFXService.stopYahooFanfare(gameBoardSeat);
                 }
-            } else {
-                soundFXService.stopYahooFanfare(gameBoardSeat);
             }
+            logger.exit("updateGameState");
+        } catch (Exception e) {
+            String errorMsg = "Error in updateGameState()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
-        logger.exit("updateGameState");
+
     }
 
     private static PlaySoundAction playSoundAction(Sound sound) {
+        /*try {
+            //logger.enter("setUpDefaultSeats");
+            //if(table != null){
+            //    for(int i = 0; i < YokelTable.MAX_SEATS; i++){
+           //         order[i] = table.getSeat(i);
+             //   }
+           // }
+           // logger.exit("setUpDefaultSeats");
+        } catch (Exception e) {
+            String errorMsg = "Error in setUpDefaultSeats()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
+        }*/
         PlaySoundAction action = Actions.action(PlaySoundAction.class);
         action.setSound(sound);
         return action;
     }
 
-    private boolean isPlayerBoard(int gameBoardInt) {
-        return sessionService.getCurrentSeat() == gameBoardInt;
-    }
-
-    private void killPlayer(GameBoard uiArea) {
-        if(uiArea != null){
-            soundFXService.playBoardDeathSound();
-            uiArea.killPlayer();
+    private boolean isPlayerBoard(int gameBoardInt) throws ReflectionException {
+        try {
+            logger.enter("isPlayerBoard");
+            boolean isPlayerBoard = sessionService.getCurrentSeat() == gameBoardInt;
+            logger.exit("isPlayerBoard", isPlayerBoard);
+            return isPlayerBoard;
+        } catch (Exception e) {
+            String errorMsg = "Error in isPlayerBoard()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
     }
 
-    private boolean isGameRunning(GameManager game){
-        return game != null && game.isRunning();
+    private void killPlayer(GamePlayerBoard uiArea) throws ReflectionException {
+        try {
+            logger.enter("killPlayer");
+            if (uiArea != null) {
+                soundFXService.playBoardDeathSound();
+                uiArea.killPlayer();
+            }
+            logger.exit("killPlayer");
+        } catch (Exception e) {
+            String errorMsg = "Error in killPlayer()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
+        }
     }
 
-    private void updateState(GameManager game) {
+    private boolean isGameRunning(GameManager game) throws ReflectionException {
+        try {
+            logger.enter("isGameRunning");
+            boolean isGameRunning = game != null && game.isRunning();
+            logger.exit("isGameRunning", isGameRunning);
+            return isGameRunning;
+        } catch (Exception e) {
+            String errorMsg = "Error in isGameRunning()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
+        }
+    }
+
+    private void updateState(GameManager game) throws ReflectionException {
         //TODO: Need a collection of GameManagers and update current one based off
-        if(game != null){
-            //serverGameManger = game;
+        try {
+            logger.enter("updateState");
+            if (game != null) {
+                //serverGameManger = game;
+            }
+            logger.exit("updateState");
+        } catch (Exception e) {
+            String errorMsg = "Error in updateState()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
     }
 
-    private void checkIsGameReady(GameManager game) {
-        for (int i = 0; i < order.length; i++) {
-            YokelSeat seat = order[i];
-            logger.debug("seat= {}", seat.getJsonString());
-            GameBoard uiArea = uiAreas[i];
-            uiArea.setGameReady(seat.isSeatReady());
-        }
-        if (game != null) {
-            isGameReady = game.isGameReady();
+    private void checkIsGameReady(GameManager game) throws ReflectionException {
+        try {
+            logger.enter("checkIsGameReady");
+            for (int i = 0; i < order.length; i++) {
+                YokelSeat seat = order[i];
+                logger.debug("seat= {}", seat.getJsonString());
+                GamePlayerBoard uiArea = uiAreas[i];
+                uiArea.setGameReady(seat.isSeatReady());
+            }
+            if (game != null) {
+                isGameReady = game.isGameReady();
+            }
+            logger.exit("checkIsGameReady");
+        } catch (Exception e) {
+            String errorMsg = "Error in checkIsGameReady()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
     }
 
-    private void checkGameStart(GameManager game) {
-        logger.enter("checkGameStart");
-        if(gameClock == null) return;
-        logger.debug("isGameReady={}", isGameReady);
+    private void checkGameStart(GameManager game) throws ReflectionException {
+        try {
+            logger.enter("checkGameStart");
+            if (gameClock == null) return;
+            logger.debug("isGameReady={}", isGameReady);
 
-        if(isGameReady){
-            if(attemptGameStart){
-                if(!nextGameDialog) {
-                    logger.debug("Showing next Game Dialog");
-                    nextGameDialog = true;
-                    interfaceService.showDialog(NextGameController.class);
-                    nextGame = TimeUtils.millis();
-                    hideAllJoinButtons();
+            if (isGameReady) {
+                if (attemptGameStart) {
+                    if (!nextGameDialog) {
+                        logger.debug("Showing next Game Dialog");
+                        nextGameDialog = true;
+                        interfaceService.showDialog(NextGameController.class);
+                        nextGame = TimeUtils.millis();
+                        hideAllJoinButtons();
+                    }
+
+                    if (getElapsedSeconds() > NextGameController.NEXT_GAME_SECONDS) {
+                        interfaceService.destroyDialog(NextGameController.class);
+                        attemptGameStart = false;
+                        startGame();
+                    }
                 }
+            }
+            logger.exit("checkGameStart");
+        } catch (Exception e) {
+            String errorMsg = "Error in checkGameStart()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
+        }
+    }
 
-                if(getElapsedSeconds() > NextGameController.NEXT_GAME_SECONDS){
-                    interfaceService.destroyDialog(NextGameController.class);
-                    attemptGameStart = false;
-                    startGame();
+    private void hideAllJoinButtons() throws ReflectionException {
+        try {
+            logger.enter("hideAllJoinButtons");
+            for (GamePlayerBoard area : uiAreas) {
+                if (area != null) {
+                    area.hideJoinButton();
                 }
             }
+            logger.exit("hideAllJoinButtons");
+        } catch (Exception e) {
+            String errorMsg = "Error in hideAllJoinButtons()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
-        logger.exit("checkGameStart");
+
     }
 
-    private void hideAllJoinButtons() {
-        for(GameBoard area : uiAreas){
-            if(area != null){
-                area.hideJoinButton();
+    private void showAllJoinButtons() throws ReflectionException {
+        try {
+            logger.enter("setUpDefaultSeats");
+            for (GamePlayerBoard area : uiAreas) {
+                if (area != null) {
+                    area.showJoinButton();
+                }
             }
+            logger.exit("setUpDefaultSeats");
+        } catch (Exception e) {
+            String errorMsg = "Error in setUpDefaultSeats()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
+        }
+
+    }
+
+    private int getElapsedSeconds() throws ReflectionException {
+        try {
+            logger.enter("getElapsedSeconds");
+            int elapsed = YokelUtilities.otoi((TimeUtils.millis() - nextGame) / 1000);
+
+            logger.exit("getElapsedSeconds", elapsed);
+            return elapsed;
+        } catch (Exception e) {
+            String errorMsg = "Error in getElapsedSeconds()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
     }
 
-    private void showAllJoinButtons() {
-        for(GameBoard area : uiAreas){
-            if(area != null){
-                area.showJoinButton();
+    private void startGame() throws ReflectionException {
+        try {
+            logger.enter("startGame");
+            if (!gameClock.isRunning()) {
+                logger.debug("Starting clock now");
+                gameClock.start();
+                simulatedGame.startGame();
             }
+            logger.exit("startGame");
+        } catch (Exception e) {
+            String errorMsg = "Error in startGame()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
     }
 
-    private int getElapsedSeconds(){
-        return (int) ((TimeUtils.millis() - nextGame) / 1000);
-    }
-
-    private void startGame(){
-        if(!gameClock.isRunning()) {
-            logger.debug("Starting clock now");
-            gameClock.start();
-            simulatedGame.startGame();
-        }
-    }
-
-    private void stopGame(){
-        if(gameClock.isRunning()) {
-            logger.debug("Starting clock now");
-            gameClock.stop();
-        }
-    }
-
-    private void showGameOver(Stage stage, GameManager game){
-        logger.enter("showGameOver");
-
-        if(game != null && stage != null){
-            if(game.showGameOver()){
-                soundFXService.playGameOverSound();
-                yahooPlayed = false;
-                soundFXService.stopMenacingSound();
-                toggleGameStart();
-                stage.addActor(getGameOverActor(game));
+    private void stopGame() throws ReflectionException {
+        try {
+            logger.enter("stopGame");
+            if (gameClock.isRunning()) {
+                logger.debug("Stopping clock now");
+                gameClock.stop();
             }
+            logger.exit("stopGame");
+        } catch (Exception e) {
+            String errorMsg = "Error in stopGame()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
-        logger.exit("showGameOver");
     }
 
-    private Actor getGameOverActor(GameManager game) {
-        logger.enter("getGameOverActor");
-        if (game != null) {
-            Array<YokelPlayer> winners = game.getWinners();
-            YokelPlayer player1 = getPlayer(winners, 0);
-            YokelPlayer player2 = getPlayer(winners, 1);
-            logger.debug("winners={}", winners);
-            logger.debug("player1={}", player1);
-            logger.debug("player2={}", player2);
+    private void showGameOver(Stage stage, GameManager game) throws ReflectionException {
+        try {
+            logger.enter("showGameOver");
+            if (game != null && stage != null) {
+                if (game.showGameOver()) {
+                    soundFXService.playGameOverSound();
+                    yahooPlayed = false;
+                    soundFXService.stopMenacingSound();
+                    toggleGameStart();
+                    stage.addActor(getGameOverActor(game));
+                }
+            }
+            logger.exit("showGameOver");
+        } catch (Exception e) {
+            String errorMsg = "Error in showGameOver()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
+        }
+    }
 
-            //GameOverText gameOverText = new GameOverText(sessionService.getCurrentPlayer().equals(player1) || sessionService.getCurrentPlayer().equals(player2), player1, player2, uiService.getSkin());
-            //gameOverText.setPosition(uiService.getStage().getWidth() / 2, uiService.getStage().getHeight() / 2);
+    private Actor getGameOverActor(GameManager game) throws ReflectionException {
+        try {
+            logger.enter("getGameOverActor");
+            if (game != null) {
+                Array<YokelPlayer> winners = game.getWinners();
+                YokelPlayer player1 = getPlayer(winners, 0);
+                YokelPlayer player2 = getPlayer(winners, 1);
+                logger.debug("winners={}", winners);
+                logger.debug("player1={}", player1);
+                logger.debug("player2={}", player2);
+
+                //GameOverText gameOverText = new GameOverText(sessionService.getCurrentPlayer().equals(player1) || sessionService.getCurrentPlayer().equals(player2), player1, player2, uiService.getSkin());
+                //gameOverText.setPosition(uiService.getStage().getWidth() / 2, uiService.getStage().getHeight() / 2);
+                return null;
+            }
+            logger.exit("getGameOverActor");
             return null;
-        }
-        logger.exit("getGameOverActor");
-        return null;
 
-        //return new GameOverText(false, sessionService.getCurrentPlayer(), sessionService.getCurrentPlayer(), uiService.getSkin());
+            //return new GameOverText(false, sessionService.getCurrentPlayer(), sessionService.getCurrentPlayer(), uiService.getSkin());
+        } catch (Exception e) {
+            String errorMsg = "Error in getGameOverActor()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
+        }
     }
 
-    private YokelPlayer getPlayer(Array<YokelPlayer> players, int index) {
-        if (logger.isDebugOn()) {
-            ObjectMap<String, Object> map = GdxMaps.newObjectMap();
-            map.put("players", players);
-            map.put("index", index);
-            logger.enter("getPlayer", map);
-        }
-
-        YokelPlayer returnedPlayer = null;
-        if (!YokelUtilities.isEmpty(players) && index != players.size) {
-            logger.debug("player={}", players.get(index));
-            if (index < players.size) {
-                returnedPlayer = players.get(index);
+    private YokelPlayer getPlayer(Array<YokelPlayer> players, int index) throws ReflectionException {
+        try {
+            if (logger.isDebugOn()) {
+                ObjectMap<String, Object> map = GdxMaps.newObjectMap();
+                map.put("players", players);
+                map.put("index", index);
+                logger.enter("getPlayer", map);
             }
-        }
 
-        logger.exit("getPlayer", returnedPlayer);
-        return returnedPlayer;
+            YokelPlayer returnedPlayer = null;
+            if (!YokelUtilities.isEmpty(players) && index != players.size) {
+                logger.debug("player={}", players.get(index));
+                if (index < players.size) {
+                    returnedPlayer = players.get(index);
+                }
+            }
+
+            logger.exit("getPlayer", returnedPlayer);
+            return returnedPlayer;
+        } catch (Exception e) {
+            String errorMsg = "Error in getPlayer()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
+        }
     }
 
     @LmlAction("toggleGameStart")
-    private void toggleGameStart() {
-        logger.enter("toggleGameStart");
-        if (!attemptGameStart) {
-            attemptGameStart = true;
+    private void toggleGameStart() throws ReflectionException {
+        try {
+            logger.enter("toggleGameStart");
+            if (!attemptGameStart) {
+                attemptGameStart = true;
+            }
+            if (nextGameDialog) {
+                nextGameDialog = false;
+                stopGame();
+            }
+            logger.debug("attemptGameStart={}", attemptGameStart);
+            logger.exit("toggleGameStart");
+        } catch (Exception e) {
+            String errorMsg = "Error in toggleGameStart()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
-        if (nextGameDialog) {
-            nextGameDialog = false;
-            stopGame();
-        }
-        logger.error("attemptGameStart={}", attemptGameStart);
-        logger.exit("toggleGameStart");
     }
 
     @LmlAction("playerStandUpAction")
-    private void playerStandUpAction() {
-        logger.enter("playerStandUpAction");
-
+    private void playerStandUpAction() throws ReflectionException {
         try {
+            logger.enter("playerStandUpAction");
+
+            try {
+                if (isUsingServer) {
+                    sessionService.asyncTableStandRequest(sessionService.getCurrentTableNumber(), sessionService.getCurrentSeat());
+                } else {
+                    YokelTable table = sessionService.getCurrentTable();
+                    table.getSeat(sessionService.getCurrentSeat()).standUp();
+                }
+            } catch (InterruptedException e) {
+                sessionService.handleException(null, e);
+            }
+            logger.exit("playerStandUpAction");
+        } catch (Exception e) {
+            String errorMsg = "Error in playerStandUpAction()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
+        }
+    }
+
+    private void handlePlayerInput() throws InterruptedException, ReflectionException {
+        try {
+            logger.enter("handlePlayerInput");
+            if (!isGameOver) {
+                sessionService.handlePlayerSimulatedInput(simulatedGame);
+                if (isUsingServer) {
+                    sessionService.handlePlayerInputToServer();
+                }
+            }
+            logger.exit("handlePlayerInput");
+        } catch (Exception e) {
+            String errorMsg = "Error in setUpDefaultSeats()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
+        }
+    }
+
+
+    private GameManager fetchGameManagerFromServer(float delta) throws InterruptedException, ReflectionException {
+        try {
+            logger.enter("fetchGameManagerFromServer");
+            //sessionService.asyncGameManagerFromServerRequest();
+
+            GameManager game;
+
             if (isUsingServer) {
-                sessionService.asyncTableStandRequest(sessionService.getCurrentTableNumber(), sessionService.getCurrentSeat());
+                //TODO: Check if received new GameManager, return current simulation if null.
+                game = sessionService.asyncGetGameManagerFromServerRequest();
             } else {
-                YokelTable table = sessionService.getCurrentTable();
-                table.getSeat(sessionService.getCurrentSeat()).standUp();
-            }
-        } catch (InterruptedException e) {
-            sessionService.handleException(null, e);
-        }
-        logger.exit("playerStandUpAction");
-    }
-
-    private void handlePlayerInput() throws InterruptedException {
-        logger.enter("handlePlayerInput");
-        if(!isGameOver) {
-            sessionService.handlePlayerSimulatedInput(simulatedGame);
-            if(isUsingServer){
-                sessionService.handlePlayerInputToServer();
-            }
-        }
-        logger.exit("handlePlayerInput");
-    }
-
-
-    private GameManager fetchGameManagerFromServer(float delta) throws InterruptedException {
-        logger.enter("fetchGameManagerFromServer");
-        //sessionService.asyncGameManagerFromServerRequest();
-
-        GameManager game;
-
-        if(isUsingServer) {
-            //TODO: Check if received new GameManager, return current simulation if null.
-            game = sessionService.asyncGetGameManagerFromServerRequest();
-        } else {
-            game = simulatedGame;
-            game.setTable(sessionService.getCurrentTable());
-            if(isGameRunning(game)) {
-                //TODO: game state will not need to be updated anymore, it will be updated from server
-                game.update(delta);
-                simulatedGame = game;
-            }
-        }
-
-        logger.exit("fetchGameManagerFromServer");
-        return game;
-    }
-
-    private void setUpJoinButtons(GameBoard[] uiAreas) {
-        logger.enter("setUpJoinButtons");
-        if(uiAreas != null){
-            for(int i = 0; i < uiAreas.length; i++) {
-                GameBoard area = uiAreas[i];
-                if(area != null){
-                    area.addButtonListener(getButtonListener(i));
+                game = simulatedGame;
+                game.setTable(sessionService.getCurrentTable());
+                if (isGameRunning(game)) {
+                    //TODO: game state will not need to be updated anymore, it will be updated from server
+                    game.update(delta);
+                    simulatedGame = game;
                 }
             }
+
+            logger.exit("fetchGameManagerFromServer");
+            return game;
+
+        } catch (Exception e) {
+            String errorMsg = "Error in fetchGameManagerFromServer()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
-        logger.exit("setUpJoinButtons");
+
     }
 
-    private void handleStartButtonClick(final int clickNumber) throws InterruptedException {
-        logger.enter("handleStartButtonClick");
-        int seatNumber = order[clickNumber].getSeatNumber();
+    private YokelGameBoardState fetchGameStateFromServer(float delta) throws InterruptedException, ReflectionException {
+        try {
+            logger.enter("fetchGameStateFromServer");
+            //sessionService.asyncGameManagerFromServerRequest();
 
-        //Send request to server to sit down
-        if (isUsingServer) {
-            sessionService.asyncTableSitRequest(sessionService.getCurrentTableNumber(), seatNumber);
+            GameManager game = null;
+            YokelGameBoardState state = null;
+
+            if (isUsingServer) {
+                //TODO: Check if received new GameManager, return current simulation if null.
+                game = sessionService.asyncGetGameManagerFromServerRequest();
+            } else {
+                game = simulatedGame;
+            }
+
+            //Fetch Game state from Manager
+            if (game != null) {
+                state = game.getBoardState(1);
+            }
+
+            logger.exit("fetchGameStateFromServer", state);
+            return state;
+        } catch (Exception e) {
+            String errorMsg = "Error in setUpDefaultSeats()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
-        //Simulate the sitting process for the viewer
-        YokelPlayer player = sessionService.getCurrentPlayer();
-        int currentSeat = sessionService.getCurrentSeat();
-        YokelTable table = sessionService.getCurrentTable();
 
-        logger.info("Sitting down at player: {} @Table[{}] @ Seat={}", player, table, seatNumber);
-        if (table != null) {
-            Array<YokelSeat> seats = table.getSeats();
-            logger.debug("seats={}", seats);
-            logger.debug("getCurrentSeat={}", currentSeat);
-            logger.debug("getCurrentPlayer={}", player);
+    }
 
-            if (seats != null) {
-                for (int s = 0; s < seats.size; s++) {
-                    logger.debug("seat={}", table.getSeat(s));
-
-                    if (s == seatNumber) {
-                        YokelSeat seat = table.getSeat(s);
-                        if (seat != null) {
-                            sessionService.setCurrentSeat(s);
-                            seat.sitDown(player);
-                        }
-                    }
-                    if (s == currentSeat) {
-                        YokelSeat seat = table.getSeat(s);
-                        if (seat != null) {
-                            logger.info("Standing player: {} @Table[{}] @ Seat={}", player, table, seatNumber);
-                            seat.standUp();
-                        }
+    private void setUpJoinButtons(GamePlayerBoard[] uiAreas) throws ReflectionException {
+        try {
+            logger.enter("setUpJoinButtons");
+            if (uiAreas != null) {
+                for (int i = 0; i < uiAreas.length; i++) {
+                    GamePlayerBoard area = uiAreas[i];
+                    if (area != null) {
+                        area.addButtonListener(getButtonListener(i));
                     }
                 }
-                }
-
-            sessionService.setCurrentTable(table);
+            }
+            logger.exit("setUpJoinButtons");
+        } catch (Exception e) {
+            String errorMsg = "Error in setUpDefaultSeats()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
         }
-        logger.exit("handleStartButtonClick");
+
     }
 
-    private ClickListener getButtonListener(int seatNumber){
-        logger.enter("getListener");
+    private void handleStartButtonClick(final int clickNumber) throws InterruptedException, ReflectionException {
+        try {
+            logger.enter("handleStartButtonClick");
+            int seatNumber = order[clickNumber].getSeatNumber();
 
-        return new ClickListener() {
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                try {
-                    logger.debug("Handling Click Event on seat: {}", seatNumber);
-                    handleStartButtonClick(seatNumber);
-                } catch (InterruptedException e) {
-                    sessionService.handleException(logger, e);
-                }
-                return true;
+            //Send request to server to sit down
+            if (isUsingServer) {
+                sessionService.asyncTableSitRequest(sessionService.getCurrentTableNumber(), seatNumber);
             }
-        };
+            //Simulate the sitting process for the viewer
+            YokelPlayer player = sessionService.getCurrentPlayer();
+            int currentSeat = sessionService.getCurrentSeat();
+            YokelTable table = sessionService.getCurrentTable();
+
+            logger.info("Sitting down at player: {} @Table[{}] @ Seat={}", player, table, seatNumber);
+            if (table != null) {
+                Array<YokelSeat> seats = table.getSeats();
+                logger.debug("seats={}", seats);
+                logger.debug("getCurrentSeat={}", currentSeat);
+                logger.debug("getCurrentPlayer={}", player);
+
+                if (seats != null) {
+                    for (int s = 0; s < seats.size; s++) {
+                        logger.debug("seat={}", table.getSeat(s));
+
+                        if (s == seatNumber) {
+                            YokelSeat seat = table.getSeat(s);
+                            if (seat != null) {
+                                sessionService.setCurrentSeat(s);
+                                seat.sitDown(player);
+                            }
+                        }
+                        if (s == currentSeat) {
+                            YokelSeat seat = table.getSeat(s);
+                            if (seat != null) {
+                                logger.info("Standing player: {} @Table[{}] @ Seat={}", player, table, seatNumber);
+                                seat.standUp();
+                            }
+                        }
+                    }
+                }
+
+                sessionService.setCurrentTable(table);
+            }
+            logger.exit("handleStartButtonClick");
+        } catch (Exception e) {
+            String errorMsg = "Error in handleStartButtonClick()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
+        }
+    }
+
+    private ClickListener getButtonListener(int seatNumber) throws ReflectionException {
+        try {
+            logger.enter("getListener");
+
+            return new ClickListener() {
+                public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                    try {
+                        logger.debug("Handling Click Event on seat: {}", seatNumber);
+                        handleStartButtonClick(seatNumber);
+                    } catch (InterruptedException | ReflectionException e) {
+                        sessionService.handleException(logger, e);
+                    }
+                    logger.exit("getListener", true);
+                    return true;
+                }
+            };
+        } catch (Exception e) {
+            String errorMsg = "Error in setUpDefaultSeats()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException();
+        }
     }
 }

@@ -2,6 +2,13 @@
 buildscript {
     repositories {
         mavenCentral()
+        maven {
+            url = "https://maven.pkg.github.com/blakbro2k/yokel-towers"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
     }
     dependencies {
         classpath "org.gretty:gretty:3.0.8"
@@ -48,6 +55,7 @@ dependencies {
     api "com.rafaskoberg.gdx:typing-label:$typingLabelVersion:sources"
 
     api fileTree(dir: "U:\\yokelTowers\\core\\build\\libs", include: "yokel-towers-$yokelVersion-sources.jar")
+
     implementation project(':core')
 
 //// You can use the lines below instead of the "com.badlogicgames.gdx:gdx-backend-gwt" dependencies.

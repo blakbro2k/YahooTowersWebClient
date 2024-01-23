@@ -63,8 +63,6 @@ public class YokelObjectFactory implements Disposable {
 
     public GameBlock getGameBlock(int blockType, boolean isPreview){
         GameBlock block = yokelGameBlockPool.obtain();
-        System.err.println("block pool: " + yokelGameBlockPool);
-        //block.setUseActualImageSize(false);
 
         boolean isBroken = YokelBlockEval.hasBrokenFlag(blockType);
         if(blockType != YokelBlock.CLEAR_BLOCK){

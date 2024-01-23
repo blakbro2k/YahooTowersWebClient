@@ -59,9 +59,9 @@ public class GamePiece extends Table implements GameObject {
     public void setData(String data) {
         YokelPiece piece = YokelUtilities.getObjectFromJsonString(YokelPiece.class, data);
         if(piece != null){
-            top.update(piece.getBlock3(), false);
-            mid.update(piece.getBlock2(), false);
-            bot.update(piece.getBlock1(), false);
+            top.setImage(piece.getBlock3());
+            mid.setImage(piece.getBlock2());
+            bot.setImage(piece.getBlock1());
         }
     }
 }

@@ -4,7 +4,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
-import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.Pool;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
@@ -13,22 +12,21 @@ import java.util.Objects;
 
 import asg.games.yokel.client.utils.UIUtil;
 import asg.games.yokel.objects.Copyable;
-import asg.games.yokel.objects.YokelBlock;
-import asg.games.yokel.objects.YokelBlockEval;
 import asg.games.yokel.utils.YokelUtilities;
 
 /**
  * Created by Blakbro2k on 3/15/2018.
  */
 
-public class GameBlock extends Table implements Pool.Poolable, GameObject, Copyable<GameBlock> {
+public class GameBlock extends Table implements Pool.Poolable, Copyable<GameBlock> {
     private final static float DEFAULT_ANIMATION_DELAY = 0.12f;
     private final static float DEFENSE_ANIMATION_DELAY = 0.32f;
     private final static float MEDUSA_ANIMATION_DELAY = 0.22f;
     private final static float MIDAS_ANIMATION_DELAY = 0.2f;
 
     private AnimatedImage uiBlock;
-    private YokelBlock block;
+    private int previousBlock = -1;
+    private int currentBlock = 6;
     private boolean isActive;
     private boolean isPreview;
     private final float preferredHeight = 16;
@@ -57,7 +55,7 @@ public class GameBlock extends Table implements Pool.Poolable, GameObject, Copya
     }
 
     //New block via block type
-    public GameBlock(Skin skin, YokelBlock block, boolean isPreview) {
+   /* public GameBlock(Skin skin, YokelBlock block, boolean isPreview) {
         super(skin);
         if (block == null) throw new GdxRuntimeException("Block cannot be null.");
         setBlock(block);
@@ -65,18 +63,27 @@ public class GameBlock extends Table implements Pool.Poolable, GameObject, Copya
         this.isPreview = isPreview;
         setImage(block.getBlockType());
         add(uiBlock);
+    }*/
+
+    public void setBlock(int block) {
+        this.previousBlock = this.currentBlock;
+        this.currentBlock = block;
     }
 
-    public void setBlock(YokelBlock block) {
-        this.block = block;
-    }
-
-    public YokelBlock getBlock() {
-        return block;
+    public int getBlock() {
+        return currentBlock;
     }
 
     public void setImage(Image image) {
         setDrawable(image);
+    }
+
+    public void setImageBlockName(String name) {
+        uiBlock.setName(name);
+    }
+
+    public String getImageBlockName() {
+        return uiBlock.getName();
     }
 
     public void setImage(String blockName) {
@@ -117,15 +124,24 @@ public class GameBlock extends Table implements Pool.Poolable, GameObject, Copya
 
     private float getDelay(Image image){
         if(image != null){
-            if(YokelUtilities.containsIgnoreCase(image.getName(), "defense")){
+            if (YokelUtilities.containsIgnoreCase(image.getName(), "defense")) {
                 return DEFENSE_ANIMATION_DELAY;
-            } else if(YokelUtilities.containsIgnoreCase(image.getName(), "medusa")){
+            } else if (YokelUtilities.containsIgnoreCase(image.getName(), "medusa")) {
                 return MEDUSA_ANIMATION_DELAY;
-            } else if(YokelUtilities.containsIgnoreCase(image.getName(), "midas")){
+            } else if (YokelUtilities.containsIgnoreCase(image.getName(), "midas")) {
                 return MIDAS_ANIMATION_DELAY;
             }
         }
         return DEFAULT_ANIMATION_DELAY;
+    }
+
+    @Override
+    public void act(float delta) {
+        super.act(delta);
+        if (uiBlock == null || (previousBlock != currentBlock)) {
+            setImage(currentBlock);
+            setBlock(currentBlock);
+        }
     }
 
     private void setDrawable(Image image) {
@@ -134,7 +150,7 @@ public class GameBlock extends Table implements Pool.Poolable, GameObject, Copya
         }
         uiBlock.setDelay(getDelay(image));
 
-        if(image == null) return;
+        if (image == null) return;
         Drawable drawable;
         if (image instanceof AnimatedImage) {
             drawable = ((AnimatedImage) image).getFrames().get(0);
@@ -143,13 +159,12 @@ public class GameBlock extends Table implements Pool.Poolable, GameObject, Copya
             drawable = image.getDrawable();
             uiBlock.setFrames(GdxArrays.newArray(drawable));
         }
-
-        setName(image.getName());
-
+        setImageBlockName(image.getName());
         uiBlock.setDrawable(drawable);
-        if (YokelUtilities.containsIgnoreCase(getName(), "broken")) {
+        if (YokelUtilities.containsIgnoreCase(getImageBlockName(), "broken")) {
             uiBlock.setPlayOnce(true);
         }
+
         calculateImageSize(drawable);
     }
 
@@ -177,19 +192,12 @@ public class GameBlock extends Table implements Pool.Poolable, GameObject, Copya
     @Override
     public void setName(String name) {
         super.setName(name);
-        uiBlock.setName(name);
     }
 
     @Override
     public void setPosition(float x, float y) {
         super.setPosition(x, y);
         uiBlock.setPosition(x, y);
-    }
-
-    @Override
-    public void setData(String data) {
-        YokelBlock block = YokelUtilities.getObjectFromJsonString(YokelBlock.class, data);
-        if (block != null) setImage(YokelUtilities.otoi(block));
     }
 
     public void setCurrentFrame(int frame){
@@ -233,46 +241,6 @@ public class GameBlock extends Table implements Pool.Poolable, GameObject, Copya
     @Override
     public void setDebug(boolean enabled) {
         super.setDebug(YokelUtilities.setDebug(enabled, uiBlock));
-    }
-
-    public void update(int block, boolean isPreview) {
-        System.out.println("GBA: start update Block");
-
-        if (needsUpdate(block, isPreview)) {
-            System.out.println("this: " + this.uiBlock);
-
-            GameBlock blockUi = UIUtil.getBlock(block, isPreview);
-            System.out.println("blockUi: " + blockUi);
-
-            if (blockUi != null) {
-                AnimatedImage clone = blockUi.deepCopy().getImage();
-                setImage(clone);
-                setName(blockUi.getName());
-                UIUtil.freeBlock(blockUi);
-            }
-        }
-        System.out.println("GB: end update Block");
-    }
-
-    private boolean needsUpdate(int block, boolean isPreview) {
-        String blockName = "";
-        Image blockImage;
-        boolean isBroken = YokelBlockEval.hasBrokenFlag(block);
-
-        block = UIUtil.getTrueBlock(block);
-
-        if(isBroken) block = YokelBlockEval.addBrokenFlag(block);
-
-        if (isPreview) {
-            blockImage = UIUtil.getInstance().getPreviewBlockImage(block);
-        } else {
-            blockImage = UIUtil.getInstance().getBlockImage(block);
-        }
-
-        if (blockImage != null) {
-            blockName = blockImage.getName();
-        }
-        return !YokelUtilities.equalsIgnoreCase(blockName, uiBlock.getName());
     }
 
     @Override

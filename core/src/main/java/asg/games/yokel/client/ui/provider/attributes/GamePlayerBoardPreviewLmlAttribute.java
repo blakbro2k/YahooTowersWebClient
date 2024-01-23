@@ -6,8 +6,8 @@ import com.github.czyzby.lml.parser.tag.LmlTag;
 
 import asg.games.yokel.client.ui.actors.GamePlayerBoard;
 
-public class GamePieceOrientationLmlAttribute implements LmlAttribute<GamePlayerBoard> {
-    public GamePieceOrientationLmlAttribute() {
+public class GamePlayerBoardPreviewLmlAttribute implements LmlAttribute<GamePlayerBoard> {
+    public GamePlayerBoardPreviewLmlAttribute() {
     }
 
     public Class<GamePlayerBoard> getHandledType() {
@@ -15,6 +15,6 @@ public class GamePieceOrientationLmlAttribute implements LmlAttribute<GamePlayer
     }
 
     public void process(LmlParser parser, LmlTag tag, GamePlayerBoard actor, String rawAttributeData) {
-        actor.setLeftBarOrientation(parser.parseBoolean(rawAttributeData));
+        actor.setPreview(parser.parseBoolean(rawAttributeData));
     }
 }

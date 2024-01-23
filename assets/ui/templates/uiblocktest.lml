@@ -1,12 +1,12 @@
-<window debug="false" defaultPad="2" width="800">
+<window debug="false" defaultPad="2" width="800" id="MainWindow">
     <table row="true" width="600">
         <table>
-            <gamenametag id="playerOne" row="true" />
-            <gameJoinButton debug="false" id="join" row="true"/>
+            <gamenametag id="playerOne" icon="3" row="true">Player_1</gamenametag>
+            <gameJoinButton debug="false" id="join" row="true" />
         </table>
         <table>
-            <gamenametag id="playerTwo" row="true" />
-            <gameJoinButton debug="false" id="joinReady" row="true"/>
+            <gamenametag id="playerTwo" icon="9" row="true">player_2</gamenametag>
+            <gameJoinButton debug="false" id="joinReady" row="true" />
         </table>
     </table>
     <table row="true">
@@ -83,28 +83,45 @@
             </table>
             <table row="true">
                 <playericon id="icon1">-91</playericon>
-                <playericon id="icon1">5</playericon>
-                <playericon id="icon1">0</playericon>
-                <playericon id="icon1">81</playericon>
-                <playericon id="icon2" row="true">6</playericon>
+                <playericon id="icon2">5</playericon>
+                <playericon id="icon3">0</playericon>
+                <playericon id="icon4">81</playericon>
+                <playericon id="icon5" row="true">6</playericon>
             </table>
         </table>
         <table>
             <table>
-                <gameblockarea id="partner" />
+                <gameblockgrid id="partner">3</gameblockgrid>
             </table>
             <table>
-                <gameblockarea id="preview" />
+                <gameblockgrid id="preview">5</gameblockgrid>
             </table>
             <table>
-                <gameblockarea id="player" />
+                <gameblockgrid id="player" preview="false">8</gameblockgrid>
             </table>
         </table>
     </table>
-    <table row="true">
-        <textButton fill="true" onChange="resetAllBoards" row="true">Reset Boards</textButton>
-        <textButton fill="true" onChange="toggleGameStart" row="true">Start</textButton>
-        <textButton fill="true" onChange="stopClock" row="true">Stop Clock</textButton>
-        <textButton fill="true" onChange="goto:debug" row="true">@back</textButton>
+    <table row="true" debug="true">
+        <table>
+            <textButton fill="true" onChange="resetAllBoards" row="true">Reset Boards</textButton>
+            <textButton fill="true" onChange="toggleGameStart" row="true">Start</textButton>
+            <textButton fill="true" onChange="stopClock" row="true">Stop Clock</textButton>
+            <textButton fill="true" onChange="goto:debug" row="true">@back</textButton>
+        </table>
+        <table>
+            <table row="true">
+                <gameblock id="Y_block_breakTest" blocktype="0" />
+                <gameblock id="O_block_breakTest" blocktype="1" />
+                <gameblock id="K_block_breakTest" blocktype="2" />
+                <gameblock id="E_block_breakTest" blocktype="3" />
+                <gameblock id="L_block_breakTest" blocktype="4" />
+                <gameblock id="bash_block_breakTest" blocktype="5" />
+                <actor id="Y_block_broken_left" />
+
+            </table>
+            <table>
+                <textButton fill="true" onChange="breakBlocks" row="true">Break!</textButton>
+            </table>
+        </table>
     </table>
 </window>

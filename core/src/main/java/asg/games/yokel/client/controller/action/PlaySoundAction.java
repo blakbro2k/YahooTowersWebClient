@@ -5,7 +5,7 @@ import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.utils.Pool;
 import com.badlogic.gdx.utils.TimeUtils;
 
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.utils.UIUtil;
 
 public class PlaySoundAction extends Action {
     //private Log4LibGDXLogger logger = Log4LibGDXLoggerService.forClass(PlaySoundAction.class);
@@ -17,7 +17,7 @@ public class PlaySoundAction extends Action {
 
     public void setSound(Sound sound){
         this.sound = sound;
-        this.duration = 1;//YokelUtilities.getSoundDuration(sound);
+        this.duration = UIUtil.getInstance().getSoundDuration(sound);
     }
 
     /** Called the first time {@link #act(float)} is called. This is a good place to query the {@link #actor actor's} starting

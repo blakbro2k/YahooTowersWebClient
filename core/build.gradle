@@ -1,20 +1,34 @@
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 eclipse.project.name = appName + '-core'
-
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url = "https://maven.pkg.github.com/blakbro2k/yokel-towers"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
 dependencies {
-	api "com.badlogicgames.gdx:gdx:$gdxVersion"
-	api "com.crashinvaders.lml:gdx-autumn-mvc:$lmlVersion"
-	api "com.crashinvaders.lml:gdx-autumn:$lmlVersion"
-	api "com.crashinvaders.lml:gdx-kiwi:$lmlVersion"
-	api "com.crashinvaders.lml:gdx-lml-vis:$lmlVersion"
-	api "com.crashinvaders.lml:gdx-lml:$lmlVersion"
-	api "com.crashinvaders.lml:gdx-websocket:$lmlVersion"
-	api "com.crashinvaders.lml:gdx-websocket-serialization:$lmlVersion"
+    api "com.badlogicgames.gdx:gdx:$gdxVersion"
+    api "com.crashinvaders.lml:gdx-autumn-mvc:$lmlVersion"
+    api "com.crashinvaders.lml:gdx-autumn:$lmlVersion"
+    api "com.crashinvaders.lml:gdx-kiwi:$lmlVersion"
+    api "com.crashinvaders.lml:gdx-lml-vis:$lmlVersion"
+    api "com.crashinvaders.lml:gdx-lml:$lmlVersion"
+    api "com.crashinvaders.lml:gdx-websocket:$lmlVersion"
+    api "com.crashinvaders.lml:gdx-websocket-serialization:$lmlVersion"
 
-	api "com.github.tommyettinger:regexodus:$regExodusVersion"
-	api "com.kotcrab.vis:vis-ui:$visUiVersion"
-	api "com.rafaskoberg.gdx:typing-label:$typingLabelVersion"
-	api "org.projectlombok:lombok:$lombokVersion"
-	annotationProcessor "org.projectlombok:lombok:$lombokVersion"
-	api fileTree(dir:"U:\\yokelTowers\\core\\build\\libs", include: "yokel-towers-0.1.0.jar")
+    api "com.github.tommyettinger:regexodus:$regExodusVersion"
+    api "com.kotcrab.vis:vis-ui:$visUiVersion"
+    api "com.rafaskoberg.gdx:typing-label:$typingLabelVersion"
+    api "org.projectlombok:lombok:$lombokVersion"
+    //implementation 'yokel-towers:core:0.0.8'
+    //api 'yokel-towers:core:0.1.3'
+
+    //annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    api fileTree(dir: "U:\\yokelTowers\\core\\build\\libs", include: "yokel-towers-$yokelVersion" + ".jar")
 }

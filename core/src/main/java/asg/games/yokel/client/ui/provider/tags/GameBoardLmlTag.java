@@ -6,7 +6,7 @@ import com.github.czyzby.lml.parser.impl.tag.AbstractNonParentalActorLmlTag;
 import com.github.czyzby.lml.parser.tag.LmlActorBuilder;
 import com.github.czyzby.lml.parser.tag.LmlTag;
 
-import asg.games.yokel.client.ui.actors.GameBoard;
+import asg.games.yokel.client.ui.actors.GamePlayerBoard;
 
 public class GameBoardLmlTag extends AbstractNonParentalActorLmlTag {
     public GameBoardLmlTag(LmlParser parser, LmlTag parentTag, StringBuilder rawTagData) {
@@ -15,7 +15,7 @@ public class GameBoardLmlTag extends AbstractNonParentalActorLmlTag {
 
     @Override
     protected Actor getNewInstanceOfActor(final LmlActorBuilder builder) {
-        return new GameBoard(getSkin(builder));
+        return new GamePlayerBoard(getSkin(builder));
     }
 
     @Override

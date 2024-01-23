@@ -1,6 +1,5 @@
 package asg.games.yokel.client.controller;
 
-import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.math.MathUtils;
@@ -13,22 +12,19 @@ import com.github.czyzby.autumn.annotation.Inject;
 import com.github.czyzby.autumn.mvc.component.sfx.MusicService;
 import com.github.czyzby.autumn.mvc.component.ui.InterfaceService;
 import com.github.czyzby.autumn.mvc.component.ui.controller.ViewController;
-import com.github.czyzby.autumn.mvc.component.ui.controller.ViewInitializer;
-import com.github.czyzby.autumn.mvc.component.ui.controller.ViewRenderer;
 import com.github.czyzby.autumn.mvc.stereotype.View;
 import com.github.czyzby.lml.annotation.LmlAction;
 import com.github.czyzby.lml.annotation.LmlActor;
-import com.github.czyzby.lml.parser.action.ActionContainer;
 
 import asg.games.yokel.client.service.UserInterfaceService;
-import asg.games.yokel.client.ui.actors.GameBoard;
+import asg.games.yokel.client.ui.actors.GamePlayerBoard;
 import asg.games.yokel.objects.YokelBlock;
 import asg.games.yokel.objects.YokelBlockEval;
 import asg.games.yokel.objects.YokelGameBoard;
 import asg.games.yokel.objects.YokelPlayer;
 
 @View(id = "clientViewTest", value = "ui/templates/clientViewTest.lml")
-public class ClientViewTestController extends ApplicationAdapter implements ViewRenderer, ViewInitializer, ActionContainer {
+public class ClientViewTestController extends ClientViewController {
     @Inject
     private UserInterfaceService uiService;
     //@Inject private SessionService sessionService;
@@ -40,13 +36,13 @@ public class ClientViewTestController extends ApplicationAdapter implements View
     private LoadingController assetController;
 
     @LmlActor("1:area")
-    private GameBoard area1;
+    private GamePlayerBoard area1;
     @LmlActor("2:area")
-    private GameBoard area2;
+    private GamePlayerBoard area2;
     @LmlActor("3:area")
-    private GameBoard area3;
+    private GamePlayerBoard area3;
     @LmlActor("4:area")
-    private GameBoard area4;
+    private GamePlayerBoard area4;
 
     private YokelGameBoard boardState;
     private boolean nextGameDialog;
@@ -59,16 +55,17 @@ public class ClientViewTestController extends ApplicationAdapter implements View
 
     @Override
     public void initialize(Stage stage, ObjectMap<String, Actor> actorMappedByIds) {
+        super.initialize(stage, actorMappedByIds);
         try {
             initiate();
-        } catch (ReflectionException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Override
     public void destroy(ViewController viewController) {
-        //boardState.dispose();
+        super.destroy(viewController);
     }
 
     private void initiate() throws ReflectionException {
@@ -81,32 +78,24 @@ public class ClientViewTestController extends ApplicationAdapter implements View
         //boardState = new YokelGameBoard(1L);
         area1.hideJoinButton();
         area1.setData(player.getJsonString());
-        area1.update(boardState);
+        //area1.update(boardState);
         System.out.println(boardState);
 
-        //area = new GameBoard(uiService.getSkin());
+        //area = new GamePlayerBoard(uiService.getSkin());
         YokelPlayer player2 = new YokelPlayer("Test Player One",2000, 5);
         //area2.setBoardNumber(2);
         area2.hideJoinButton();
         area2.setData(player2.getJsonString());
-        area2.update(getTestBoard());
+        //area2.update(getTestBoard());
 
         area3.hideJoinButton();
         area3.setPlayerView(false);
-        area3.update(getTestBoard());
+        //area3.update(getTestBoard());
 
         area4.hideJoinButton();
         area4.setPlayerView(false);
-        area4.update(getTestBoard());
+        //area4.update(getTestBoard());
     }
-
-    @Override
-    public void render(Stage stage, float delta) {
-        //showGameOver(stage);
-        stage.act(delta);
-        stage.draw();
-    }
-
 
 
 /*

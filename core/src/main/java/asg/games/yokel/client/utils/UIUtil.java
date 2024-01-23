@@ -2,14 +2,17 @@ package asg.games.yokel.client.utils;
 
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
+import com.badlogic.gdx.utils.Pools;
 import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
 
 import asg.games.yokel.client.factories.YokelObjectFactory;
 import asg.games.yokel.client.ui.actors.GameBlock;
+import asg.games.yokel.client.ui.actors.GameBrokenBlockSpriteContainer;
 import asg.games.yokel.objects.YokelBlockEval;
 import asg.games.yokel.utils.YokelUtilities;
 
@@ -84,10 +87,6 @@ public class UIUtil {
         return getFactory().getGameBlock(blockId, preview);
     }
 
-    public void freeObject(GameBlock block) {
-        factory.freeObject(block);
-    }
-
     public static GameBlock getBlock(int block) {
         return UIUtil.getInstance().getGameBlock(block, false);
     }
@@ -107,24 +106,50 @@ public class UIUtil {
     }
 
     public static void freeBlock(GameBlock uiCell) {
-        UIUtil.getInstance().freeObject(uiCell);
+        Pools.free(uiCell);
     }
 
     public static void updateGameBlock(GameBlock original, int block, boolean isPreview) {
         GameBlock incoming = getBlock(block, isPreview);
         if(original != null && !original.equals(incoming)){
-            freeBlock(original);
+            Pools.free(original);
             original = incoming;
         } else {
-            freeBlock(incoming);
+            Pools.free(incoming);
         }
     }
 
     public static int getTrueBlock(int block) {
-        if(YokelBlockEval.hasAddedByYahooFlag(block) || YokelBlockEval.hasBrokenFlag(block)){
+        if (YokelBlockEval.hasAddedByYahooFlag(block) || YokelBlockEval.hasBrokenFlag(block)) {
             return YokelBlockEval.getCellFlag(block);
         } else {
             return YokelBlockEval.getIDFlag(YokelBlockEval.getID(block), block);
         }
+    }
+
+    public static Image getNewImage(Image image) {
+        Image nuImage = null;
+        if (image != null) {
+            nuImage = new Image(image.getDrawable());
+        }
+        return nuImage;
+    }
+
+    public static GameBrokenBlockSpriteContainer getBrokenBlockSprites(Group parent, int block) {
+        String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
+        GameBrokenBlockSpriteContainer spriteContainer = Pools.obtain(GameBrokenBlockSpriteContainer.class);
+        Image left = getNewImage(myInstance.getBlockImage(brokenBlockString + "_left"));
+        Image bottom = getNewImage(myInstance.getBlockImage(brokenBlockString + "_bottom"));
+        Image right = getNewImage(myInstance.getBlockImage(brokenBlockString + "_right"));
+        parent.addActor(left);
+        parent.addActor(bottom);
+        parent.addActor(right);
+
+        spriteContainer.setParent(parent);
+        spriteContainer.setLeftSprite(left);
+        spriteContainer.setBottomSprite(bottom);
+        spriteContainer.setRightSprite(right);
+
+        return spriteContainer;
     }
 }

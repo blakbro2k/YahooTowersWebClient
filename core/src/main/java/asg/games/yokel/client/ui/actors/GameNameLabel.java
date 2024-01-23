@@ -39,24 +39,24 @@ public class GameNameLabel extends Table implements GameObject {
         setNameTag(player.getName());
     }
 
-    private void resetData(){
+    private void resetData() {
         setData(null);
     }
 
-    private void setNameTagData(){
+    private void setNameTagData() {
         add(icon);
         add(playerName);
     }
 
-    private void setNameTag(String name) {
-        if(playerName == null){
+    public void setNameTag(String name) {
+        if (playerName == null) {
             playerName = new Label(YokelPlayer.BLANK_PLAYER.getName(), getSkin());
         }
         playerName.setText(name);
     }
 
-    private void setIcon(int iconNumber) {
-        if(icon == null){
+    public void setIcon(int iconNumber) {
+        if (icon == null) {
             icon = new GameIcon(GameIcon.getGameDefaultIconStyle(getSkin()), getSkin());
         }
         icon.setIconNumber(iconNumber);
