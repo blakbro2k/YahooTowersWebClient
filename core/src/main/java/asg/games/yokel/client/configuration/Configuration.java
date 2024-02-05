@@ -37,12 +37,12 @@ import asg.games.yokel.client.ui.provider.tags.GameBlockLmlTagProvider;
 import asg.games.yokel.client.ui.provider.tags.GameBoardLmlTagProvider;
 import asg.games.yokel.client.ui.provider.tags.GameClockLmlTagProvider;
 import asg.games.yokel.client.ui.provider.tags.GameJoinWindowLmlTagProvider;
-import asg.games.yokel.client.ui.provider.tags.GameLabelLmlTagProvider;
 import asg.games.yokel.client.ui.provider.tags.GameNameLabelLmlTagProvider;
 import asg.games.yokel.client.ui.provider.tags.GamePieceLmlTagProvider;
 import asg.games.yokel.client.ui.provider.tags.GamePlayerIconLmlTagProvider;
 import asg.games.yokel.client.ui.provider.tags.GamePlayerListLmlTagProvider;
 import asg.games.yokel.client.ui.provider.tags.GamePowersQueueLmlTagProvider;
+import asg.games.yokel.client.ui.provider.tags.TypingLabelLmlTagProvider;
 
 /** Thanks to the Component annotation, this class will be automatically found and processed.
 	 *
@@ -113,7 +113,7 @@ import asg.games.yokel.client.ui.provider.tags.GamePowersQueueLmlTagProvider;
 			syntax.addTagProvider(new GamePieceLmlTagProvider(), "gamepiece");
 			syntax.addTagProvider(new GamePowersQueueLmlTagProvider(), "gamepowers");
 			syntax.addTagProvider(new GamePlayerListLmlTagProvider(), "gameplayerlist");
-			syntax.addTagProvider(new GameLabelLmlTagProvider(), "gameLabel");
+			syntax.addTagProvider(new TypingLabelLmlTagProvider(), "typingLabel");
 
 			syntax.addAttributeProcessor(new GameBlockTypeLmlAttribute(), "blocktype");
 			syntax.addAttributeProcessor(new GameBlockAreaNumberLmlAttribute(), "areanumber");

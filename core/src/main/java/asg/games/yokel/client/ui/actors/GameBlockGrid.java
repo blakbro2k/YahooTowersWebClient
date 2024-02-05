@@ -16,6 +16,7 @@ import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 
 import asg.games.yokel.client.utils.UIUtil;
 import asg.games.yokel.objects.YokelBlock;
+import asg.games.yokel.objects.YokelBlockEval;
 import asg.games.yokel.objects.YokelGameBoard;
 import asg.games.yokel.objects.YokelGameBoardState;
 import asg.games.yokel.objects.YokelPiece;
@@ -68,15 +69,13 @@ public class GameBlockGrid extends Stack {
         bgNumber.add("");
         add(bgNumber);
         initializeGrid();
+        invalidate();
     }
 
     private void initializeSize(){
         GameBlock clear = getClearBlock();
         float width = clear.getWidth() * YokelGameBoard.MAX_COLS;
         float height = clear.getHeight() * YokelGameBoard.MAX_PLAYABLE_ROWS;
-        //this.setBounds(sLoc.x, sLoc.y, width, height);
-        //grid.setBounds(sLoc.x, sLoc.y, width, height);
-        //setCullingArea(new Rectangle(sLoc.x, sLoc.y, width, height));
     }
 
     private void initializeBoard(){
@@ -100,7 +99,6 @@ public class GameBlockGrid extends Stack {
         for(int r = YokelGameBoard.MAX_PLAYABLE_ROWS - 1; r >= 0; r--){
             for(int c = 0; c < YokelGameBoard.MAX_COLS; c++){
                 GameBlock uiBlock = getClearBlock();
-
                 uiBlocks.put(getCellAttrName(r, c), uiBlock);
                 if(c + 1 == YokelGameBoard.MAX_COLS){
                     grid.add(uiBlock).row();
@@ -109,9 +107,9 @@ public class GameBlockGrid extends Stack {
                 }
             }
         }
-        setAreaBounds();
         grid.add(pieceSprite);
         add(grid);
+        setAreaBounds();
     }
 
     private void setAreaBounds(){
@@ -120,6 +118,7 @@ public class GameBlockGrid extends Stack {
         float height = block.getHeight();
         Rectangle bounds = new Rectangle(0, 0, width * YokelGameBoard.MAX_COLS, height * YokelGameBoard.MAX_PLAYABLE_ROWS);
         grid.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
+        this.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
         //grid.setCullingArea(bounds);
     }
 
@@ -147,15 +146,12 @@ public class GameBlockGrid extends Stack {
     }
 
     private void setBlock(int block, int r, int c) {
-        //System.out.println("GBA: start setting Block");
         GameBlock uiCell = uiBlocks.get(getCellAttrName(r, c));
-        //.out.println("uiCell: " + uiCell);
 
         if (uiCell != null) {
             uiCell.setPreview(isPreview);
-            uiCell.setImage(block);
+            uiCell.setImage(YokelBlockEval.getCellFlag(block));
         }
-        //System.out.println("GBA: end setting Block");
     }
 
     private boolean isDownCellFree(int column, int row) {
@@ -180,7 +176,7 @@ public class GameBlockGrid extends Stack {
 
     private void redraw(){
         setAreaBounds();
-        //initializeGrid();
+        initializeGrid();
     }
 
     @Override
@@ -247,11 +243,11 @@ public class GameBlockGrid extends Stack {
                     setBlock(cells[r][c], r, c);
                 }
             }
+
             //Render Piece
             setPieceSprite(state.getPiece(), state.getPieceFallTimer());
         }
     }
-
 
     private int getBlockValueFromGameBoard(YokelGameBoard board, int r, int c) {
         int block = YokelBlock.CLEAR_BLOCK;
@@ -263,6 +259,7 @@ public class GameBlockGrid extends Stack {
 
     public void setActive(boolean b) {
         this.isActive = b;
+        this.pieceSprite.setActive(b);
         if (isActive) {
             if (isPlayerView) {
                 bgColor.setBackground(skin.getDrawable(PLAYER_BACKGROUND));
@@ -319,6 +316,7 @@ public class GameBlockGrid extends Stack {
         public void draw(Batch batch, float alpha) {
             super.draw(batch, alpha);
             if (isActive) {
+                //System.out.println("Drawing PieceSprite");
                 computePosition();
                 float x = getX();
                 float y = getY();

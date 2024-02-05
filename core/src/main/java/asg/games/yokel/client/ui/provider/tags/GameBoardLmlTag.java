@@ -19,5 +19,7 @@ public class GameBoardLmlTag extends AbstractNonParentalActorLmlTag {
     }
 
     @Override
-    protected void handlePlainTextLine(final String plainTextLine) {}
+    protected void handlePlainTextLine(final String plainTextLine) {
+
+    }
  }

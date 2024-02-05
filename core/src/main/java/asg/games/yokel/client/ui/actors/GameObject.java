@@ -22,5 +22,5 @@ package asg.games.yokel.client.ui.actors;
  * </p>
  */
 public interface GameObject {
-   public void setData(String data);
+   void updateYokelData(String data);
 }

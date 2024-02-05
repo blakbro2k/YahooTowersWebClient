@@ -146,7 +146,7 @@ public class GameClock extends Table implements GameObject {
     }
 
     @Override
-    public void setData(String data) {
+    public void updateYokelData(String data) {
         YokelClock clock = YokelUtilities.getObjectFromJsonString(YokelClock.class, data);
         if (clock != null) {
             start = clock.getStart();

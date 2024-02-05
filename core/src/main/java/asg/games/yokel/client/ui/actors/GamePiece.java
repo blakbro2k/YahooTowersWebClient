@@ -29,7 +29,7 @@ public class GamePiece extends Table implements GameObject {
     public GamePiece(Skin skin, String data){
         this(skin);
         setSkin(skin);
-        setData(data);
+        updateYokelData(data);
     }
 
     private void initialize(GameBlock top, GameBlock middle, GameBlock bottom){
@@ -56,9 +56,9 @@ public class GamePiece extends Table implements GameObject {
     }
 
     @Override
-    public void setData(String data) {
+    public void updateYokelData(String data) {
         YokelPiece piece = YokelUtilities.getObjectFromJsonString(YokelPiece.class, data);
-        if(piece != null){
+        if (piece != null) {
             top.setImage(piece.getBlock3());
             mid.setImage(piece.getBlock2());
             bot.setImage(piece.getBlock1());

@@ -44,7 +44,10 @@ public class ClientViewTestController extends ClientViewController {
     @LmlActor("4:area")
     private GamePlayerBoard area4;
 
-    private YokelGameBoard boardState;
+    private YokelGameBoard player1Board;
+    private YokelGameBoard player2Board;
+    private YokelGameBoard player3Board;
+    private YokelGameBoard player4Board;
     private boolean nextGameDialog;
     private boolean attemptGameStart;
     private final boolean isGameReady = false;
@@ -74,18 +77,18 @@ public class ClientViewTestController extends ClientViewController {
         player.setRating(2000);
         player.setIcon(6);
 
-        boardState = getTestBoard();
+        player1Board = getTestBoard();
         //boardState = new YokelGameBoard(1L);
         area1.hideJoinButton();
-        area1.setData(player.getJsonString());
+        area1.updateYokelData(player.getJsonString());
         //area1.update(boardState);
-        System.out.println(boardState);
+        System.out.println(player1Board);
 
         //area = new GamePlayerBoard(uiService.getSkin());
         YokelPlayer player2 = new YokelPlayer("Test Player One",2000, 5);
         //area2.setBoardNumber(2);
         area2.hideJoinButton();
-        area2.setData(player2.getJsonString());
+        area2.updateYokelData(player2.getJsonString());
         //area2.update(getTestBoard());
 
         area3.hideJoinButton();
@@ -239,35 +242,35 @@ public class ClientViewTestController extends ClientViewController {
     public void checkInput(){
         //if(area1 == null) return;
         if (Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
-            boardState.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.Y_BLOCK, 3)));
+            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.Y_BLOCK, 3)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.A)) {
-            boardState.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.Y_BLOCK, 2)));
+            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.Y_BLOCK, 2)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.W)) {
-            boardState.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.A_BLOCK, 3)));
+            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.A_BLOCK, 3)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.S)) {
-            boardState.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.A_BLOCK, 2)));
+            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.A_BLOCK, 2)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
-            boardState.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.H_BLOCK, 5)));
-            System.out.println(boardState);
+            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.H_BLOCK, 5)));
+            System.out.println(player1Board);
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.D)) {
-            boardState.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.H_BLOCK, 2)));
+            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.H_BLOCK, 2)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
-            boardState.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.Op_BLOCK, 3)));
+            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.Op_BLOCK, 3)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.F)) {
-            boardState.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.Op_BLOCK, 2)));
+            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.Op_BLOCK, 2)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.T)) {
-            boardState.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.EX_BLOCK, 3)));
+            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.EX_BLOCK, 3)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.G)) {
-            boardState.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.EX_BLOCK, 2)));
+            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.EX_BLOCK, 2)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
             //boardState.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.EX_BLOCK, 2)));

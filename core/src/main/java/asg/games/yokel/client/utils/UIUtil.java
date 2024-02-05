@@ -2,7 +2,6 @@ package asg.games.yokel.client.utils;
 
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Array;
@@ -135,7 +134,7 @@ public class UIUtil {
         return nuImage;
     }
 
-    public static GameBrokenBlockSpriteContainer getBrokenBlockSprites(Group parent, int block) {
+    public static GameBrokenBlockSpriteContainer getBrokenBlockSprites(GameBlock parent, int block) {
         String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
         GameBrokenBlockSpriteContainer spriteContainer = Pools.obtain(GameBrokenBlockSpriteContainer.class);
         Image left = getNewImage(myInstance.getBlockImage(brokenBlockString + "_left"));
@@ -145,7 +144,7 @@ public class UIUtil {
         parent.addActor(bottom);
         parent.addActor(right);
 
-        spriteContainer.setParent(parent);
+        spriteContainer.setParentGameBlock(parent);
         spriteContainer.setLeftSprite(left);
         spriteContainer.setBottomSprite(bottom);
         spriteContainer.setRightSprite(right);

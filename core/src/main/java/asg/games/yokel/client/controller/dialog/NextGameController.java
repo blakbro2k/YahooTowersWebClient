@@ -11,8 +11,7 @@ import com.github.czyzby.lml.annotation.LmlActor;
 import com.github.czyzby.lml.parser.action.ActionContainer;
 
 import asg.games.yokel.client.GlobalConstants;
-import asg.games.yokel.client.controller.action.CloseDialogAction;
-import asg.games.yokel.client.controller.action.CountLabelToAction;
+import asg.games.yokel.client.controller.action.YokelActions;
 import asg.games.yokel.client.service.SoundFXService;
 
 /** This is a settings dialog, which can be shown in any views by using "show:settings" LML action or - in Java code -
@@ -31,22 +30,9 @@ public class NextGameController implements ActionContainer, ViewDialogShower {
 
         if(timerLabel != null) {
             timerLabel.addAction(
-                    Actions.sequence(countTo(NEXT_GAME_SECONDS, false),
-                    closeDialog(interfaceService))
+                    Actions.sequence(YokelActions.countTo(NEXT_GAME_SECONDS, false),
+                            YokelActions.closeDialog(interfaceService))
             );
         }
-    }
-
-    private static CountLabelToAction countTo(int nextGameSeconds, boolean isCountUp) {
-        CountLabelToAction action = Actions.action(CountLabelToAction.class);
-        action.setCountDown(nextGameSeconds);
-        action.setReverse(isCountUp);
-        return action;
-    }
-
-    private static CloseDialogAction closeDialog(InterfaceService interfaceService) {
-        CloseDialogAction action = Actions.action(CloseDialogAction.class);
-        action.setController(NextGameController.class, interfaceService);
-        return action;
     }
 }

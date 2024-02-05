@@ -3,7 +3,9 @@ package asg.games.yokel.client.ui.actors;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Queue;
+import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 
 import asg.games.yokel.client.utils.UIUtil;
 import asg.games.yokel.objects.YokelBlock;
@@ -33,6 +35,7 @@ public class GamePlayerBoard extends Table implements GameObject {
     private final float blockPrevHeight;
 
     private boolean isLeftBar = true;
+    private final Array<GameBrokenBlockSpriteContainer> brokenBlocksQueue = GdxArrays.newArray();
 
     public GamePlayerBoard(Skin skin) {
         super(skin);
@@ -46,6 +49,8 @@ public class GamePlayerBoard extends Table implements GameObject {
         blockPrevHeight = previewBlock.getHeight();
 
         clearPiece = new GamePiece(getSkin());
+        this.setBounds(0, 0, 200, 500);
+
     }
 
     private void initialize(Skin skin) {
@@ -119,15 +124,15 @@ public class GamePlayerBoard extends Table implements GameObject {
     /*private void setUpNext(YokelGameBoard board){
         YokelPiece piece = board.fetchCurrentNextPiece();
         if(piece != null){
-            next.setData(piece.getJsonString());
+            next.updateYokelData(piece.getJsonString());
         }
     }*/
 
     @Override
-    public void setData(String data) {
-        if(!YokelUtilities.isEmpty(data)){
+    public void updateYokelData(String data) {
+        if (!YokelUtilities.isEmpty(data)) {
             YokelPlayer player = YokelUtilities.getObjectFromJsonString(YokelPlayer.class, data);
-            if(player != null){
+            if (player != null) {
                 sitPlayerDown(player);
             } else {
                 standPlayerUp();
@@ -153,7 +158,7 @@ public class GamePlayerBoard extends Table implements GameObject {
 
     private void setPlayerLabel(String data){
         if(data != null){
-            nameLabel.setData(data);
+            nameLabel.updateYokelData(data);
         }
     }
 
@@ -232,7 +237,7 @@ public class GamePlayerBoard extends Table implements GameObject {
         // area.setIsPlayerReady(isPlayerReady);
     }
 
-    public void setYahooDuration(boolean isYahoo) {
+    public void setYahoo(boolean isYahoo) {
         nameLabel.setYahoo(isYahoo);
     }
 }

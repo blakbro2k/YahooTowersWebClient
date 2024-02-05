@@ -2,14 +2,15 @@ package asg.games.yokel.client.ui.actors;
 
 
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Pool;
 
 public class GameBrokenBlockSpriteContainer implements Pool.Poolable {
     Image[] sprites = new Image[3];
-    Actor parent = null;
+    GameBlock parentGameBlock = null;
+    GameBlockGrid grid = null;
+    int row, col = 0;
     Skin skin = null;
     Rectangle bounds = new Rectangle();
     private String name;
@@ -23,6 +24,14 @@ public class GameBrokenBlockSpriteContainer implements Pool.Poolable {
         sprites[0] = left;
         sprites[1] = bottom;
         sprites[2] = right;
+    }
+
+    public void setGrid(GameBlockGrid grid) {
+        this.grid = grid;
+    }
+
+    public GameBlockGrid getGrid() {
+        return grid;
     }
 
     public Image getLeftSprite() {
@@ -56,8 +65,8 @@ public class GameBrokenBlockSpriteContainer implements Pool.Poolable {
         sprites[2] = null;
     }
 
-    public void setParent(Actor parent) {
-        this.parent = parent;
+    public void setParentGameBlock(GameBlock parentGameBlock) {
+        this.parentGameBlock = parentGameBlock;
     }
 
     public void setBounds(float x, float y, float width, float height) {
@@ -75,7 +84,23 @@ public class GameBrokenBlockSpriteContainer implements Pool.Poolable {
         return name;
     }
 
-    public Actor getParent() {
-        return parent;
+    public GameBlock getParentGameBlock() {
+        return parentGameBlock;
+    }
+
+    public void setRow(int row) {
+        this.row = row;
+    }
+
+    public int getRow() {
+        return row;
+    }
+
+    public void setCol(int col) {
+        this.col = col;
+    }
+
+    public int getCol() {
+        return col;
     }
 }

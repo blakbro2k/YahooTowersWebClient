@@ -1,83 +1,126 @@
-<window width="800" height="600" title="Yahoo Towers! - Room: ">
+<window width="800" height="600">
     <table debug="true">
-        <table debug="true">
-            <image id="banner" style="banner" row="true" colspan="0" />
+        <table row="true">
+            <label size="4" row="true">Left\t:Left Arrow</label>
+            <label row="true">Right\t:Right Arrow</label>
+            <label row="true">Drop\t:Down Arrow</label>
+            <label row="true">Cycle Colors\t:R</label>
+            <label row="true">Use Item\t:Space Bar</label>
+            <gameclock width="100" height="46" id="gameClock" row="true" />
         </table>
-        <table debug="true">
-            <table defaultfillx="true">
-                <!-- Side Panel -->
-                <table onecolumn="true" row="true">
-                    <button fillx="true" onClick="toggleGameStart">Start Game</button>
-                    <button fillx="true">Change Keys</button>
-                    <button fillx="true">Demo</button>
-                    <button fillx="true" onClick="playerStandUpAction">Stand</button>
-                    <label row="true">Table Type</label>
-                    <button fillx="true">Invite</button>
-                    <button fillx="true">Boot</button>
-                    <selectbox fillx="true" selected="1">
-                        <label>@PrivateSelBx</label>
-                        <label>@PublicSelBx</label>
-                        <label>@ProtectedSelBx</label>
-                    </selectbox>
-                    <checkbox tablealign="left">@RatedChkBx</checkbox>
-                    <checkbox tablealign="left">Sound</checkbox>
-                </table>
-
-                <!-- Bottom Panel -->
-                <table>
-                    <button fillx="true">Help</button>
-                    <!-- "close" action is defined in Global class. -->
-                    <button fillx="true" onchange="close">Quit</button>
-                </table>
+        <table defaultpad="0">
+            <gameboard id="3:area" areanumber="3" />
+            <gameboard id="4:area" areanumber="4" />
+        </table>
+    </table>
+    <table>
+        <table>
+            <table row="true">
+                <gameboard id="1:area" areanumber="1" preview="false" />
+                <gameboard id="2:area" areanumber="2" preview="false" left="false" />
             </table>
-            <!-- Main Window -->
+            <table>
+                <label id="action_msg" row="true"></label>
+                <textButton fill="true" onChange="goto:debug" row="true">@back</textButton>
+            </table>
+        </table>
+    </table>
+    <table>
+        <table>
             <table debug="true" row="true">
-                <table>
-                    <table row="true">
-                        <table>
-                            <table row="true">
-                                <label size="4" row="true">Left\t:Left Arrow</label>
-                                <label row="true">Right\t:Right Arrow</label>
-                                <label row="true">Drop\t:Down Arrow</label>
-                                <label row="true">Cycle Colors\t:R</label>
-                                <label row="true">Use Item\t:Space Bar</label>
-                                <gameclock width="100" height="46" id="gameClock" row="true" />
-                            </table>
-                            <table defaultpad="0">
-                                <gameboard id="3:area" areanumber="3" />
-                                <gameboard id="4:area" areanumber="4" />
-                            </table>
-                        </table>
-                        <table>
-                            <table row="true">
-                                <gameboard debug="true" id="1:area" areanumber="1"
-                                    preview="false" />
-                                <gameboard debug="true" id="2:area" areanumber="2" preview="false"
-                                    left="false" />
-                            </table>
-                            <table>
-                                <label id="action_msg" row="true"></label>
-                            </table>
-                        </table>
-                        <table>
-                            <table debug="true" row="true">
-                                <gameboard debug="true" id="5:area" areanumber="5" />
-                                <gameboard id="6:area" areanumber="6" row="true" />
-                            </table>
-                            <table row="true">
-                                <gameboard debug="true" id="7:area" areanumber="7" />
-                                <gameboard id="8:area" areanumber="8" />
-                            </table>
-                        </table>
-                    </table>
-                    <table>
-                        <!-- Chat Windwow -->
-                        <table>
-                            <label>Chat Window</label>
-                        </table>
-                    </table>
-                </table>
+                <gameboard id="5:area" areanumber="5" />
+                <gameboard id="6:area" areanumber="6" row="true" />
+            </table>
+            <table row="true">
+                <gameboard id="7:area" areanumber="7" />
+                <gameboard id="8:area" areanumber="8" />
             </table>
         </table>
     </table>
 </window>
+
+    <!--
+
+        <table debug="true">
+            <table debug="true">
+                <image id="banner" style="banner" row="true" colspan="0" />
+            </table>
+            <table debug="true">
+                <table defaultfillx="true">
+                     Side Panel
+    <table onecolumn="true" row="true">
+    <button fillx="true" onClick="toggleGameStart">Start Game</button>
+    <button fillx="true">Change Keys</button>
+    <button fillx="true">Demo</button>
+    <button fillx="true" onClick="playerStandUpAction">Stand</button>
+    <label row="true">Table Type</label>
+    <button fillx="true">Invite</button>
+    <button fillx="true">Boot</button>
+    <selectbox fillx="true" selected="1">
+        <label>@PrivateSelBx</label>
+        <label>@PublicSelBx</label>
+        <label>@ProtectedSelBx</label>
+    </selectbox>
+    <checkbox tablealign="left">@RatedChkBx</checkbox>
+    <checkbox tablealign="left">Sound</checkbox>
+    </table>
+
+        Bottom Panel
+    <table>
+    <button fillx="true">Help</button>
+     "close" action is defined in Global class.
+    <button fillx="true" onchange="close">Quit</button>
+    </table>
+        </table>
+        Main Window
+    <table debug="true" row="true">
+    <table>
+        <table row="true">
+            <table>
+                <table row="true">
+                    <label size="4" row="true">Left\t:Left Arrow</label>
+                    <label row="true">Right\t:Right Arrow</label>
+                    <label row="true">Drop\t:Down Arrow</label>
+                    <label row="true">Cycle Colors\t:R</label>
+                    <label row="true">Use Item\t:Space Bar</label>
+                    <gameclock width="100" height="46" id="gameClock" row="true" />
+                </table>
+                <table defaultpad="0">
+                    <gameboard id="3:area" areanumber="3" />
+                    <gameboard id="4:area" areanumber="4" />
+                </table>
+            </table>
+            <table>
+                <table row="true">
+                    <gameboard debug="true" id="1:area" areanumber="1"
+                        preview="false" />
+                    <gameboard debug="true" id="2:area" areanumber="2" preview="false"
+                        left="false" />
+                </table>
+                <table>
+                    <label id="action_msg" row="true"></label>
+                </table>
+            </table>
+            <table>
+                <table debug="true" row="true">
+                    <gameboard debug="true" id="5:area" areanumber="5" />
+                    <gameboard id="6:area" areanumber="6" row="true" />
+                </table>
+                <table row="true">
+                    <gameboard  debug="true" id="7:area" areanumber="7" />
+                    <gameboard id="8:area" areanumber="8" />
+                </table>
+            </table>
+        </table>
+        <table>
+             Chat Windwow
+            <table>
+                <label>Chat Window</label>
+            </table>
+        </table>
+    </table>
+    </table>
+        </table>
+        </table>
+
+    -->

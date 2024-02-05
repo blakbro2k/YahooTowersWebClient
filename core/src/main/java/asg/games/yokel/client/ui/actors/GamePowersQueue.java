@@ -1,13 +1,11 @@
 package asg.games.yokel.client.ui.actors;
 
-import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Queue;
-import com.badlogic.gdx.utils.SnapshotArray;
 import com.github.czyzby.kiwi.log.Logger;
 import com.github.czyzby.kiwi.log.LoggerService;
 
@@ -27,66 +25,69 @@ public class GamePowersQueue extends Table implements GameObject{
         initialize();
     }
 
-    private void initialize(){
+    private void initialize() {
         powers = new Queue<>();
         powersDisplay = new Table();
         powersDisplay.align(Align.bottom);
         //powersDisplay.columnAlign(Align.bottom);
         setSize(getPrefWidth(), getPrefHeight());
-        setCullingArea(new Rectangle(getX(), getY(), getWidth(), getHeight()));
-        setClip(true);
-        add(powersDisplay).bottom();
-        powersDisplay.add(getClearBlock()).row();
-        powersDisplay.add(getClearBlock()).row();
-        powersDisplay.add(getClearBlock()).row();
-        powersDisplay.add(getClearBlock()).row();
-        powersDisplay.add(getClearBlock()).row();
-        powersDisplay.add(getClearBlock()).row();
-        powersDisplay.add(getClearBlock()).row();
-        powersDisplay.add(getClearBlock()).row();
+        //setCullingArea(new Rectangle(getX(), getY(), getWidth(), getHeight()));
+        //setClip(true);
+        add(getClearBlock()).row();
+        add(getClearBlock()).row();
+        add(getClearBlock()).row();
+        add(getClearBlock()).row();
+        add(getClearBlock()).row();
+        add(getClearBlock()).row();
+        add(getClearBlock()).row();
+        add(getClearBlock()).row();
+        System.out.println("Games Power Queue: " + this);
+        //add(powersDisplay).bottom();
+
     }
 
-    public void updateQueue(Queue<GameBlock> powerUps){
+    public void updateQueue(Queue<GameBlock> powerUps) {
         //logger.debug("Entering updateQueue(powerUps=" + powerUps + ")");
-        if(powerUps != null) {
+        if (powerUps != null) {
             this.powers = powerUps;
         }
-        SnapshotArray<Actor> children = powersDisplay.getChildren();
-        //Actor[] actors = children.begin();
-        for(int i = 0; i < powers.size;  i++){
-            if(i < children.size){
-                if(children.get(i) != null) {
-                    updateGameBlock(children.get(i), powers.get(i));
-                }
-            } else {
-                powersDisplay.addActor(powers.get(i));
+
+        int i = -1;
+        powersDisplay.clear();
+        for (GameBlock gameBlock : YokelUtilities.safeIterable(powerUps)) {
+            if (++i < 8) {
+                powersDisplay.add(gameBlock).row();
             }
         }
-        //children.end();
-        //flush the display
-        for(int f = powers.size; f < children.size; f++){
-            children.removeIndex(f);
-        }
+        System.out.println("powersDisplay: " + powersDisplay);
         //logger.debug("Exiting updateQueue()");
     }
 
+    public void setPowers(Array<Integer> powers) {
+        Queue<GameBlock> powerUps = new Queue<>();
+        for (int power : YokelUtilities.safeIterable(powers)) {
+            if (powers != null) {
+                powerUps.addLast(UIUtil.getBlock(power));
+            }
+        }
+        updateQueue(powerUps);
+    }
+
     private void updateGameBlock(Actor gameBlock, GameBlock block) {
-        if(gameBlock == null || block == null || !gameBlock.getClass().equals(GameBlock.class)) return;
+        if (gameBlock == null || block == null || !gameBlock.getClass().equals(GameBlock.class))
+            return;
         GameBlock gameBlock1 = (GameBlock) gameBlock;
         String imageName = gameBlock1.getName();
-        if(!YokelUtilities.equalsIgnoreCase(imageName, block.getName())){
+        if (!YokelUtilities.equalsIgnoreCase(imageName, block.getName())) {
             gameBlock1.setImage(block.deepCopy().getImage());
             //YokelUtilities.freeBlock(block);
         }
     }
 
-    private GameBlock getClearBlock(){
-        return UIUtil.getBlock(YokelBlock.CLEAR_BLOCK, false);
-    }
-
-    @Override
-    public void draw(Batch batch, float parentAlpha) {
-        super.draw(batch, parentAlpha);
+    private GameBlock getClearBlock() {
+        GameBlock gBlock = UIUtil.getBlock(YokelBlock.Y_BLOCK, false);
+        System.out.println("gBlock: " + gBlock);
+        return UIUtil.getBlock(YokelBlock.Y_BLOCK, false);
     }
 
     public float getPrefWidth() {
@@ -98,6 +99,6 @@ public class GamePowersQueue extends Table implements GameObject{
     }
 
     @Override
-    public void setData(String data) {
+    public void updateYokelData(String data) {
     }
 }

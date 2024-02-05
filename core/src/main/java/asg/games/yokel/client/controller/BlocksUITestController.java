@@ -9,12 +9,12 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Pools;
 import com.badlogic.gdx.utils.Queue;
 import com.badlogic.gdx.utils.TimeUtils;
-import com.badlogic.gdx.utils.reflect.ClassReflection;
 import com.badlogic.gdx.utils.reflect.ReflectionException;
 import com.github.czyzby.autumn.annotation.Inject;
 import com.github.czyzby.autumn.mvc.component.sfx.MusicService;
@@ -25,10 +25,14 @@ import com.github.czyzby.autumn.mvc.component.ui.controller.ViewRenderer;
 import com.github.czyzby.autumn.mvc.stereotype.View;
 import com.github.czyzby.kiwi.log.LoggerService;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
+import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 import com.github.czyzby.lml.annotation.LmlAction;
 import com.github.czyzby.lml.annotation.LmlActor;
 import com.github.czyzby.lml.parser.action.ActionContainer;
 import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
+import com.kotcrab.vis.ui.widget.VisCheckBox;
+import com.kotcrab.vis.ui.widget.VisSelectBox;
+import com.rafaskoberg.gdx.typinglabel.TypingLabel;
 
 import asg.games.yokel.client.GlobalConstants;
 import asg.games.yokel.client.controller.dialog.NextGameController;
@@ -41,17 +45,27 @@ import asg.games.yokel.client.ui.actors.GameBrokenBlockSpriteContainer;
 import asg.games.yokel.client.ui.actors.GameClock;
 import asg.games.yokel.client.ui.actors.GameJoinWidget;
 import asg.games.yokel.client.ui.actors.GameNameLabel;
+import asg.games.yokel.client.ui.actors.GamePowersQueue;
 import asg.games.yokel.client.utils.LogUtil;
 import asg.games.yokel.client.utils.UIUtil;
+import asg.games.yokel.managers.GameManager;
+import asg.games.yokel.objects.YokelBlock;
 import asg.games.yokel.objects.YokelBlockEval;
+import asg.games.yokel.objects.YokelBrokenBlock;
 import asg.games.yokel.objects.YokelGameBoard;
 import asg.games.yokel.objects.YokelKeyMap;
 import asg.games.yokel.objects.YokelPlayer;
+import asg.games.yokel.objects.YokelSeat;
+import asg.games.yokel.objects.YokelTable;
 import asg.games.yokel.utils.YokelUtilities;
 
 @View(id = GlobalConstants.UI_BLOCK_TEST_VIEW, value = GlobalConstants.UI_BLOCK_TEST_VIEW_PATH)
 public class BlocksUITestController extends ApplicationAdapter implements ViewRenderer, ViewInitializer, ActionContainer {
     private static final int BREAK_TIMER_MAX = 106;
+    private static final float SCREEN_RADIUS = 600f;
+    private static final float YAHOO_DURATION = 1.26f;
+    private static final float BLOCK_BREAK_DURATION = 0.65f;
+    private static final float BREAK_CHECK_INTERVAL = 4f;
     @Inject
     private UserInterfaceService uiService;
     @Inject
@@ -210,17 +224,38 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
     private GameBlock lBlockImageBreakTest;
     @LmlActor("bash_block_breakTest")
     private GameBlock bashBlockImageBreakTest;
+    @LmlActor("interpolationSelect")
+    private VisSelectBox<Object> interpolationSelectBox;
+    @LmlActor("1:testBoard")
+    private GameBlockGrid gameTestGrid;
+    @LmlActor("powersQueue")
+    private GamePowersQueue powersQueue;
+    @LmlActor("powersQueueTable")
+    private Table powersQueueTable;
+    @LmlActor("togglePlayer")
+    private VisCheckBox togglePlayer;
 
-    private boolean nextGameDialog, attemptGameStart, isGameReady = false;
+    GameManager gameManager;
+
+    private boolean toggleYahoo, nextGameDialog, attemptGameStart, isGameReady = false;
     private long nextGame = 0;
+    float brokenCheck = BREAK_CHECK_INTERVAL;
     private YokelGameBoard playerBoardData;
+    private YokelGameBoard playerBoard2Data;
     private boolean downKeyPressed = false;
     private final YokelKeyMap keyMap = new YokelKeyMap();
     private int breakTimer = -1;
-    private int y, a, h, o, i, bash = 0;
+    private static int y;
+    private int a;
+    private int n;
+    private int o;
+    private int i;
+    private int bash = 0;
     private final Array<GameBrokenBlockSpriteContainer> brokenBlocksQueue = GdxArrays.newArray();
-    private final Queue<GameBlock> brokenBlocks = new Queue<>();
-
+    private final Queue<GameBlock> brokenTestBlock = new Queue<>();
+    private final ObjectMap<String, Interpolation> interpolationMap = GdxMaps.newObjectMap();
+    private boolean toggleOffensive, togglePlayerBool = false;
+    Array<Integer> queuePowers = GdxArrays.newArray();
 
     @Override
     public void initialize(Stage stage, ObjectMap<String, Actor> actorMappedByIds) {
@@ -230,19 +265,82 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
             logger.enter("initialize");
             y = yBlockImageBreakTest.getBlock();
             a = oBlockImageBreakTest.getBlock();
-            h = kBlockImageBreakTest.getBlock();
+            n = kBlockImageBreakTest.getBlock();
             o = eBlockImageBreakTest.getBlock();
             i = lBlockImageBreakTest.getBlock();
             bash = bashBlockImageBreakTest.getBlock();
 
-            brokenBlocks.addLast(yBlockImageBreakTest);
-            brokenBlocks.addLast(oBlockImageBreakTest);
-            brokenBlocks.addLast(kBlockImageBreakTest);
-            brokenBlocks.addLast(eBlockImageBreakTest);
-            brokenBlocks.addLast(lBlockImageBreakTest);
-            brokenBlocks.addLast(bashBlockImageBreakTest);
+            brokenTestBlock.addLast(yBlockImageBreakTest);
+            brokenTestBlock.addLast(oBlockImageBreakTest);
+            brokenTestBlock.addLast(kBlockImageBreakTest);
+            brokenTestBlock.addLast(eBlockImageBreakTest);
+            brokenTestBlock.addLast(lBlockImageBreakTest);
+            brokenTestBlock.addLast(bashBlockImageBreakTest);
+
+            interpolationMap.put("bounce", Interpolation.bounce);
+            interpolationMap.put("bounceIn", Interpolation.bounceIn);
+            interpolationMap.put("bounceOut", Interpolation.bounceOut);
+            interpolationMap.put("circle", Interpolation.circle);
+            interpolationMap.put("circleIn", Interpolation.circleIn);
+            interpolationMap.put("circleOut", Interpolation.circleOut);
+            interpolationMap.put("elastic", Interpolation.elastic);
+            interpolationMap.put("elasticIn", Interpolation.elasticIn);
+            interpolationMap.put("elasticOut", Interpolation.elasticOut);
+            interpolationMap.put("exp5", Interpolation.exp5);
+            interpolationMap.put("exp5In", Interpolation.exp5In);
+            interpolationMap.put("exp5Out", Interpolation.exp5Out);
+            interpolationMap.put("exp10", Interpolation.exp10);
+            interpolationMap.put("exp10In", Interpolation.exp10In);
+            interpolationMap.put("exp10Out", Interpolation.exp10Out);
+            interpolationMap.put("fade", Interpolation.fade);
+            interpolationMap.put("fastSlow", Interpolation.fastSlow);
+            interpolationMap.put("linear", Interpolation.linear);
+            interpolationMap.put("pow2", Interpolation.pow2);
+            interpolationMap.put("pow2In", Interpolation.pow2In);
+            interpolationMap.put("pow2InInverse", Interpolation.pow2InInverse);
+            interpolationMap.put("pow2Out", Interpolation.pow2Out);
+            interpolationMap.put("pow2OutInverse", Interpolation.pow2OutInverse);
+            interpolationMap.put("pow3", Interpolation.pow3);
+            interpolationMap.put("pow3In", Interpolation.pow3In);
+            interpolationMap.put("pow3InInverse", Interpolation.pow3InInverse);
+            interpolationMap.put("pow3Out", Interpolation.pow3Out);
+            interpolationMap.put("pow3OutInverse", Interpolation.pow3OutInverse);
+            interpolationMap.put("pow4", Interpolation.pow4);
+            interpolationMap.put("pow4In", Interpolation.pow4In);
+            interpolationMap.put("pow4Out", Interpolation.pow4Out);
+            interpolationMap.put("pow5", Interpolation.pow5);
+            interpolationMap.put("pow5In", Interpolation.pow5In);
+            interpolationMap.put("pow5Out", Interpolation.pow5Out);
+            interpolationMap.put("sine", Interpolation.sine);
+            interpolationMap.put("sineIn", Interpolation.sineIn);
+            interpolationMap.put("sineOut", Interpolation.sineOut);
+            interpolationMap.put("slowFast", Interpolation.slowFast);
+            interpolationMap.put("smooth", Interpolation.smooth);
+            interpolationMap.put("smooth2", Interpolation.smooth2);
+            interpolationMap.put("smoother", Interpolation.smoother);
+            interpolationMap.put("swing", Interpolation.swing);
+            interpolationMap.put("swingIn", Interpolation.swingIn);
+            interpolationMap.put("swingOut", Interpolation.swingOut);
 
             initiate();
+/*
+            powersQueueTable.add(getClearBlock()).row();
+            powersQueueTable.add(getClearBlock()).row();
+            powersQueueTable.add(getClearBlock()).row();
+            powersQueueTable.add(getClearBlock()).row();
+            powersQueueTable.add(getClearBlock()).row();
+            powersQueueTable.add(getClearBlock()).row();
+            powersQueueTable.add(getClearBlock()).row();
+            powersQueueTable.add(getClearBlock()).row();
+*/
+            System.out.println("start: " + powersQueueTable);
+            //powersQueueTable.add(getClearBlock()).row();
+            //powersQueueTable.clear();
+            System.out.println("end: " + powersQueueTable);
+            togglePlayerBool = togglePlayer.isChecked();
+            playerBoard.setActive(togglePlayerBool);
+
+            //initializeGameOverLabels(stage);
             logger.exit("initialize");
 
         } catch (Exception e) {
@@ -252,11 +350,35 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
         }
     }
 
+    private GameBlock getClearBlock() {
+        GameBlock gBlock = UIUtil.getBlock(YokelBlock.Y_BLOCK, false);
+        System.out.println("gBlock: " + gBlock);
+        return UIUtil.getBlock(YokelBlock.Y_BLOCK, false);
+    }
+
+    private void triggerGameOverLabels(Stage stage, String winner1, String winner2) {
+        TypingLabel gameOverLabel = new TypingLabel("{SLOW}{EASE=-500;30.1;0}Game Over", interfaceService.getSkin());
+        TypingLabel youWinLabel = new TypingLabel("{SLOW}{EASE=-500;30.1;0}You Win!", interfaceService.getSkin());
+        TypingLabel youLoseLabel = new TypingLabel("{SLOW}{EASE=-500;30.1;0}You Lose!", interfaceService.getSkin());
+        TypingLabel congratulationsLabel = new TypingLabel("{SLOW}{EASE=-500;30.1;0}Congratulations", interfaceService.getSkin());
+        gameOverLabel.setX(stage.getWidth() / 2);
+        gameOverLabel.setY(stage.getHeight() / 2);
+        youWinLabel.setX(stage.getWidth() / 2);
+        youWinLabel.setY(stage.getHeight() / 2 - youWinLabel.getHeight());
+        congratulationsLabel.setX(stage.getWidth() / 2);
+        congratulationsLabel.setY(stage.getHeight() / 2 - youWinLabel.getHeight() - congratulationsLabel.getHeight());
+
+        stage.addActor(gameOverLabel);
+        stage.addActor(youWinLabel);
+        stage.addActor(congratulationsLabel);
+    }
+
     @Override
     public void destroy(ViewController viewController) {
         try {
             logger.enter("destroy");
             //boardState.dispose();
+            gameManager.dispose();
             logger.exit("destroy");
         } catch (Exception e) {
             String errorMsg = "Error in destroy()";
@@ -269,27 +391,45 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
         try {
             logger.enter("initiate");
             initiateActors();
-            YokelPlayer player = ClassReflection.newInstance(YokelPlayer.class);
-            player.setName("test");
+            YokelPlayer player = new YokelPlayer();
+            player.setName("player1");
             player.setRating(2000);
             player.setIcon(6);
-
+            YokelPlayer player2 = new YokelPlayer();
+            player2.setName("player2");
+            player2.setRating(2000);
+            player2.setIcon(6);
             logger.info("Set Yokelplayer: {}", player);
+
+            YokelTable table = new YokelTable("1", 1);
+            Array<YokelSeat> seats = table.getSeats();
+            seats.get(0).sitDown(player);
+            seats.get(2).sitDown(player2);
+            table.setSeats(seats);
+
+            gameManager = new GameManager(table);
+            gameManager.startGame();
 
             //previewBoard.sitPlayerDown(player);
             //previewBoard.setGameReady(true);
             //previewBoard.setIsPlayerReady(true);
             //previewBoard.hideJoinButton();
-            previewBoard.setName("1");
+            //previewBoard.setName("1");
+
 
             playerBoardData = new YokelGameBoard(1);
+            playerBoard2Data = new YokelGameBoard(1);
             playerBoardData.begin();
+            playerBoard2Data.end();
+
+            playerBoardData.setPartnerBoard(playerBoard2Data, true);
+            playerBoard2Data.setPartnerBoard(playerBoardData, false);
 
             //playerB.setNextPiece();
-            playerBoard.renderBoard(playerBoardData);
             playerBoard.setPreview(false);
-            playerBoard.setActive(true);
+            playerBoard.setActive(togglePlayerBool);
             playerBoard.setPlayerView(true);
+            playerBoard.renderBoard(playerBoardData.getGameState());
 
             //playerBoard.sitPlayerDown(player);
             //playerBoard.setGameReady(true);
@@ -297,8 +437,7 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
             //playerBoard.hideJoinButton();
             playerBoard.setName("2");
             joinReady.setIsGameReady(true);
-            int seatNumber = 4;
-            logger.info("setting player {} @ seat[{}]", player, seatNumber);
+
             logger.exit("initiate");
         } catch (Exception e) {
             String errorMsg = "Issue in initiate()";
@@ -370,15 +509,20 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
             uiService.loadDrawable(brokenEBlockImagePreview);
             uiService.loadDrawable(brokenLBlockImagePreview);
             uiService.loadDrawable(brokenBashBlockImagePreview);
-
+            if (interpolationSelectBox != null) {
+                ObjectMap.Keys<String> keys = interpolationMap.keys();
+                Array<String> itemsArray = keys.toArray();
+                //interpolationSelectBox.
+                String[] items = YokelUtilities.toStringArray(itemsArray);
+                interpolationSelectBox.setItems((Object[]) items);
+                interpolationSelectBox.setSelected("sineIn");
+            }
             logger.exit("initiateActors");
         } catch (Exception e) {
             String errorMsg = "Error in initiateActors()";
             logger.error(errorMsg, e);
             throw new ReflectionException(errorMsg, e);
         }
-
-        logger.exit("initiateActors");
     }
 
     @Override
@@ -387,31 +531,56 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
             if (breakTimer == 0) {
                 yBlockImageBreakTest.setBlock(y);
                 oBlockImageBreakTest.setBlock(a);
-                kBlockImageBreakTest.setBlock(h);
+                kBlockImageBreakTest.setBlock(n);
                 eBlockImageBreakTest.setBlock(o);
                 lBlockImageBreakTest.setBlock(i);
                 bashBlockImageBreakTest.setBlock(bash);
 
-                brokenBlocks.addLast(yBlockImageBreakTest);
-                brokenBlocks.addLast(oBlockImageBreakTest);
-                brokenBlocks.addLast(kBlockImageBreakTest);
-                brokenBlocks.addLast(eBlockImageBreakTest);
-                brokenBlocks.addLast(lBlockImageBreakTest);
-                brokenBlocks.addLast(bashBlockImageBreakTest);
+                brokenTestBlock.addLast(yBlockImageBreakTest);
+                brokenTestBlock.addLast(oBlockImageBreakTest);
+                brokenTestBlock.addLast(kBlockImageBreakTest);
+                brokenTestBlock.addLast(eBlockImageBreakTest);
+                brokenTestBlock.addLast(lBlockImageBreakTest);
+                brokenTestBlock.addLast(bashBlockImageBreakTest);
             }
             --breakTimer;
 
-            if (brokenBlocksQueue.size > 0) {
-                //System.out.println("BEFORE: Broken Array Size: " + GdxArrays.sizeOf(brokenBlocksQueue));
+
+            if (brokenBlocksQueue.size > 0 && --brokenCheck == 0) {
+                brokenCheck = BREAK_CHECK_INTERVAL;
                 addBrokenBlockActorToStage(stage);
-                //System.out.println("AFTER: Broken Array Size: " + GdxArrays.sizeOf(brokenBlocksQueue));
-                //System.out.println("Stage: " + stage.getActors());
             }
 
             //logger.enter("render");
-            //checkGameStart();
-            //playerBoardData.update(delta);
-            //playerBoard.renderBoard(playerBoardData);
+            checkGameStart();
+
+            /*YokelGameBoardState state = gameManager.getBoardState(0);
+            YokelGameBoardState state = playerBoard2Data.getGameState();
+
+            if(state != null) {
+            }*/
+            gameTestGrid.renderBoard(playerBoard2Data.getGameState());
+            gameManager.update(delta);
+
+            /*if(state2 != null) {
+                YokelGameBoardState state = playerBoardData.getGameState();
+                gamePlayerBoard.renderPlayerBoard(state);
+            }*/
+            playerBoardData.update(delta);
+            playerBoard2Data.update(delta);
+
+            //System.out.println(playerBoardData.getGameState());
+
+            Iterable<YokelBrokenBlock> cellsBroken = playerBoardData.getGameState().getBrokenCells();
+
+            //if(cellsBroken.size() > 0) {
+            for (YokelBrokenBlock cellBroken : cellsBroken) {
+
+                GameBlock gameBlock = UIUtil.getInstance().getGameBlock(cellBroken.getBlock(), false);
+                //addBrokenBlockActorToQueue(gameBlock, gameTestGrid, cellBroken.getRow(), cellBroken.getCol());
+            }
+            //}
+            playerBoard.renderBoard(playerBoardData.getGameState());
 
             //Handle Player input
             //handlePlayerSimulatedInput(playerBoardData);
@@ -433,85 +602,159 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
     private void addBrokenBlockActorToStage(Stage stage) {
         if (stage != null) {
             Array.ArrayIterator<GameBrokenBlockSpriteContainer> brokenIterator = brokenBlocksQueue.iterator();
-            if (brokenIterator.hasNext()) {
-                GameBrokenBlockSpriteContainer brokenGameSprite = brokenIterator.next();
-                if (brokenGameSprite != null) {
-                    float duration = 0.6f;
-                    float delay = 0.0f;
-                    float endOfScreen = 0f;
-                    float blockOffSet = 20;
-                    float brokenOffSet = 12;
-                    Interpolation interpolation = Interpolation.swingIn;
 
-                    Image left = brokenGameSprite.getLeftSprite();
-                    Image bottom = brokenGameSprite.getBottomSprite();
-                    Image right = brokenGameSprite.getRightSprite();
-                    Actor parent = brokenGameSprite.getParent();
+            if (toggleYahoo) {
+                logger.error("verts: {}" + getPolygonVertices(brokenBlocksQueue.size, stage.getWidth(), 0, 0));
+                Array<Vector2> vectors = getPolygonVertices(brokenBlocksQueue.size, stage.getWidth() + 40, 300, 300);
+                Queue<Vector2> yahooStarEnds = new Queue<>();
 
-                    if (parent != null) {
-                        //Get the coordinates of the parent block
-                        Vector2 leftV = left.localToParentCoordinates(new Vector2(parent.getX(), parent.getY()));
-                        //Get the screen coordinates
-                        Vector2 leftV2 = left.localToScreenCoordinates(new Vector2(leftV.x, leftV.y));
-                        //Shift block x slightly
-                        leftV2.x -= parent.getX();
-                        leftV2.x -= brokenOffSet;
-                        //Shift (and flip) block y
-                        leftV2.y = 1 - (leftV2.y - (left.getHeight() / 2)) + stage.getHeight();
+                for (Vector2 vector : vectors) {
+                    yahooStarEnds.addFirst(vector);
+                }
 
-                        /*
-                        logger.error("parent: {} ({},{})", parent.getName(), parent.getX(), parent.getY());
-                        logger.error("left: {} ({},{})", "left", left.getX(), left.getY());
-                        logger.error("{}: ({},{})", "leftV", leftV.x, leftV.y);
-                        logger.error("{}: ({},{})", "leftV2", leftV2.x, leftV2.y);*/
+                while (brokenIterator.hasNext()) {
+                    GameBrokenBlockSpriteContainer brokenGameSprite = brokenIterator.next();
+                    if (brokenGameSprite != null) {
+                        GameBlock parent = brokenGameSprite.getParentGameBlock();
+                        Image left = brokenGameSprite.getLeftSprite();
+                        Image bottom = brokenGameSprite.getBottomSprite();
+                        Image right = brokenGameSprite.getRightSprite();
 
-                        Vector2 bottomV = bottom.localToParentCoordinates(new Vector2(parent.getX(), parent.getY()));
-                        Vector2 bottomV2 = bottom.localToScreenCoordinates(new Vector2(bottomV.x, bottomV.y));
-                        bottomV2.x -= parent.getX();
-                        bottomV2.y = 1 - (bottomV2.y - (bottom.getHeight() / 2)) + stage.getHeight();
+                        Interpolation interpolation = Interpolation.smoother;
 
-                        Vector2 rightV = right.localToParentCoordinates(new Vector2(parent.getX(), parent.getY()));
-                        Vector2 rightV2 = right.localToScreenCoordinates(new Vector2(rightV.x, rightV.y));
-                        rightV2.x -= parent.getX();
-                        rightV2.x += brokenOffSet;
-                        rightV2.y = 1 - (rightV2.y - (right.getHeight() / 2)) + stage.getHeight();
+                        if (parent != null) {
+                            Image block = new Image(parent.getImage().getDrawable());
+                            parent.setBlock(YokelBlockEval.addBrokenFlag(parent.getBlock()));
+                            Vector2 cord = yahooStarEnds.removeFirst();
 
-                        left.setBounds(leftV2.x, leftV2.y, left.getWidth(), left.getHeight());
-                        left.addAction(
-                                Actions.sequence(Actions.delay(delay),
-                                        Actions.moveTo(leftV2.x - blockOffSet, endOfScreen, duration, interpolation), Actions.removeActor(left)));
+                            float endOfScreenX = cord.x;
+                            float endOfScreenY = cord.y;
+                            //Get the coordinates of the parent block
+                            Vector2 blockV = left.localToParentCoordinates(new Vector2(parent.getX(), parent.getY()));
+                            Vector2 pos = parent.getParent().localToParentCoordinates(new Vector2(parent.getX(), parent.getY()));
+                            Vector2 ppos = parent.getParent().parentToLocalCoordinates(new Vector2(blockV.x, blockV.y));
+                            Vector2 ppos1 = parent.getParent().localToScreenCoordinates(new Vector2(parent.getX(), parent.getY()));
+                            logger.info("p.l2p pos: ({},{})", pos.x, pos.y);
+                            logger.info("pp.p2l pos: ({},{})", ppos.x, ppos.y);
+                            logger.info("pp.l2s pos: ({},{})", ppos1.x, ppos1.y);
+                            logger.info("parent pos: ({},{})", parent.getX(), parent.getY());
+                            logger.info("blockV pos: ({},{})", blockV.x, blockV.y);
+                            //logger.info("parent pos: ({},{})", parent.getParent(), parent.getParent().getClass());
 
-                        bottom.setBounds(bottomV2.x, bottomV2.y, bottom.getWidth(), bottom.getHeight());
-                        bottom.addAction(
-                                Actions.sequence(Actions.delay(delay),
-                                        Actions.moveTo(bottomV2.x, endOfScreen, duration, interpolation), Actions.removeActor(bottom)));
+                            //Get the screen coordinates
+                            Vector2 blockV2 = left.localToScreenCoordinates(new Vector2(blockV.x, blockV.y));
+                            //Shift block x slightly
+                            //blockV2.x -= parent.getX();
+                            //blockV2.x -= brokenOffSet;
+                            //Shift (and flip) block y
+                            blockV2.x -= parent.getX();
+                            blockV2.y = 1 - (blockV2.y) + stage.getHeight();
 
-                        right.setBounds(rightV2.x, rightV2.y, right.getWidth(), right.getHeight());
-                        right.addAction(
-                                Actions.sequence(Actions.delay(delay),
-                                        Actions.moveTo(rightV2.x + blockOffSet, endOfScreen, duration, interpolation), Actions.removeActor(right)));
+                            block.setVisible(true);
+                            block.setBounds(ppos1.x, ppos1.y, block.getWidth(), block.getHeight());
+                            //block.setPosition(ppos1.x / 2, ppos1.y / 2);
 
-                        stage.addActor(left);
-                        stage.addActor(bottom);
-                        stage.addActor(right);
+                            if (endOfScreenX == -1) {
+                                endOfScreenX = blockV2.x;
+                            }
+                            if (endOfScreenY == -1) {
+                                endOfScreenY = blockV2.y;
+                            }
+                            //logger.error("endOfScreen({},{})",endOfScreenX,endOfScreenY);
+                            block.addAction(Actions.sequence(Actions.moveTo(endOfScreenX, endOfScreenY, YAHOO_DURATION, interpolation), Actions.removeActor(block)));
+                            left.setVisible(false);
+                            bottom.setVisible(false);
+                            right.setVisible(false);
+                            stage.addActor(block);
+                        }
+                        Pools.free(brokenGameSprite);
+                        brokenIterator.remove();
                     }
+                }
+                logger.error("size: " + brokenBlocksQueue.size);
+            } else {
+                if (brokenIterator.hasNext()) {
+                    GameBrokenBlockSpriteContainer brokenGameSprite = brokenIterator.next();
+                    if (brokenGameSprite != null) {
+                        float duration = BLOCK_BREAK_DURATION;
+                        float delay = 0.05f;
+                        float endOfScreen = 0f;
+                        float blockOffSet = 32;
 
 
+                        //Interpolation interpolation = Interpolation.pow3In;
+                        Interpolation interpolation = interpolationMap.get(YokelUtilities.otos(interpolationSelectBox.getSelected()));
 
-                   /* if (isPreview()) {
-                        getStage().addActor(brokenBlockImageLeft);
-                    } else {/*
-                    stage.addActor(brokenBlockImageLeft);
-                    stage.addActor(brokenBlockImageBottom);
-                    stage.addActor(brokenBlockImageRight);
-                    //}*/
-                    brokenIterator.remove();
-                    Pools.free(brokenGameSprite);
+                        Image left = brokenGameSprite.getLeftSprite();
+                        Image bottom = brokenGameSprite.getBottomSprite();
+                        Image right = brokenGameSprite.getRightSprite();
+                        GameBlock parent = brokenGameSprite.getParentGameBlock();
+                        float brokenXOffSet = 3;
+                        float brokenYOffSet = left.getHeight();
+
+                        if (parent != null) {
+                            parent.setBlock(YokelBlockEval.addBrokenFlag(parent.getBlock()));
+                            //parent.addAction(Actions.sequence(Actions.delay(delay), Actions.visible(false)));
+
+                            //Get the coordinates of the parent block
+                            Vector2 leftV = left.localToParentCoordinates(new Vector2(parent.getX(), parent.getY()));
+                            //Get the screen coordinates
+                            Vector2 leftV2 = left.localToScreenCoordinates(new Vector2(leftV.x, leftV.y));
+                            //Shift block x slightly
+                            leftV2.x -= parent.getX();
+                            leftV2.x -= brokenXOffSet;
+                            //Shift (and flip) block y
+                            leftV2.y = 1 - (leftV2.y - brokenYOffSet) + stage.getHeight();
+
+                            Vector2 bottomV = bottom.localToParentCoordinates(new Vector2(parent.getX(), parent.getY()));
+                            Vector2 bottomV2 = bottom.localToScreenCoordinates(new Vector2(bottomV.x, bottomV.y));
+                            bottomV2.x -= parent.getX();
+                            bottomV2.y = 1 - (bottomV2.y - brokenYOffSet) + stage.getHeight();
+
+                            Vector2 rightV = right.localToParentCoordinates(new Vector2(parent.getX(), parent.getY()));
+                            Vector2 rightV2 = right.localToScreenCoordinates(new Vector2(rightV.x, rightV.y));
+                            rightV2.x -= parent.getX();
+                            rightV2.x += brokenXOffSet;
+                            rightV2.y = 1 - (rightV2.y - brokenYOffSet) + stage.getHeight();
+
+                            left.setBounds(leftV2.x, leftV2.y, left.getWidth(), left.getHeight());
+                            left.addAction(Actions.sequence(Actions.delay(delay),
+                                    Actions.moveTo(leftV2.x - blockOffSet, endOfScreen, duration, interpolation), Actions.removeActor(left)));
+
+                            bottom.setBounds(bottomV2.x, bottomV2.y, bottom.getWidth(), bottom.getHeight());
+                            bottom.addAction(Actions.sequence(Actions.delay(delay),
+                                    Actions.moveTo(bottomV2.x, endOfScreen, duration, interpolation), Actions.removeActor(bottom)));
+
+                            right.setBounds(rightV2.x, rightV2.y, right.getWidth(), right.getHeight());
+                            right.addAction(Actions.sequence(Actions.delay(delay),
+                                    Actions.moveTo(rightV2.x + blockOffSet, endOfScreen, duration, interpolation), Actions.removeActor(right)));
+
+                            if (isPreview()) {
+                                if (brokenCheck % 3 == 1) {
+                                    stage.addActor(left);
+                                } else if (brokenCheck % 3 == 2) {
+                                    stage.addActor(right);
+                                } else {
+                                    stage.addActor(bottom);
+                                }
+                            } else {
+                                stage.addActor(left);
+                                stage.addActor(bottom);
+                                stage.addActor(right);
+                            }
+                        }
+                        brokenIterator.remove();
+                        Pools.free(brokenGameSprite);
+                    }
                 }
             }
-            logger.info("{}: ({},{})", "stage", stage.getWidth(), stage.getHeight());
-            logger.exit("addBrokenBlockActorToStage");
+            //logger.info("{}: ({},{})", "stage", stage.getWidth(), stage.getHeight());
+            //logger.exit("addBrokenBlockActorToStage");
         }
+    }
+
+    private boolean isPreview() {
+        return false;
     }
 
     public void handlePlayerSimulatedInput(YokelGameBoard game) throws ReflectionException {
@@ -603,7 +846,7 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
 
     private void checkGameStart() throws ReflectionException {
         try {
-            logger.enter("checkGameStart");
+            //logger.enter("checkGameStart");
             if (gameClock == null) return;
 
             if (attemptGameStart) {
@@ -619,7 +862,7 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
                     startGame();
                 }
             }
-            logger.exit("checkGameStart");
+            //logger.exit("checkGameStart");
         } catch (Exception e) {
             String errorMsg = "Error in checkGameStart()";
             logger.error(errorMsg, e);
@@ -652,10 +895,9 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
             logger.enter("breakBlocks");
 
             if (breakTimer < 0) {
-                while (brokenBlocks.size > 0) {
-                    GameBlock gameBlock = brokenBlocks.removeFirst();
-                    addBrokenBlockActorToQueue(gameBlock);
-                    gameBlock.setBlock(YokelBlockEval.addBrokenFlag(gameBlock.getBlock()));
+                while (brokenTestBlock.size > 0) {
+                    GameBlock gameBlock = brokenTestBlock.removeFirst();
+                    addBrokenBlockActorToQueue(gameBlock, null, -1, -1);
                 }
                 breakTimer = BREAK_TIMER_MAX;
             }
@@ -667,10 +909,12 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
         }
     }
 
-    private void addBrokenBlockActorToQueue(GameBlock gameBlock) {
+    private void addBrokenBlockActorToQueue(GameBlock gameBlock, GameBlockGrid grid, int row, int col) {
         if (gameBlock != null) {
             GameBrokenBlockSpriteContainer brokenSprite = UIUtil.getBrokenBlockSprites(gameBlock, gameBlock.getBlock());
-            //logger.error("{}\n{}\n{}\n{}\n", brokenSprite.getParent().getName(), brokenSprite.getLeftSprite().getName(), brokenSprite.getBottomSprite().getName(), brokenSprite.getRightSprite().getName());
+            //brokenSprite.setGrid(grid);
+            //brokenSprite.setRow(row);
+            //brokenSprite.setCol(col);
             brokenBlocksQueue.add(brokenSprite);
         }
     }
@@ -693,9 +937,10 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
 
     int getElapsedSeconds() throws ReflectionException {
         try {
-            logger.enter("getElapsedSeconds");
+            //logger.enter("getElapsedSeconds");
+
             int elapsedSeconds = YokelUtilities.otoi(((TimeUtils.millis() - nextGame) / 1000));
-            logger.exit("getElapsedSeconds");
+            //logger.exit("getElapsedSeconds");
             return elapsedSeconds;
         } catch (Exception e) {
             String errorMsg = "Error in getElapsedSeconds()";
@@ -706,11 +951,11 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
 
     private void startGame() throws ReflectionException {
         try {
-            logger.enter("startGame");
+            //logger.enter("startGame");
             if (!gameClock.isRunning()) {
                 gameClock.start();
             }
-            logger.exit("startGame");
+            //logger.exit("startGame");
         } catch (Exception e) {
             String errorMsg = "Error in startGame()";
             logger.error(errorMsg, e);
@@ -734,6 +979,78 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
 
     }
 
+    @LmlAction("toggleYahoo")
+    private void toggleYahoo() throws ReflectionException {
+        try {
+            logger.enter("toggleYahoo");
+            toggleYahoo = !toggleYahoo;
+            if (playerOne != null) {
+                playerOne.setYahoo(toggleYahoo);
+            }
+            if (playerTwo != null) {
+                playerTwo.setYahoo(toggleYahoo);
+            }
+            logger.exit("toggleYahoo");
+        } catch (Exception e) {
+            String errorMsg = "Error in toggleYahoo()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException(errorMsg, e);
+        }
+    }
+
+    @LmlAction("toggleOffensive")
+    private void toggleOffensive() throws ReflectionException {
+        try {
+            logger.enter("toggleOffensive");
+            toggleOffensive = !toggleOffensive;
+            logger.exit("toggleOffensive");
+        } catch (Exception e) {
+            String errorMsg = "Error in toggleOffensive()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException(errorMsg, e);
+        }
+    }
+
+    @LmlAction("togglePlayer")
+    private void togglePlayer(final Actor actor) throws ReflectionException {
+        try {
+            logger.enter("togglePlayer");
+            togglePlayerBool = !togglePlayerBool;
+            logger.info("togglePlayerBool={}", togglePlayerBool);
+            playerBoard.setActive(togglePlayerBool);
+            logger.exit("togglePlayer");
+        } catch (Exception e) {
+            String errorMsg = "Error in togglePlayer()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException(errorMsg, e);
+        }
+    }
+
+    @LmlAction("addYAttack")
+    private void addYAttack() throws ReflectionException {
+        try {
+            logger.enter("addYAttack");
+            int block = 0;
+
+            if (toggleOffensive) {
+                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 3));
+            } else {
+                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 4));
+            }
+            queuePowers.add(block);
+            //powersQueue.setPowers(queuePowers);
+            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
+
+            playerBoard2Data.handlePower(block);
+            System.out.println(playerBoard2Data);
+            logger.exit("addYAttack");
+        } catch (Exception e) {
+            String errorMsg = "Error in addYAttack()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException(errorMsg, e);
+        }
+    }
+
     @LmlAction("resetAllBoards")
     private void resetAllBoards() throws ReflectionException {
         try {
@@ -755,5 +1072,24 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
             logger.error(errorMsg, e);
             throw new ReflectionException(errorMsg, e);
         }
+    }
+
+    private Array<Vector2> getPolygonVertices(int n, float radius, int h, int k) {
+        //logger.error("n={}",n);
+        //logger.error("radius={}",radius);
+        Array<Vector2> verts = GdxArrays.newArray();
+        double angle_between_vertices = 2 * Math.PI / n;
+
+        for (int i = n; i >= 0; i--) {
+            //logger.error("n={}",n);
+            double theta = i * angle_between_vertices;
+            double x = h + radius * Math.cos(theta);
+            double y = k + radius * Math.sin(theta);
+            //logger.error("theta={}",theta);
+            //logger.error("x={}",x);
+            //logger.error("y={}",y);
+            verts.add(new Vector2((float) x, (float) y));
+        }
+        return verts;
     }
 }

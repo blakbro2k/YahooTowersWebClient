@@ -9,13 +9,13 @@ import asg.games.yokel.objects.YokelPlayer;
 import asg.games.yokel.utils.YokelUtilities;
 
 public class GameNameLabel extends Table implements GameObject {
-    private static final Color YAHOO_ON = new Color(1f, 0f, 0f, 1);
-    private static final Color YAHOO_OFF = new Color(1f, 1f, 1f, 1);
+    public static final Color YAHOO_ON = new Color(1f, 0f, 0f, 1);
+    public static final Color YAHOO_OFF = new Color(1f, 1f, 1f, 1);
 
     private GameIcon icon;
     private Label playerName;
 
-    public GameNameLabel(Skin skin){
+    public GameNameLabel(Skin skin) {
         super(skin);
         //padTop(4);
         //padBottom(4);
@@ -25,13 +25,13 @@ public class GameNameLabel extends Table implements GameObject {
     }
 
     @Override
-    public void setData(String data) {
+    public void updateYokelData(String data) {
         YokelPlayer player = null;
-        if(data != null) {
+        if (data != null) {
             player = YokelUtilities.getObjectFromJsonString(YokelPlayer.class, data);
         }
 
-        if(player == null) {
+        if (player == null) {
             player = YokelPlayer.BLANK_PLAYER;
         }
 
@@ -40,7 +40,7 @@ public class GameNameLabel extends Table implements GameObject {
     }
 
     private void resetData() {
-        setData(null);
+        updateYokelData(null);
     }
 
     private void setNameTagData() {
