@@ -1,6 +1,4 @@
 # YahooTowersClient
-![image](https://github.com/blakbro2k/YahooTowersWebClient/assets/3727243/0fe49548-8e94-480f-adce-945559b2d72d)
-
 ## Welcome to my personal project to remake Yahoo! Towers from scratch
 This project has been a labor of love, and I do mean LABOR.  Yahoo towers was a wonderful love letter to tetris and columns back in the day.
 Once Yahoo! games shutdown, this gem went with it.  I am trying to correct that, but it has been challenging.
@@ -44,6 +42,7 @@ Project template included launchers with [Autumn](https://github.com/crashinvade
 
 Here is a demo of the client
 Yahoo! Towers alpha (https://blakbro2k.itch.io/yahoo-towers-dev)
+![image](https://github.com/blakbro2k/YahooTowersWebClient/assets/3727243/0fe49548-8e94-480f-adce-945559b2d72d)
 
 ### Wish to contribute? Great to hear! below are acouple of commands you can use when you clone the project.
 ## Gradle
