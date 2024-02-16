@@ -1,29 +1,31 @@
 package asg.games.yokel.client.ui.actors;
 
 
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Pool;
 
+import java.util.Objects;
+
 public class GameBrokenBlockSpriteContainer implements Pool.Poolable {
-    Image[] sprites = new Image[3];
-    GameBlock parentGameBlock = null;
-    GameBlockGrid grid = null;
-    int row, col = 0;
-    Skin skin = null;
-    Rectangle bounds = new Rectangle();
+    private final Image[] sprites = new Image[3];
+    private GameBlock parentGameBlock = null;
+    private GameBlockGrid grid = null;
+    private int row, col, block = 0;
     private String name;
 
     //No-arg constructor required for Pools
     public GameBrokenBlockSpriteContainer() {
     }
 
-    public GameBrokenBlockSpriteContainer(Skin skin, Image left, Image bottom, Image right) {
-        this.skin = skin;
+    public GameBrokenBlockSpriteContainer(String name, Image left, Image bottom, Image right, int block, int row, int col, GameBlockGrid grid) {
         sprites[0] = left;
         sprites[1] = bottom;
         sprites[2] = right;
+        setBlock(block);
+        setRow(row);
+        setCol(col);
+        setGrid(grid);
+        setName(name);
     }
 
     public void setGrid(GameBlockGrid grid) {
@@ -69,13 +71,6 @@ public class GameBrokenBlockSpriteContainer implements Pool.Poolable {
         this.parentGameBlock = parentGameBlock;
     }
 
-    public void setBounds(float x, float y, float width, float height) {
-        bounds.x = x;
-        bounds.y = y;
-        bounds.width = width;
-        bounds.height = height;
-    }
-
     public void setName(String name) {
         this.name = name;
     }
@@ -102,5 +97,26 @@ public class GameBrokenBlockSpriteContainer implements Pool.Poolable {
 
     public int getCol() {
         return col;
+    }
+
+    public int getBlock() {
+        return block;
+    }
+
+    public void setBlock(int block) {
+        this.block = block;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GameBrokenBlockSpriteContainer that = (GameBrokenBlockSpriteContainer) o;
+        return getRow() == that.getRow() && getCol() == that.getCol() && getBlock() == that.getBlock() && getParentGameBlock().equals(that.getParentGameBlock()) && getName().equals(that.getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getParentGameBlock(), getRow(), getCol(), getBlock(), getName());
     }
 }

@@ -112,7 +112,13 @@
                     <gameblockgrid id="preview">5</gameblockgrid>
                 </table>
                 <table>
-                    <gameblockgrid id="player" preview="false">8</gameblockgrid>
+                    <table>
+                        <gameblockgrid id="player" preview="false">8</gameblockgrid>
+                    </table>
+                    <table>
+                        <textButton fill="true" onChange="cycleUp" row="true">Up!</textButton>
+                        <textButton fill="true" onChange="cycleDown" row="true">Down!</textButton>
+                    </table>
                 </table>
             </table>
         </table>

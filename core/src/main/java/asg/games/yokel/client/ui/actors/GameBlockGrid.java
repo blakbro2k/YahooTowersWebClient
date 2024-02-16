@@ -154,14 +154,20 @@ public class GameBlockGrid extends Stack {
         }
     }
 
+    public GameBlock getGameBlock(int r, int c) {
+        return uiBlocks.get(getCellAttrName(r, c));
+    }
+
+
     private boolean isDownCellFree(int column, int row) {
         return row > 0 && row < YokelGameBoard.MAX_PLAYABLE_ROWS + 1 && getPieceValue(column, row - 1) == YokelBlock.CLEAR_BLOCK;
     }
 
-    private int getPieceValue(int c, int r){
+    private int getPieceValue(int c, int r) {
         GameBlock uiCell = uiBlocks.get(getCellAttrName(r, c));
         int ret = YokelBlock.CLEAR_BLOCK;
-        if(uiCell != null) ret = UIUtil.getInstance().getFactory().getBlockNumber(uiCell.getImage().getName());
+        if (uiCell != null)
+            ret = UIUtil.getInstance().getFactory().getBlockNumber(uiCell.getImage().getName());
         return ret;
     }
 
@@ -316,7 +322,6 @@ public class GameBlockGrid extends Stack {
         public void draw(Batch batch, float alpha) {
             super.draw(batch, alpha);
             if (isActive) {
-                //System.out.println("Drawing PieceSprite");
                 computePosition();
                 float x = getX();
                 float y = getY();

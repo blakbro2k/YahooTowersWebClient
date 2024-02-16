@@ -16,8 +16,9 @@ public class YokelObjectFactory implements Disposable {
     private final UserInterfaceService userInterfaceService;
 
     public YokelObjectFactory(UserInterfaceService userInterfaceService, Array<String> images, Array<String> animatedImages){
-        if (userInterfaceService == null)
+        if (userInterfaceService == null) {
             throw new GdxRuntimeException("UserInterfaceService was not initialized.");
+        }
         if (images == null) throw new GdxRuntimeException("Images to load cannot be null.");
         if(animatedImages == null) throw new GdxRuntimeException("Animated Images to load cannot be null.");
         this.userInterfaceService = userInterfaceService;
@@ -63,6 +64,7 @@ public class YokelObjectFactory implements Disposable {
 
     public GameBlock getGameBlock(int blockType, boolean isPreview){
         GameBlock block = yokelGameBlockPool.obtain();
+        block.setBlock(blockType);
 
         boolean isBroken = YokelBlockEval.hasBrokenFlag(blockType);
         if(blockType != YokelBlock.CLEAR_BLOCK){
