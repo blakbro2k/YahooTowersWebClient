@@ -1,5 +1,5 @@
 <window width="800" height="600">
-    <table debug="true">
+    <table>
         <table row="true">
             <label size="4" row="true">Left\t:Left Arrow</label>
             <label row="true">Right\t:Right Arrow</label>
@@ -9,31 +9,38 @@
             <gameclock width="100" height="46" id="gameClock" row="true" />
         </table>
         <table defaultpad="0">
-            <gameboard id="3:area" areanumber="3" />
-            <gameboard id="4:area" areanumber="4" />
+            <gameboard id="3:area" width="96" height="104" areanumber="3" />
+            <gameboard id="4:area" width="96" height="104" areanumber="4" />
         </table>
     </table>
     <table>
         <table>
             <table row="true">
-                <gameboard id="1:area" areanumber="1" preview="false" />
-                <gameboard id="2:area" areanumber="2" preview="false" left="false" />
+                <gameboard id="1:area" width="96" height="208" areanumber="1" preview="false" />
+                <gameboard id="2:area" width="96" height="208" areanumber="2" preview="false"
+                    left="false" />
             </table>
             <table>
-                <label id="action_msg" row="true"></label>
-                <textButton fill="true" onChange="goto:debug" row="true">@back</textButton>
+                <table>
+                    <label id="action_msg" row="true" />
+                </table>
+                <table>
+                    <textButton fill="true" onChange="toggleGameStart">Start</textButton>
+                    <textButton fill="true" onChange="goto:debug" row="true">@back</textButton>
+                </table>
+
             </table>
         </table>
     </table>
     <table>
         <table>
-            <table debug="true" row="true">
-                <gameboard id="5:area" areanumber="5" />
-                <gameboard id="6:area" areanumber="6" row="true" />
+            <table row="true">
+                <gameboard id="5:area" width="96" height="104" areanumber="5" />
+                <gameboard id="6:area" width="96" height="104" areanumber="6" row="true" />
             </table>
             <table row="true">
-                <gameboard id="7:area" areanumber="7" />
-                <gameboard id="8:area" areanumber="8" />
+                <gameboard id="7:area" width="96" height="104" areanumber="7" />
+                <gameboard id="8:area" width="96" height="104" areanumber="8" />
             </table>
         </table>
     </table>

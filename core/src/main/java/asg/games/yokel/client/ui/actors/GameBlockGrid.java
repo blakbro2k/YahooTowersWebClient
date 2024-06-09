@@ -1,9 +1,7 @@
 package asg.games.yokel.client.ui.actors;
 
-import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -46,7 +44,7 @@ public class GameBlockGrid extends Stack {
     private Label tableNumber;
 
     private final ObjectMap<String, GameBlock> uiBlocks = GdxMaps.newObjectMap();
-    private PieceDrawable pieceSprite;
+    private GamePieceDrawable pieceSprite;
 
     public GameBlockGrid(Skin skin, boolean isPreview) {
         this.skin = skin;
@@ -60,7 +58,7 @@ public class GameBlockGrid extends Stack {
 
     private void init(){
         initializeBoard();
-        initializeSize();
+        //initializeSize();
 
         setBoardNumber(0);
         bgColor.setBackground(skin.getDrawable(ALIVE_BACKGROUND));
@@ -83,7 +81,7 @@ public class GameBlockGrid extends Stack {
         this.grid = new Table(skin);
         this.bgColor = new Table(skin);
         this.bgNumber = new Table(skin);
-        this.pieceSprite = new PieceDrawable();
+        this.pieceSprite = new GamePieceDrawable(skin);
     }
 
     public void setDebug (boolean enabled) {
@@ -159,7 +157,7 @@ public class GameBlockGrid extends Stack {
     }
 
 
-    private boolean isDownCellFree(int column, int row) {
+    boolean isDownCellFree(int column, int row) {
         return row > 0 && row < YokelGameBoard.MAX_PLAYABLE_ROWS + 1 && getPieceValue(column, row - 1) == YokelBlock.CLEAR_BLOCK;
     }
 
@@ -288,98 +286,5 @@ public class GameBlockGrid extends Stack {
         setActive(false);
     }
 
-    private static class PieceDrawable extends Actor {
-        private final GameBlock[] blocks = new GameBlock[3];
-        private int row;
-        private int col;
-        private boolean isActive;
-        private float fallOffset;
-        private GameBlockGrid parent;
 
-        PieceDrawable() {
-            blocks[0] = UIUtil.getBlock(YokelBlock.CLEAR_BLOCK);
-            blocks[1] = UIUtil.getBlock(YokelBlock.CLEAR_BLOCK);
-            blocks[2] = UIUtil.getBlock(YokelBlock.CLEAR_BLOCK);
-        }
-
-        void setActive(boolean b) {
-            isActive = b;
-        }
-
-        @Override
-        public void act(float delta) {
-            super.act(delta);
-            if (isActive) {
-                for (int i = 0; i < 3; i++) {
-                    if (blocks[i] != null) {
-                        blocks[i].act(delta);
-                    }
-                }
-            }
-        }
-
-        @Override
-        public void draw(Batch batch, float alpha) {
-            super.draw(batch, alpha);
-            if (isActive) {
-                computePosition();
-                float x = getX();
-                float y = getY();
-
-                for (int i = 0; i < 3; i++) {
-                    if (this.blocks[i] != null) {
-                        this.blocks[i].setPosition(x, y + (i * blocks[i].getHeight() / 2));
-                        this.blocks[i].draw(batch, alpha);
-                    }
-                }
-            }
-        }
-
-        void setBlocks(YokelPiece piece) {
-            if (piece != null && isActive) {
-                updateIndex(0, piece.getBlock1());
-                updateIndex(1, piece.getBlock2());
-                updateIndex(2, piece.getBlock3());
-                this.row = piece.row;
-                this.col = piece.column;
-            }
-        }
-
-        private void updateIndex(int index, int block) {
-            if (index > -1 && index < blocks.length && blocks[index] != null) {
-                blocks[index].setImage(block);
-            }
-        }
-
-        private void setParent(GameBlockGrid area) {
-            this.parent = area;
-        }
-
-        private void computePosition() {
-            GameBlock block = blocks[0];
-
-            if (block != null) {
-                //Set the x to the position of the grid
-                Vector2 pos = localToParentCoordinates(new Vector2(0, 0));
-
-                float SIDE_BAR_OFFSET = 12;
-                pos.x = pos.x / 2 + SIDE_BAR_OFFSET;
-                pos.y = pos.y / 2;
-
-                pos.x -= block.getWidth();
-                if (parent != null && parent.isDownCellFree(col, row)) {
-                    pos.y -= ((1 - fallOffset) * block.getHeight() / 2);
-                }
-
-                float offSetX = block.getWidth() / 2 * col;
-                float offSetY = block.getHeight() / 2 * row;
-
-                this.setPosition(pos.x + offSetX, pos.y + offSetY);
-            }
-        }
-
-        private void setFallOffset(float fallOffset) {
-            this.fallOffset = fallOffset;
-        }
-    }
 }

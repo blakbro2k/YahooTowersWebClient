@@ -2,18 +2,15 @@ package asg.games.yokel.client.controller;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
-import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ObjectMap;
-import com.badlogic.gdx.utils.Pools;
-import com.badlogic.gdx.utils.Queue;
+import com.badlogic.gdx.utils.OrderedSet;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.reflect.ReflectionException;
 import com.github.czyzby.autumn.annotation.Inject;
@@ -32,7 +29,6 @@ import com.github.czyzby.lml.annotation.LmlActor;
 import com.github.czyzby.lml.parser.action.ActionContainer;
 
 import java.util.Iterator;
-import java.util.Vector;
 
 import asg.games.yokel.client.GlobalConstants;
 import asg.games.yokel.client.controller.action.PlaySoundAction;
@@ -42,14 +38,14 @@ import asg.games.yokel.client.service.SessionService;
 import asg.games.yokel.client.service.SoundFXService;
 import asg.games.yokel.client.service.UserInterfaceService;
 import asg.games.yokel.client.ui.actors.GameBlock;
+import asg.games.yokel.client.ui.actors.GameBlockGrid;
 import asg.games.yokel.client.ui.actors.GameBrokenBlockSpriteContainer;
 import asg.games.yokel.client.ui.actors.GameClock;
 import asg.games.yokel.client.ui.actors.GamePlayerBoard;
 import asg.games.yokel.client.utils.LogUtil;
+import asg.games.yokel.client.utils.UIUtil;
 import asg.games.yokel.managers.GameManager;
-import asg.games.yokel.objects.YokelBlock;
-import asg.games.yokel.objects.YokelBlockEval;
-import asg.games.yokel.objects.YokelGameBoard;
+import asg.games.yokel.objects.YokelBrokenBlock;
 import asg.games.yokel.objects.YokelGameBoardState;
 import asg.games.yokel.objects.YokelPlayer;
 import asg.games.yokel.objects.YokelSeat;
@@ -115,8 +111,14 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
     private boolean isBrokenPlaying;
     private float yahTimer, brokenCellTimer;
     private Log4LibGDXLogger logger;
-    private final Array<GameBrokenBlockSpriteContainer> brokenBlocksQueue = GdxArrays.newArray();
-    private final Queue<GameBlock> brokenBlocks = new Queue<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue1 = new OrderedSet<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue2 = new OrderedSet<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue3 = new OrderedSet<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue4 = new OrderedSet<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue5 = new OrderedSet<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue6 = new OrderedSet<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue7 = new OrderedSet<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue8 = new OrderedSet<>();
 
     @Override
     public void initialize(Stage stage, ObjectMap<String, Actor> actorMappedByIds) {
@@ -218,7 +220,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
             //Fetch GameManager from Server
             //fetch game state from server
             GameManager game = fetchGameManagerFromServer(delta);
-            YokelGameBoardState gameState = fetchGameStateFromServer(delta);
+            System.out.println(game);
 
             //Check if game is ready to start
             checkIsGameReady(game);
@@ -235,8 +237,13 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
             //Update GameState
             updateGameState(game, delta, stage);
 
+            //Add Broken Blocks to animation queues
+            addBrokenBlocksToAnimationQueue(game);
+
             //handle animating broken blocks
-            handleBrokenBlocks(game, stage);
+            if (--brokenCheck == 0) {
+                handleBrokenBlocks(game, stage);
+            }
 
             //Update UI for players before the game
             if (!isGameRunning(game)) {
@@ -257,6 +264,22 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
+    private void addBrokenBlocksToAnimationQueue(GameManager game) {
+        for (int boardSeat = 0; boardSeat < 8; boardSeat++) {
+            for (YokelBrokenBlock cellBroken : game.getBoardState(boardSeat).getBrokenCells()) {
+                GameBlock gameBlock = UIUtil.getInstance().getGameBlock(cellBroken.getBlock(), uiAreas[boardSeat].isPreview());
+                addBrokenBlockActorToQueue(brokenBlocksQueue1, gameBlock, uiAreas[boardSeat].getGrid(), cellBroken.getRow(), cellBroken.getCol());
+            }
+        }
+    }
+
+    private void addBrokenBlockActorToQueue(OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue, GameBlock gameBlock, GameBlockGrid grid, int row, int col) {
+        if (gameBlock != null && brokenBlocksQueue != null) {
+            GameBrokenBlockSpriteContainer brokenSprite = UIUtil.getBrokenBlockSprites(gameBlock, gameBlock.getBlock(), grid, row, col);
+            brokenBlocksQueue.add(brokenSprite);
+        }
+    }
+
     private Array<Vector2> getPolygonVertices(int n, float radius, int h, int k) {
         Array<Vector2> verts = GdxArrays.newArray();
         double angle_between_vertices = 2 * Math.PI / n;
@@ -272,153 +295,39 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
     }
 
     private void handleBrokenBlocks(GameManager game, Stage stage) {
-        if (brokenBlocksQueue.size > 0 && --brokenCheck == 0) {
-            brokenCheck = BREAK_CHECK_INTERVAL;
-            addBrokenBlockActorToStage(stage);
+        if (brokenBlocksQueue1.size > 0) {
+            YokelGameBoardState state = game.getBoardState(0);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue1);
         }
-    }
-
-    void addBrokenBlockActorToStage(Stage stage) {
-        if (stage != null) {
-            Array.ArrayIterator<GameBrokenBlockSpriteContainer> brokenIterator = brokenBlocksQueue.iterator();
-
-            boolean toggleYahoo = false;
-            if (toggleYahoo) {
-                logger.error("verts: {}" + getPolygonVertices(brokenBlocksQueue.size, stage.getWidth(), 0, 0));
-                Array<Vector2> vectors = getPolygonVertices(brokenBlocksQueue.size, stage.getWidth() + 40, 300, 300);
-                Queue<Vector2> yahooStarEnds = new Queue<>();
-
-                for (Vector2 vector : vectors) {
-                    yahooStarEnds.addFirst(vector);
-                }
-
-                while (brokenIterator.hasNext()) {
-                    GameBrokenBlockSpriteContainer brokenGameSprite = brokenIterator.next();
-                    if (brokenGameSprite != null) {
-                        GameBlock parent = brokenGameSprite.getParentGameBlock();
-                        Image left = brokenGameSprite.getLeftSprite();
-                        Image bottom = brokenGameSprite.getBottomSprite();
-                        Image right = brokenGameSprite.getRightSprite();
-
-                        Interpolation interpolation = Interpolation.smoother;
-
-                        if (parent != null) {
-                            Image block = new Image(parent.getImage().getDrawable());
-                            parent.setBlock(YokelBlockEval.addBrokenFlag(parent.getBlock()));
-                            Vector2 cord = yahooStarEnds.removeFirst();
-
-                            float endOfScreenX = cord.x;
-                            float endOfScreenY = cord.y;
-                            //Get the coordinates of the parent block
-                            Vector2 blockV = left.localToParentCoordinates(new Vector2(parent.getX(), parent.getY()));
-                            //Get the screen coordinates
-                            Vector2 blockV2 = left.localToScreenCoordinates(new Vector2(blockV.x, blockV.y));
-                            //Shift block x slightly
-                            //blockV2.x -= parent.getX();
-                            //blockV2.x -= brokenOffSet;
-                            //Shift (and flip) block y
-                            blockV2.x -= parent.getX();
-                            blockV2.y = 1 - (blockV2.y) + stage.getHeight();
-
-                            block.setVisible(true);
-                            block.setBounds(blockV2.x, blockV2.y, block.getWidth(), block.getHeight());
-
-                            if (endOfScreenX == -1) {
-                                endOfScreenX = blockV2.x;
-                            }
-                            if (endOfScreenY == -1) {
-                                endOfScreenY = blockV2.y;
-                            }
-                            //logger.error("endOfScreen({},{})",endOfScreenX,endOfScreenY);
-                            block.addAction(Actions.sequence(Actions.moveTo(endOfScreenX, endOfScreenY, YAHOO_DURATION, interpolation), Actions.removeActor(block)));
-                            left.setVisible(false);
-                            bottom.setVisible(false);
-                            right.setVisible(false);
-                            stage.addActor(block);
-                        }
-                        Pools.free(brokenGameSprite);
-                        brokenIterator.remove();
-                    }
-                }
-                logger.error("size: " + brokenBlocksQueue.size);
-
-            } else {
-                if (brokenIterator.hasNext()) {
-                    GameBrokenBlockSpriteContainer brokenGameSprite = brokenIterator.next();
-                    if (brokenGameSprite != null) {
-                        float duration = BLOCK_BREAK_DURATION;
-                        float delay = 0.05f;
-                        float endOfScreen = 0f;
-                        float blockOffSet = 32;
-
-                        Interpolation interpolation = Interpolation.sineIn;
-
-                        Image left = brokenGameSprite.getLeftSprite();
-                        Image bottom = brokenGameSprite.getBottomSprite();
-                        Image right = brokenGameSprite.getRightSprite();
-                        GameBlock parent = brokenGameSprite.getParentGameBlock();
-                        float brokenXOffSet = 3;
-                        float brokenYOffSet = left.getHeight();
-
-                        if (parent != null) {
-                            parent.setBlock(YokelBlockEval.addBrokenFlag(parent.getBlock()));
-                            //parent.addAction(Actions.sequence(Actions.delay(delay), Actions.visible(false)));
-
-                            //Get the coordinates of the parent block
-                            Vector2 leftV = left.localToParentCoordinates(new Vector2(parent.getX(), parent.getY()));
-                            //Get the screen coordinates
-                            Vector2 leftV2 = left.localToScreenCoordinates(new Vector2(leftV.x, leftV.y));
-                            //Shift block x slightly
-                            leftV2.x -= parent.getX();
-                            leftV2.x -= brokenXOffSet;
-                            //Shift (and flip) block y
-                            leftV2.y = 1 - (leftV2.y - brokenYOffSet) + stage.getHeight();
-
-                            Vector2 bottomV = bottom.localToParentCoordinates(new Vector2(parent.getX(), parent.getY()));
-                            Vector2 bottomV2 = bottom.localToScreenCoordinates(new Vector2(bottomV.x, bottomV.y));
-                            bottomV2.x -= parent.getX();
-                            bottomV2.y = 1 - (bottomV2.y - brokenYOffSet) + stage.getHeight();
-
-                            Vector2 rightV = right.localToParentCoordinates(new Vector2(parent.getX(), parent.getY()));
-                            Vector2 rightV2 = right.localToScreenCoordinates(new Vector2(rightV.x, rightV.y));
-                            rightV2.x -= parent.getX();
-                            rightV2.x += brokenXOffSet;
-                            rightV2.y = 1 - (rightV2.y - brokenYOffSet) + stage.getHeight();
-
-                            left.setBounds(leftV2.x, leftV2.y, left.getWidth(), left.getHeight());
-                            left.addAction(Actions.sequence(Actions.delay(delay),
-                                    Actions.moveTo(leftV2.x - blockOffSet, endOfScreen, duration, interpolation), Actions.removeActor(left)));
-
-                            bottom.setBounds(bottomV2.x, bottomV2.y, bottom.getWidth(), bottom.getHeight());
-                            bottom.addAction(Actions.sequence(Actions.delay(delay),
-                                    Actions.moveTo(bottomV2.x, endOfScreen, duration, interpolation), Actions.removeActor(bottom)));
-
-                            right.setBounds(rightV2.x, rightV2.y, right.getWidth(), right.getHeight());
-                            right.addAction(Actions.sequence(Actions.delay(delay),
-                                    Actions.moveTo(rightV2.x + blockOffSet, endOfScreen, duration, interpolation), Actions.removeActor(right)));
-
-                            if (isPreview()) {
-                                if (brokenCheck % 3 == 1) {
-                                    stage.addActor(left);
-                                } else if (brokenCheck % 3 == 2) {
-                                    stage.addActor(right);
-                                } else {
-                                    stage.addActor(bottom);
-                                }
-                            } else {
-                                stage.addActor(left);
-                                stage.addActor(bottom);
-                                stage.addActor(right);
-                            }
-                        }
-                        brokenIterator.remove();
-                        Pools.free(brokenGameSprite);
-                    }
-                }
-            }
-            //logger.info("{}: ({},{})", "stage", stage.getWidth(), stage.getHeight());
-            //logger.exit("addBrokenBlockActorToStage");
+        if (brokenBlocksQueue2.size > 0) {
+            YokelGameBoardState state = game.getBoardState(1);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue2);
         }
+        if (brokenBlocksQueue3.size > 0) {
+            YokelGameBoardState state = game.getBoardState(2);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue3);
+        }
+        if (brokenBlocksQueue4.size > 0) {
+            YokelGameBoardState state = game.getBoardState(3);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue4);
+        }
+        if (brokenBlocksQueue5.size > 0) {
+            YokelGameBoardState state = game.getBoardState(4);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue5);
+        }
+        if (brokenBlocksQueue6.size > 0) {
+            YokelGameBoardState state = game.getBoardState(5);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue6);
+        }
+        if (brokenBlocksQueue7.size > 0) {
+            YokelGameBoardState state = game.getBoardState(6);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue7);
+        }
+        if (brokenBlocksQueue8.size > 0) {
+            YokelGameBoardState state = game.getBoardState(7);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue8);
+        }
+        brokenCheck = BREAK_CHECK_INTERVAL;
     }
 
     private boolean isPreview() {
@@ -441,7 +350,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in updateTimers()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -457,7 +366,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in setUpDefaultSeats()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -529,7 +438,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in updateGameBoardPreStart()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
 
     }
@@ -548,7 +457,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in getPlayerPartnerSeatNum()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -578,7 +487,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
                         isAlive[gameSeat] = false;
                         killPlayer(uiAreas[board]);
                     } else {
-                        updateUiBoard(uiAreas[board], game.getGameBoard(gameSeat));
+                        updateUiBoard(uiAreas[board], game.getBoardState(gameSeat), gameSeat);
                     }
                 }
             }
@@ -586,30 +495,29 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in setUpDefaultSeats()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
 
     }
 
-    private void updateUiBoard(GamePlayerBoard uiArea, YokelGameBoard gameBoard) throws ReflectionException {
+    private void updateUiBoard(GamePlayerBoard uiArea, YokelGameBoardState gameBoardState, int gameBoardSeat) throws ReflectionException {
         try {
             if (logger.isDebugOn()) {
                 ObjectMap<String, Object> map = GdxMaps.newObjectMap();
                 map.put("uiArea", uiArea);
-                map.put("gameBoard", gameBoard);
+                map.put("gameBoardState", gameBoardState);
                 logger.enter("updateUiBoard", map);
             }
             if (uiArea != null) {
-                //uiArea.renderPlayerBoard(gameBoard);
-                int yahooDuration = 3;//gameBoard.fetchYahooDuration();
-                int gameBoardSeat = Integer.parseInt(gameBoard.getName());
+                uiArea.renderPlayerBoard(gameBoardState);
+                int yahooDuration = gameBoardState.getYahooDuration();
 
                 if (isPlayerBoard(gameBoardSeat)) {
-                /*if (gameBoard.hasPieceSet()) {
-                    soundFXService.playPiecePlacedSound();
-                }*/
-                    Vector<YokelBlock> brokenCells = gameBoard.getBrokenCells();
-                    logger.error("gameboard Name={}: gameboard broken cells={}", gameBoard.getName(), gameBoard.getBrokenCells());
+                    if (gameBoardState.getIsPieceSet()) {
+                        soundFXService.playPiecePlacedSound();
+                    }
+                    Iterable<YokelBrokenBlock> brokenCells = gameBoardState.getBrokenCells();
+                    logger.error("gameboard Name={}: gameboard broken cells={}", gameBoardState.getName(), brokenCells);
                     if (!YokelUtilities.isEmpty(brokenCells)) {
                         //Play broken cell sound
                         soundFXService.playBrokenCell();
@@ -633,9 +541,8 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in updateGameState()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
-
     }
 
     private static PlaySoundAction playSoundAction(Sound sound) {
@@ -666,7 +573,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in isPlayerBoard()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -681,7 +588,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in killPlayer()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -694,7 +601,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in isGameRunning()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -709,7 +616,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in updateState()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -729,7 +636,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in checkIsGameReady()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -760,7 +667,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in handleGameStart()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -776,7 +683,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in hideAllJoinButtons()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
 
     }
@@ -793,7 +700,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in setUpDefaultSeats()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
 
     }
@@ -808,7 +715,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in getElapsedSeconds()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -824,7 +731,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in startGame()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -839,7 +746,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in stopGame()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -859,7 +766,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in handleGameOver()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -885,7 +792,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in getGameOverActor()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -911,7 +818,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in getPlayer()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -931,7 +838,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in toggleGameStart()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -954,7 +861,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in playerStandUpAction()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -971,7 +878,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in setUpDefaultSeats()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -1002,7 +909,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in fetchGameManagerFromServer()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
 
     }
@@ -1032,7 +939,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in setUpDefaultSeats()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
 
     }
@@ -1052,7 +959,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in setUpDefaultSeats()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
 
     }
@@ -1105,7 +1012,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in handleStartButtonClick()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 
@@ -1128,7 +1035,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         } catch (Exception e) {
             String errorMsg = "Error in setUpDefaultSeats()";
             logger.error(errorMsg, e);
-            throw new ReflectionException();
+            throw new ReflectionException(e);
         }
     }
 }

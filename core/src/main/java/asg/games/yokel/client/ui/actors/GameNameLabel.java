@@ -21,7 +21,6 @@ public class GameNameLabel extends Table implements GameObject {
         //padBottom(4);
         resetData();
         setNameTagData();
-        setDebug(true);
     }
 
     @Override

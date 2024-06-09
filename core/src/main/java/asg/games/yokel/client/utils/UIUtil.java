@@ -2,6 +2,7 @@ package asg.games.yokel.client.utils;
 
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -21,6 +22,7 @@ import asg.games.yokel.client.factories.YokelObjectFactory;
 import asg.games.yokel.client.ui.actors.GameBlock;
 import asg.games.yokel.client.ui.actors.GameBlockGrid;
 import asg.games.yokel.client.ui.actors.GameBrokenBlockSpriteContainer;
+import asg.games.yokel.objects.YokelBlock;
 import asg.games.yokel.objects.YokelBlockEval;
 import asg.games.yokel.utils.YokelUtilities;
 
@@ -29,7 +31,7 @@ public class UIUtil {
     private static final float YAHOO_DURATION = 1.26f;
     private static final String PREVIEW_TAG = "_preview";
     private static final float BLOCK_BREAK_DURATION = 0.65f;
-    private static int brokenCheck = 0;
+    private static final int brokenCheck = 0;
     private SoundUtil soundUtil;
 
     private YokelObjectFactory factory;
@@ -95,8 +97,12 @@ public class UIUtil {
         return drawables;
     }
 
-    public GameBlock getGameBlock(int blockId, boolean preview){
+    public GameBlock getGameBlock(int blockId, boolean preview) {
         return getFactory().getGameBlock(blockId, preview);
+    }
+
+    public static GameBlock getClearBlock(boolean isPreview) {
+        return UIUtil.getInstance().getGameBlock(YokelBlock.CLEAR_BLOCK, isPreview);
     }
 
     public static GameBlock getBlock(int block) {
@@ -174,15 +180,21 @@ public class UIUtil {
     }
 
     public static void addBrokenBlockActorToStage(Stage stage, boolean isYahoo, OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue) {
-        if (stage != null) {
+        if (stage != null && brokenBlocksQueue != null) {
             ObjectSet.ObjectSetIterator<GameBrokenBlockSpriteContainer> brokenIterator = brokenBlocksQueue.iterator();
 
             if (isYahoo) {
-                Array<Vector2> vectors = UIUtil.getPolygonVertices(brokenBlocksQueue.size, stage.getWidth() + 40, 300, 300);
+                int h = 300;
+                int k = 300;
+                // Angle of rotation
+                int points = MathUtils.random(1, 6);
+                double angle = Math.PI / points;
+
+                Array<Vector2> vectors = UIUtil.getPolygonVertices(brokenBlocksQueue.size, stage.getWidth() + 40, h, k);
                 Queue<Vector2> yahooStarEnds = new Queue<>();
 
                 for (Vector2 vector : vectors) {
-                    yahooStarEnds.addFirst(vector);
+                    yahooStarEnds.addFirst(rotatePoint(vector.x, vector.y, h, k, angle));
                 }
 
                 while (brokenIterator.hasNext()) {
@@ -329,5 +341,15 @@ public class UIUtil {
             verts.add(new Vector2((float) x, (float) y));
         }
         return verts;
+    }
+
+    public static Vector2 rotatePoint(double x, double y, double Cx, double Cy, double theta) {
+        double cosTheta = Math.cos(theta);
+        double sinTheta = Math.sin(theta);
+
+        double newX = Cx + (x - Cx) * cosTheta - (y - Cy) * sinTheta;
+        double newY = Cy + (x - Cx) * sinTheta + (y - Cy) * cosTheta;
+
+        return new Vector2((float) newX, (float) newY);
     }
 }

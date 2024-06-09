@@ -11,6 +11,7 @@ import asg.games.yokel.client.utils.UIUtil;
 import asg.games.yokel.objects.YokelBlock;
 import asg.games.yokel.objects.YokelGameBoard;
 import asg.games.yokel.objects.YokelGameBoardState;
+import asg.games.yokel.objects.YokelPiece;
 import asg.games.yokel.objects.YokelPlayer;
 import asg.games.yokel.utils.YokelUtilities;
 
@@ -24,10 +25,10 @@ public class GamePlayerBoard extends Table implements GameObject {
     private final static int BOTTOM_PAD = 6;
 
     private GameNameLabel nameLabel;
-    private GamePiece next;
+    private GameNextPiece next;
     private GamePowersQueue powers;
     private GameBlockGrid area;
-    private final GamePiece clearPiece;
+    private final GameNextPiece clearPiece;
 
     private final float blockWidth;
     private final float blockPrevWidth;
@@ -48,13 +49,13 @@ public class GamePlayerBoard extends Table implements GameObject {
         blockHeight = block.getHeight();
         blockPrevHeight = previewBlock.getHeight();
 
-        clearPiece = new GamePiece(getSkin());
+        clearPiece = new GameNextPiece(getSkin());
         this.setBounds(0, 0, 200, 500);
 
     }
 
     private void initialize(Skin skin) {
-        next = new GamePiece(skin);
+        next = new GameNextPiece(skin);
         powers = new GamePowersQueue(skin);
         area = new GameBlockGrid(skin);
         nameLabel = new GameNameLabel(skin);
@@ -116,17 +117,27 @@ public class GamePlayerBoard extends Table implements GameObject {
     public void renderPlayerBoard(YokelGameBoardState boardState) {
         if (boardState != null) {
             area.renderBoard(boardState);
-            //powers.updateQueue(blockToGameBlocks(board.getPowers()));
-            //setUpNext(board);
+            powers.updatePowersQueue(boardState.getPowersQueue());
+            setUpNext(boardState);
         }
     }
 
-    /*private void setUpNext(YokelGameBoard board){
-        YokelPiece piece = board.fetchCurrentNextPiece();
-        if(piece != null){
-            next.updateYokelData(piece.getJsonString());
+    private void setUpNext(YokelGameBoardState boardState) {
+        YokelPiece piece = boardState.getNextPiecePreview();
+        if (piece != null) {
+            Queue<Integer> pieces = boardState.getSpecialPieces();
+            if (YokelUtilities.sizeOf(pieces) > 0) {
+                int isSpecial = pieces.get(0);
+                if (isSpecial % 2 == 1) {
+                    next.setAsMedusa();
+                } else {
+                    next.setAsMidas();
+                }
+            } else {
+                next.updateYokelData(piece.getJsonString());
+            }
         }
-    }*/
+    }
 
     @Override
     public void updateYokelData(String data) {
@@ -197,14 +208,6 @@ public class GamePlayerBoard extends Table implements GameObject {
         return null;//area.getBoard();
     }
 
-    private Queue<GameBlock> blockToGameBlocks(Queue<Integer> blocks){
-        Queue<GameBlock> gameBlocks = new Queue<>();
-        for(int block : YokelUtilities.safeIterable(blocks)){
-            gameBlocks.addFirst(UIUtil.getBlock(block, area.isPreview()));
-        }
-        return gameBlocks;
-    }
-
     public void setActive(boolean b) {
         area.setActive(b);
     }
@@ -239,5 +242,9 @@ public class GamePlayerBoard extends Table implements GameObject {
 
     public void setYahoo(boolean isYahoo) {
         nameLabel.setYahoo(isYahoo);
+    }
+
+    public GameBlockGrid getGrid() {
+        return area;
     }
 }

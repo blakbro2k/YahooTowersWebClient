@@ -55,7 +55,7 @@ public class GameBlock extends Table implements Pool.Poolable, Copyable<GameBloc
     }
 
     //New block via block type
-   /* public GameBlock(Skin skin, YokelBlock block, boolean isPreview) {
+    /*public GameBlock(Skin skin, YokelBlock block, boolean isPreview) {
         super(skin);
         if (block == null) throw new GdxRuntimeException("Block cannot be null.");
         setBlock(block);
@@ -95,7 +95,7 @@ public class GameBlock extends Table implements Pool.Poolable, Copyable<GameBloc
     }
 
     public void setImage(int blockValue) {
-        if(isPreview){
+        if (isPreview) {
             setImage(UIUtil.getInstance().getPreviewBlockImage(blockValue));
         } else {
             setImage(UIUtil.getInstance().getBlockImage(blockValue));
@@ -122,8 +122,8 @@ public class GameBlock extends Table implements Pool.Poolable, Copyable<GameBloc
         return isPreview;
     }
 
-    private float getDelay(Image image){
-        if(image != null){
+    private float getDelay(Image image) {
+        if (image != null) {
             if (YokelUtilities.containsIgnoreCase(image.getName(), "defense")) {
                 return DEFENSE_ANIMATION_DELAY;
             } else if (YokelUtilities.containsIgnoreCase(image.getName(), "medusa")) {
@@ -200,7 +200,7 @@ public class GameBlock extends Table implements Pool.Poolable, Copyable<GameBloc
         uiBlock.setPosition(x, y);
     }
 
-    public void setCurrentFrame(int frame){
+    public void setCurrentFrame(int frame) {
         uiBlock.setCurrentFrame(frame);
     }
 
@@ -267,5 +267,9 @@ public class GameBlock extends Table implements Pool.Poolable, Copyable<GameBloc
         deep.setImage(this.getImage());
         deep.setActive(this.isActive());
         return deep;
+    }
+
+    public void setDelay(float delay) {
+        uiBlock.setDelay(delay);
     }
 }

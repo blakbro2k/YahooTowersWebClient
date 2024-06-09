@@ -100,7 +100,6 @@ public class ClientViewTestController extends ClientViewController {
         //area4.update(getTestBoard());
     }
 
-
 /*
     private void showGameOver(Stage stage){
         if(showGameOver){

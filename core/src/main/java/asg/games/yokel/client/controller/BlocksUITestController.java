@@ -4,12 +4,12 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.ObjectSet;
@@ -26,7 +26,6 @@ import com.github.czyzby.autumn.mvc.component.ui.controller.ViewInitializer;
 import com.github.czyzby.autumn.mvc.component.ui.controller.ViewRenderer;
 import com.github.czyzby.autumn.mvc.stereotype.View;
 import com.github.czyzby.kiwi.log.LoggerService;
-import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 import com.github.czyzby.lml.annotation.LmlAction;
 import com.github.czyzby.lml.annotation.LmlActor;
@@ -47,6 +46,7 @@ import asg.games.yokel.client.ui.actors.GameBrokenBlockSpriteContainer;
 import asg.games.yokel.client.ui.actors.GameClock;
 import asg.games.yokel.client.ui.actors.GameJoinWidget;
 import asg.games.yokel.client.ui.actors.GameNameLabel;
+import asg.games.yokel.client.ui.actors.GamePlayerBoard;
 import asg.games.yokel.client.ui.actors.GamePowersQueue;
 import asg.games.yokel.client.utils.LogUtil;
 import asg.games.yokel.client.utils.UIUtil;
@@ -54,6 +54,7 @@ import asg.games.yokel.managers.GameManager;
 import asg.games.yokel.objects.YokelBlockEval;
 import asg.games.yokel.objects.YokelBrokenBlock;
 import asg.games.yokel.objects.YokelGameBoard;
+import asg.games.yokel.objects.YokelGameBoardState;
 import asg.games.yokel.objects.YokelKeyMap;
 import asg.games.yokel.objects.YokelPlayer;
 import asg.games.yokel.objects.YokelSeat;
@@ -62,11 +63,14 @@ import asg.games.yokel.utils.YokelUtilities;
 
 @View(id = GlobalConstants.UI_BLOCK_TEST_VIEW, value = GlobalConstants.UI_BLOCK_TEST_VIEW_PATH)
 public class BlocksUITestController extends ApplicationAdapter implements ViewRenderer, ViewInitializer, ActionContainer {
+    Log4LibGDXLogger logger;
+
     private static final int BREAK_TIMER_MAX = 106;
     private static final float SCREEN_RADIUS = 600f;
     private static final float YAHOO_DURATION = 1.26f;
     private static final float BLOCK_BREAK_DURATION = 0.65f;
     private static final float BREAK_CHECK_INTERVAL = 4f;
+
     @Inject
     private UserInterfaceService uiService;
     @Inject
@@ -79,7 +83,6 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
     private LoadingController assetController;
     @Inject
     private LoggerService loggerService;
-    Log4LibGDXLogger logger;
 
     @LmlActor("Y_block")
     private Image yBlockImage;
@@ -213,6 +216,8 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
     private GameBlockGrid playerBoard;
     @LmlActor("partner")
     private GameBlockGrid partnerBoard;
+    @LmlActor("testGameBoard")
+    private GamePlayerBoard testGameBoard;
     @LmlActor("Y_block_breakTest")
     private GameBlock yBlockImageBreakTest;
     @LmlActor("O_block_breakTest")
@@ -227,12 +232,8 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
     private GameBlock bashBlockImageBreakTest;
     @LmlActor("interpolationSelect")
     private VisSelectBox<Object> interpolationSelectBox;
-    @LmlActor("1:testBoard")
-    private GameBlockGrid gameTestGrid;
     @LmlActor("powersQueue")
     private GamePowersQueue powersQueue;
-    @LmlActor("powersQueueTable")
-    private Table powersQueueTable;
     @LmlActor("togglePlayer")
     private VisCheckBox togglePlayer;
 
@@ -243,6 +244,7 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
     float brokenCheck = BREAK_CHECK_INTERVAL;
     private YokelGameBoard playerBoardData;
     private YokelGameBoard playerBoard2Data;
+    private YokelGameBoard testBoardData;
     private boolean downKeyPressed = false;
     private final YokelKeyMap keyMap = new YokelKeyMap();
     private int breakTimer = -1;
@@ -252,12 +254,19 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
     private int o;
     private int i;
     private int bash = 0;
-    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue = new OrderedSet<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue1 = new OrderedSet<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue2 = new OrderedSet<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue3 = new OrderedSet<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue4 = new OrderedSet<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue5 = new OrderedSet<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue6 = new OrderedSet<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue7 = new OrderedSet<>();
+    private final OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue8 = new OrderedSet<>();
     private final Queue<GameBlock> brokenTestBlock = new Queue<>();
     private final ObjectMap<String, Interpolation> interpolationMap = GdxMaps.newObjectMap();
     private boolean toggleOffensive, togglePlayerBool = true;
-    Array<Integer> queuePowers = GdxArrays.newArray();
-    private final long gameSeed = -1;
+    Queue<Integer> queuePowers = new Queue<>();
+    private final long gameSeed = 5;
 
     @Override
     public void initialize(Stage stage, ObjectMap<String, Actor> actorMappedByIds) {
@@ -325,20 +334,7 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
             interpolationMap.put("swingOut", Interpolation.swingOut);
 
             initiate();
-/*
-            powersQueueTable.add(getClearBlock()).row();
-            powersQueueTable.add(getClearBlock()).row();
-            powersQueueTable.add(getClearBlock()).row();
-            powersQueueTable.add(getClearBlock()).row();
-            powersQueueTable.add(getClearBlock()).row();
-            powersQueueTable.add(getClearBlock()).row();
-            powersQueueTable.add(getClearBlock()).row();
-            powersQueueTable.add(getClearBlock()).row();
-*/
-            System.out.println("start: " + powersQueueTable);
-            //powersQueueTable.add(getClearBlock()).row();
-            //powersQueueTable.clear();
-            System.out.println("end: " + powersQueueTable);
+
             togglePlayer.setChecked(togglePlayerBool);
             togglePlayerBool = togglePlayer.isChecked();
             playerBoard.setActive(togglePlayerBool);
@@ -375,7 +371,7 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
         try {
             logger.enter("destroy");
             //boardState.dispose();
-            gameManager.dispose();
+            //gameManager.dispose();
             logger.exit("destroy");
         } catch (Exception e) {
             String errorMsg = "Error in destroy()";
@@ -388,53 +384,54 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
         try {
             logger.enter("initiate");
             initiateActors();
-            YokelPlayer player = new YokelPlayer();
-            player.setName("player1");
-            player.setRating(2000);
-            player.setIcon(6);
-            YokelPlayer player2 = new YokelPlayer();
-            player2.setName("player2");
-            player2.setRating(2000);
-            player2.setIcon(6);
-            logger.info("Set Yokelplayer: {}", player);
 
-            YokelTable table = new YokelTable("1", 1);
+            YokelPlayer player1 = new YokelPlayer("player1");
+            YokelPlayer player2 = new YokelPlayer("player2");
+            YokelPlayer player3 = new YokelPlayer("player3");
+            YokelTable table = new YokelTable("table1", 1);
             Array<YokelSeat> seats = table.getSeats();
-            seats.get(0).sitDown(player);
-            seats.get(2).sitDown(player2);
+            seats.get(0).sitDown(player1);
+            seats.get(0).setSeatReady(true);
+            seats.get(1).sitDown(player2);
+            seats.get(1).setSeatReady(true);
+            seats.get(2).sitDown(player3);
+            seats.get(2).setSeatReady(true);
             table.setSeats(seats);
 
             gameManager = new GameManager(table);
+            gameManager.setSeed(gameSeed);
+            gameManager.resetGameBoards();
             gameManager.startGame();
 
-            //previewBoard.sitPlayerDown(player);
-            //previewBoard.setGameReady(true);
-            //previewBoard.setIsPlayerReady(true);
-            //previewBoard.hideJoinButton();
-            //previewBoard.setName("1");
-
-
+            /*
             playerBoardData = new YokelGameBoard(gameSeed);
             playerBoard2Data = new YokelGameBoard(gameSeed);
+            testBoardData = new YokelGameBoard(gameSeed);
             playerBoardData.begin();
             playerBoard2Data.begin();
 
             playerBoardData.setPartnerBoard(playerBoard2Data, true);
             playerBoard2Data.setPartnerBoard(playerBoardData, false);
+            testBoardData.setPartnerBoard(playerBoardData, false);
+            */
 
             //playerB.setNextPiece();
             playerBoard.setPreview(false);
             playerBoard.setActive(togglePlayerBool);
             playerBoard.setPlayerView(true);
-            playerBoard.renderBoard(playerBoardData.getGameState());
+            //playerBoard.renderBoard(playerBoardData.getGameState());
 
             previewBoard.setPreview(true);
             previewBoard.setActive(true);
             previewBoard.setPlayerView(false);
-            previewBoard.renderBoard(playerBoard2Data.getGameState());
+            //previewBoard.renderBoard(playerBoard2Data.getGameState());
 
-            playerBoard.setName("2");
-            previewBoard.setName("5");
+
+            testGameBoard.setPreview(false);
+            testGameBoard.setActive(true);
+            testGameBoard.setPlayerView(true);
+            //playerBoard.setName("2");
+            //previewBoard.setName("5");
             joinReady.setIsGameReady(true);
 
             logger.exit("initiate");
@@ -508,6 +505,7 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
             uiService.loadDrawable(brokenEBlockImagePreview);
             uiService.loadDrawable(brokenLBlockImagePreview);
             uiService.loadDrawable(brokenBashBlockImagePreview);
+
             if (interpolationSelectBox != null) {
                 ObjectMap.Keys<String> keys = interpolationMap.keys();
                 Array<String> itemsArray = keys.toArray();
@@ -544,48 +542,82 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
             }
             --breakTimer;
 
+            YokelGameBoardState state1 = gameManager.getBoardState(0);
+            YokelGameBoardState state2 = gameManager.getBoardState(1);
+            YokelGameBoardState state3 = gameManager.getBoardState(2);
 
-            if (brokenBlocksQueue.size > 0 && --brokenCheck == 0) {
+            if (--brokenCheck == 0) {
+                if (brokenBlocksQueue1.size > 0) {
+                    //addBrokenBlockActorToStage(stage, brokenBlocksQueue1);
+                    UIUtil.addBrokenBlockActorToStage(stage, toggleYahoo, brokenBlocksQueue1);
+                }
+                if (brokenBlocksQueue2.size > 0) {
+                    //addBrokenBlockActorToStage(stage, brokenBlocksQueue2);
+                    UIUtil.addBrokenBlockActorToStage(stage, toggleYahoo, brokenBlocksQueue2);
+                }
+                if (brokenBlocksQueue3.size > 0) {
+                    //addBrokenBlockActorToStage(stage, brokenBlocksQueue3);
+                    UIUtil.addBrokenBlockActorToStage(stage, state3.getYahooDuration() > 0, brokenBlocksQueue3);
+                }
+                if (brokenBlocksQueue4.size > 0) {
+                    //addBrokenBlockActorToStage(stage, brokenBlocksQueue4);
+                    UIUtil.addBrokenBlockActorToStage(stage, toggleYahoo, brokenBlocksQueue4);
+                }
+                if (brokenBlocksQueue5.size > 0) {
+                    addBrokenBlockActorToStage(stage, brokenBlocksQueue5);
+                    //UIUtil.addBrokenBlockActorToStage(stage, toggleYahoo, brokenBlocksQueue5);
+                }
+                if (brokenBlocksQueue6.size > 0) {
+                    addBrokenBlockActorToStage(stage, brokenBlocksQueue6);
+                    //UIUtil.addBrokenBlockActorToStage(stage, toggleYahoo, brokenBlocksQueue6);
+                }
+                if (brokenBlocksQueue7.size > 0) {
+                    addBrokenBlockActorToStage(stage, brokenBlocksQueue7);
+                    //UIUtil.addBrokenBlockActorToStage(stage, toggleYahoo, brokenBlocksQueue7);
+                }
+                if (brokenBlocksQueue8.size > 0) {
+                    addBrokenBlockActorToStage(stage, brokenBlocksQueue8);
+                    //UIUtil.addBrokenBlockActorToStage(stage, toggleYahoo, brokenBlocksQueue8);
+                }
                 brokenCheck = BREAK_CHECK_INTERVAL;
-                addBrokenBlockActorToStage(stage);
-                //UIUtil.addBrokenBlockActorToStage(stage, toggleYahoo, isPreview(), brokenBlocksQueue);
             }
 
             //logger.enter("render");
             checkGameStart();
 
+            playerBoard.renderBoard(state1);
+            previewBoard.renderBoard(state2);
+            testGameBoard.renderPlayerBoard(state3);
+            powersQueue.updatePowersQueue(queuePowers);
+
             gameManager.update(delta);
 
-            playerBoardData.update(delta);
-            playerBoard2Data.update(delta);
-
-            Iterable<YokelBrokenBlock> cellsBroken = playerBoardData.getGameState().getBrokenCells();
-            //logger.info("brokenBlocksQueue={}", brokenBlocksQueue.size);
-
-            for (YokelBrokenBlock cellBroken : cellsBroken) {
+            //Iterable<YokelBrokenBlock> cellsBroken = playerBoardData.getGameState().getBrokenCells();
+            for (YokelBrokenBlock cellBroken : state1.getBrokenCells()) {
                 logger.info("block={}({}, {})", cellBroken, cellBroken.getRow(), cellBroken.getCol());
                 GameBlock gameBlock = UIUtil.getInstance().getGameBlock(cellBroken.getBlock(), playerBoard.isPreview());
-                addBrokenBlockActorToQueue(gameBlock, playerBoard, cellBroken.getRow(), cellBroken.getCol());
+                addBrokenBlockActorToQueue(brokenBlocksQueue1, gameBlock, playerBoard, cellBroken.getRow(), cellBroken.getCol());
                 //System.out.println("state=" + playerBoardData.getGameState());
             }
-            cellsBroken = playerBoard2Data.getGameState().getBrokenCells();
-            for (YokelBrokenBlock cellBroken : cellsBroken) {
+            //cellsBroken = playerBoard2Data.getGameState().getBrokenCells();
+            for (YokelBrokenBlock cellBroken : state2.getBrokenCells()) {
                 logger.info("block={}({}, {})", cellBroken, cellBroken.getRow(), cellBroken.getCol());
                 GameBlock gameBlock = UIUtil.getInstance().getGameBlock(cellBroken.getBlock(), previewBoard.isPreview());
-                addBrokenBlockActorToQueue(gameBlock, previewBoard, cellBroken.getRow(), cellBroken.getCol());
+                addBrokenBlockActorToQueue(brokenBlocksQueue2, gameBlock, previewBoard, cellBroken.getRow(), cellBroken.getCol());
                 //System.out.println("state=" + playerBoard2Data.getGameState());
             }
 
-            playerBoard.renderBoard(playerBoardData.getGameState());
-            previewBoard.renderBoard(playerBoard2Data.getGameState());
+            for (YokelBrokenBlock cellBroken : state3.getBrokenCells()) {
+                logger.info("block={}({}, {})", cellBroken, cellBroken.getRow(), cellBroken.getCol());
+                GameBlock gameBlock = UIUtil.getInstance().getGameBlock(cellBroken.getBlock(), testGameBoard.isPreview());
+                addBrokenBlockActorToQueue(brokenBlocksQueue3, gameBlock, testGameBoard.getGrid(), cellBroken.getRow(), cellBroken.getCol());
+            }
 
             //Handle Player input
-            //handlePlayerSimulatedInput(playerBoardData);
-
+            handlePlayerSimulatedInput(gameManager.getGameBoard(2));
+            handlePlayerSimulatedInput(gameManager.getGameBoard(1));
+            System.out.println(gameManager.getGameBoard(2).getGameState());
             //showGameOver(stage);
-            //System.out.println("Stage:\n" + stage.getActors());
-            //System.out.println("Stage:\n" + stage.getRoot().getClass());
-
             stage.act(delta);
             stage.draw();
             // logger.exit("render");
@@ -596,17 +628,59 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
         }
     }
 
-    private void addBrokenBlockActorToStage(Stage stage) {
-        if (stage != null) {
+    private void handleBrokenBlocks(GameManager game, Stage stage) {
+        if (brokenBlocksQueue1.size > 0) {
+            YokelGameBoardState state = game.getBoardState(0);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue1);
+        }
+        if (brokenBlocksQueue2.size > 0) {
+            YokelGameBoardState state = game.getBoardState(1);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue2);
+        }
+        if (brokenBlocksQueue3.size > 0) {
+            YokelGameBoardState state = game.getBoardState(2);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue3);
+        }
+        if (brokenBlocksQueue4.size > 0) {
+            YokelGameBoardState state = game.getBoardState(3);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue4);
+        }
+        if (brokenBlocksQueue5.size > 0) {
+            YokelGameBoardState state = game.getBoardState(4);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue5);
+        }
+        if (brokenBlocksQueue6.size > 0) {
+            YokelGameBoardState state = game.getBoardState(5);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue6);
+        }
+        if (brokenBlocksQueue7.size > 0) {
+            YokelGameBoardState state = game.getBoardState(6);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue7);
+        }
+        if (brokenBlocksQueue8.size > 0) {
+            YokelGameBoardState state = game.getBoardState(7);
+            UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue8);
+        }
+        brokenCheck = BREAK_CHECK_INTERVAL;
+    }
+
+    private void addBrokenBlockActorToStage(Stage stage, OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue) {
+        if (stage != null && brokenBlocksQueue != null) {
             ObjectSet.ObjectSetIterator<GameBrokenBlockSpriteContainer> brokenIterator = brokenBlocksQueue.iterator();
 
             if (toggleYahoo) {
+                int h = 300;
+                int k = 300;
+                // Angle of rotation
+                int points = MathUtils.random(1, 8);
+                double angle = Math.PI / points;
+
                 logger.error("verts: {}", UIUtil.getPolygonVertices(brokenBlocksQueue.size, stage.getWidth(), 0, 0));
-                Array<Vector2> vectors = UIUtil.getPolygonVertices(brokenBlocksQueue.size, stage.getWidth() + 40, 300, 300);
+                Array<Vector2> vectors = UIUtil.getPolygonVertices(brokenBlocksQueue.size, stage.getWidth() + 40, h, k);
                 Queue<Vector2> yahooStarEnds = new Queue<>();
 
                 for (Vector2 vector : vectors) {
-                    yahooStarEnds.addFirst(vector);
+                    yahooStarEnds.addFirst(UIUtil.rotatePoint(vector.x, vector.y, h, k, angle));
                 }
 
                 while (brokenIterator.hasNext()) {
@@ -675,7 +749,7 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
                         brokenIterator.remove();
                     }
                 }
-                logger.error("size: " + brokenBlocksQueue.size);
+                //logger.error("size: " + brokenBlocksQueue.size);
             } else {
                 if (brokenIterator.hasNext()) {
                     GameBrokenBlockSpriteContainer brokenGameSprite = brokenIterator.next();
@@ -752,63 +826,59 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
         }
     }
 
-    private boolean isPreview() {
-        return false;
-    }
-
     public void handlePlayerSimulatedInput(YokelGameBoard game) throws ReflectionException {
         try {
-            logger.enter("handleLocalPlayerInput");
+            //logger.enter("handleLocalPlayerInput");
 
             //TODO: Remove, moves test player's key to the right
             if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
-                logger.debug("Handling Z: ", Input.Keys.Z);
-                logger.debug("Adding Midas");
+                // logger.debug("Handling Z: ", Input.Keys.Z);
+                // logger.debug("Adding Midas");
                 game.addSpecialPiece(2);
             }
             if (Gdx.input.isKeyJustPressed(Input.Keys.X)) {
-                logger.debug("Handling X: ", Input.Keys.Z);
-                logger.debug("Adding Medusa");
+                // logger.debug("Handling X: ", Input.Keys.Z);
+                // logger.debug("Adding Medusa");
                 game.addSpecialPiece(1);
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getRightKey())) {
-                logger.debug("Player input key: ", keyMap.getRightKey());
-                logger.debug("Moving right");
+                // logger.debug("Player input key: ", keyMap.getRightKey());
+                // logger.debug("Moving right");
                 game.movePieceRight();
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getLeftKey())) {
-                logger.debug("Player input key: ", keyMap.getLeftKey());
-                logger.debug("Moving Left");
+                // logger.debug("Player input key: ", keyMap.getLeftKey());
+                // logger.debug("Moving Left");
                 game.movePieceLeft();
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getCycleDownKey())) {
-                logger.debug("Player input key: ", keyMap.getCycleDownKey());
-                logger.debug("Cycle down");
+                // logger.debug("Player input key: ", keyMap.getCycleDownKey());
+                // logger.debug("Cycle down");
                 game.cycleDown();
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getCycleUpKey())) {
-                logger.debug("Player input key: ", keyMap.getCycleUpKey());
-                logger.debug("Cycle Up");
+                // logger.debug("Player input key: ", keyMap.getCycleUpKey());
+                // logger.debug("Cycle Up");
                 game.cycleUp();
             }
             if (Gdx.input.isKeyPressed(keyMap.getDownKey())) {
                 if (!downKeyPressed) {
                     downKeyPressed = true;
                 }
-                logger.debug("Player input key: ", keyMap.getDownKey());
-                logger.debug("Moving Down");
+                // logger.debug("Player input key: ", keyMap.getDownKey());
+                // logger.debug("Moving Down");
                 game.startMoveDown();
             }
             if (!Gdx.input.isKeyPressed(keyMap.getDownKey())) {
                 downKeyPressed = false;
-                logger.debug("Player input key: ", keyMap.getRightKey());
-                logger.debug("Stop Moving Down");
+                // logger.debug("Player input key: ", keyMap.getRightKey());
+                // logger.debug("Stop Moving Down");
                 game.stopMoveDown();
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getRandomAttackKey())) {
                 //game.handleRandomAttack(currentSeat);
-                logger.debug("Player input key: ", keyMap.getRightKey());
-                logger.debug("Adding Midas");
+                // logger.debug("Player input key: ", keyMap.getRightKey());
+                //logger.debug("Adding Midas");
             }
         /*
         if (Gdx.input.isKeyJustPressed(keyMap.getTarget1())) {
@@ -835,7 +905,7 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
         if (Gdx.input.isKeyJustPressed(keyMap.getTarget8())) {
             game.handleTargetAttack(currentSeat,8);
         }*/
-            logger.exit("handleLocalPlayerInput");
+            //logger.exit("handleLocalPlayerInput");
         } catch (Exception e) {
             String errorMsg = "Error in handlePlayerSimulatedInput()";
             logger.error(errorMsg, e);
@@ -897,7 +967,7 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
                 while (brokenTestBlock.size > 0) {
                     GameBlock gameBlock = brokenTestBlock.removeFirst();
                     if (gameBlock != null) {
-                        addBrokenBlockActorToQueue(gameBlock, null, -1, -1);
+                        addBrokenBlockActorToQueue(brokenBlocksQueue4, gameBlock, null, -1, -1);
                     }
                 }
                 breakTimer = BREAK_TIMER_MAX;
@@ -910,8 +980,8 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
         }
     }
 
-    private void addBrokenBlockActorToQueue(GameBlock gameBlock, GameBlockGrid grid, int row, int col) {
-        if (gameBlock != null) {
+    private void addBrokenBlockActorToQueue(OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue, GameBlock gameBlock, GameBlockGrid grid, int row, int col) {
+        if (gameBlock != null && brokenBlocksQueue != null) {
             GameBrokenBlockSpriteContainer brokenSprite = UIUtil.getBrokenBlockSprites(gameBlock, gameBlock.getBlock(), grid, row, col);
             brokenBlocksQueue.add(brokenSprite);
         }
@@ -935,10 +1005,9 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
 
     int getElapsedSeconds() throws ReflectionException {
         try {
-            //logger.enter("getElapsedSeconds");
-
+            logger.enter("getElapsedSeconds");
             int elapsedSeconds = YokelUtilities.otoi(((TimeUtils.millis() - nextGame) / 1000));
-            //logger.exit("getElapsedSeconds");
+            logger.exit("getElapsedSeconds");
             return elapsedSeconds;
         } catch (Exception e) {
             String errorMsg = "Error in getElapsedSeconds()";
@@ -1024,6 +1093,13 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
         }
     }
 
+    @LmlAction("removePower")
+    private void removePower() {
+        if (queuePowers.size > 0) {
+            Integer power = queuePowers.removeLast();
+        }
+    }
+
     @LmlAction("addYAttack")
     private void addYAttack() throws ReflectionException {
         try {
@@ -1035,12 +1111,131 @@ public class BlocksUITestController extends ApplicationAdapter implements ViewRe
             } else {
                 block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 4));
             }
-            queuePowers.add(block);
+            queuePowers.addLast(block);
             //powersQueue.setPowers(queuePowers);
             //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
+            //playerBoard2Data.handlePower(block);
+            //System.out.println(playerBoard2Data);
+            logger.exit("addYAttack");
+        } catch (Exception e) {
+            String errorMsg = "Error in addYAttack()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException(errorMsg, e);
+        }
+    }
 
-            playerBoard2Data.handlePower(block);
-            System.out.println(playerBoard2Data);
+    @LmlAction("addAAttack")
+    private void addAAttack() throws ReflectionException {
+        try {
+            logger.enter("addYAttack");
+            int block = 1;
+
+            if (toggleOffensive) {
+                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 3));
+            } else {
+                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 4));
+            }
+            queuePowers.addLast(block);
+            //powersQueue.setPowers(queuePowers);
+            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
+            //playerBoard2Data.handlePower(block);
+            //System.out.println(playerBoard2Data);
+            logger.exit("addYAttack");
+        } catch (Exception e) {
+            String errorMsg = "Error in addYAttack()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException(errorMsg, e);
+        }
+    }
+
+    @LmlAction("addHAttack")
+    private void addHAttack() throws ReflectionException {
+        try {
+            logger.enter("addYAttack");
+            int block = 2;
+
+            if (toggleOffensive) {
+                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 3));
+            } else {
+                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 4));
+            }
+            queuePowers.addLast(block);
+            //powersQueue.setPowers(queuePowers);
+            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
+            //playerBoard2Data.handlePower(block);
+            //System.out.println(playerBoard2Data);
+            logger.exit("addYAttack");
+        } catch (Exception e) {
+            String errorMsg = "Error in addYAttack()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException(errorMsg, e);
+        }
+    }
+
+    @LmlAction("addOAttack")
+    private void addOAttack() throws ReflectionException {
+        try {
+            logger.enter("addYAttack");
+            int block = 3;
+
+            if (toggleOffensive) {
+                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 3));
+            } else {
+                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 4));
+            }
+            queuePowers.addLast(block);
+            //powersQueue.setPowers(queuePowers);
+            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
+            //playerBoard2Data.handlePower(block);
+            //System.out.println(playerBoard2Data);
+            logger.exit("addYAttack");
+        } catch (Exception e) {
+            String errorMsg = "Error in addYAttack()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException(errorMsg, e);
+        }
+    }
+
+    @LmlAction("add0Attack")
+    private void add0Attack() throws ReflectionException {
+        try {
+            logger.enter("addYAttack");
+            int block = 4;
+
+            if (toggleOffensive) {
+                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 3));
+            } else {
+                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 4));
+            }
+            queuePowers.addLast(block);
+            //powersQueue.setPowers(queuePowers);
+            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
+            //playerBoard2Data.handlePower(block);
+            //System.out.println(playerBoard2Data);
+            logger.exit("addYAttack");
+        } catch (Exception e) {
+            String errorMsg = "Error in addYAttack()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException(errorMsg, e);
+        }
+    }
+
+    @LmlAction("add_Attack")
+    private void add_Attack() throws ReflectionException {
+        try {
+            logger.enter("addYAttack");
+            int block = 5;
+
+            if (toggleOffensive) {
+                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 3));
+            } else {
+                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 4));
+            }
+            queuePowers.addLast(block);
+            //powersQueue.setPowers(queuePowers);
+            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
+            //playerBoard2Data.handlePower(block);
+            //System.out.println(playerBoard2Data);
             logger.exit("addYAttack");
         } catch (Exception e) {
             String errorMsg = "Error in addYAttack()";

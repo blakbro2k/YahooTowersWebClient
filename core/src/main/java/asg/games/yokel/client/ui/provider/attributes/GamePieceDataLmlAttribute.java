@@ -4,16 +4,17 @@ import com.github.czyzby.lml.parser.LmlParser;
 import com.github.czyzby.lml.parser.tag.LmlAttribute;
 import com.github.czyzby.lml.parser.tag.LmlTag;
 
-import asg.games.yokel.client.ui.actors.GamePiece;
+import asg.games.yokel.client.ui.actors.GameNextPiece;
 
-public class GamePieceDataLmlAttribute implements LmlAttribute<GamePiece> {
-    public GamePieceDataLmlAttribute() {}
-
-    public Class<GamePiece> getHandledType() {
-        return GamePiece.class;
+public class GamePieceDataLmlAttribute implements LmlAttribute<GameNextPiece> {
+    public GamePieceDataLmlAttribute() {
     }
 
-    public void process(final LmlParser parser, final LmlTag tag, GamePiece actor, final String rawAttributeData) {
+    public Class<GameNextPiece> getHandledType() {
+        return GameNextPiece.class;
+    }
+
+    public void process(final LmlParser parser, final LmlTag tag, GameNextPiece actor, final String rawAttributeData) {
         actor.updateYokelData(rawAttributeData);
     }
 }

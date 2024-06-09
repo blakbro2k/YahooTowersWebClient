@@ -8,25 +8,25 @@ import asg.games.yokel.objects.YokelBlock;
 import asg.games.yokel.objects.YokelPiece;
 import asg.games.yokel.utils.YokelUtilities;
 
-public class GamePiece extends Table implements GameObject {
+public class GameNextPiece extends Table implements GameObject {
     private GameBlock top;
     private GameBlock mid;
     private GameBlock bot;
 
-    public GamePiece(Skin skin){
+    public GameNextPiece(Skin skin) {
         this(skin, YokelBlock.CLEAR_BLOCK, YokelBlock.CLEAR_BLOCK, YokelBlock.CLEAR_BLOCK);
     }
 
-    private GamePiece(Skin skin, GameBlock top, GameBlock mid, GameBlock bottom){
+    private GameNextPiece(Skin skin, GameBlock top, GameBlock mid, GameBlock bottom) {
         setSkin(skin);
         initialize(top, mid, bottom);
     }
 
-    private GamePiece(Skin skin, int top, int mid, int bottom){
+    private GameNextPiece(Skin skin, int top, int mid, int bottom) {
         this(skin, UIUtil.getBlock(top), UIUtil.getBlock(mid), UIUtil.getBlock(bottom));
     }
 
-    public GamePiece(Skin skin, String data){
+    public GameNextPiece(Skin skin, String data) {
         this(skin);
         setSkin(skin);
         updateYokelData(data);
@@ -34,13 +34,13 @@ public class GamePiece extends Table implements GameObject {
 
     private void initialize(GameBlock top, GameBlock middle, GameBlock bottom){
         if(top == null){
-            top = new GameBlock(getSkin(), YokelBlock.CLEAR_BLOCK, false);
+            top = UIUtil.getClearBlock(false);
         }
         if(middle == null){
-            middle = new GameBlock(getSkin(), YokelBlock.CLEAR_BLOCK, false);
+            middle = UIUtil.getClearBlock(false);
         }
         if(bottom == null){
-            bottom = new GameBlock(getSkin(), YokelBlock.CLEAR_BLOCK, false);
+            bottom = UIUtil.getClearBlock(false);
         }
         this.top = top;
         this.mid = middle;
@@ -55,13 +55,43 @@ public class GamePiece extends Table implements GameObject {
         super.setDebug(YokelUtilities.setDebug(enabled, top, mid, bot));
     }
 
+    public void setAsMedusa() {
+        setBlockImage(top, YokelBlock.MEDUSA);
+        setBlockImage(mid, YokelBlock.MEDUSA);
+        setBlockImage(bot, YokelBlock.MEDUSA);
+    }
+
+    public void setAsMidas() {
+        setBlockImage(top, YokelBlock.TOP_MIDAS);
+        setBlockImage(mid, YokelBlock.MID_MIDAS);
+        setBlockImage(bot, YokelBlock.BOT_MIDAS);
+    }
+
     @Override
     public void updateYokelData(String data) {
         YokelPiece piece = YokelUtilities.getObjectFromJsonString(YokelPiece.class, data);
         if (piece != null) {
-            top.setImage(piece.getBlock3());
-            mid.setImage(piece.getBlock2());
-            bot.setImage(piece.getBlock1());
+            setBlockImage(top, piece.getBlock3());
+            setBlockImage(mid, piece.getBlock2());
+            setBlockImage(bot, piece.getBlock1());
         }
+    }
+
+    private void setBlockImage(GameBlock gameBlock, int block) {
+        if (gameBlock != null) {
+            gameBlock.setImage(block);
+        }
+    }
+
+    public void updateTopBlock(int block) {
+        setBlockImage(top, block);
+    }
+
+    public void updateMiddleBlock(int block) {
+        setBlockImage(mid, block);
+    }
+
+    public void updateBottomBlock(int block) {
+        setBlockImage(bot, block);
     }
 }

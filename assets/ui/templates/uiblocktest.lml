@@ -155,36 +155,35 @@
         </table>
     </table>
     <table>
-        <table row="true" debug="true">
-            <!--<gamepowers id="powersQueue" />-->
-            <table id="powersQueueTable">
-                <gameblock id="Y_block_breakTestt" blocktype="3" row="true" />
-            </table>
-            <gameblockgrid width="96" preview="false" id="1:testBoard">1</gameblockgrid>
-        </table>
         <table row="true">
-            <checkbox id="toggleOffensive" onchange="toggleOffensive" row="true">Offensive
-            </checkbox>
-            <textButton id="spaceBarButton" fill="true" onChange="resetAllBoards" row="true">Space
-                Bar
-            </textButton>
-            <textButton id="addYButton" fill="true" onChange="addYAttack" row="true">Add Y Block
-            </textButton>
-            <textButton id="addAButton" fill="true" onChange="resetAllBoards" row="true">Add A
-                Block
-            </textButton>
-            <textButton id="addHButton" fill="true" onChange="resetAllBoards" row="true">Add H
-                Block
-            </textButton>
-            <textButton id="addOButton" fill="true" onChange="resetAllBoards" row="true">Add O
-                Block
-            </textButton>
-            <textButton id="add0Button" fill="true" onChange="resetAllBoards" row="true">Add 0
-                Block
-            </textButton>
-            <textButton id="addNButton" fill="true" onChange="resetAllBoards" row="true">Add !
-                Block
-            </textButton>
+            <table>
+                <table>
+                    <gamepowers id="powersQueue" />
+                </table>
+                <table>
+                    <textButton id="addYButton" fill="true" onChange="addYAttack" row="true">Y
+                    </textButton>
+                    <textButton id="addAButton" fill="true" onChange="addAAttack" row="true">A
+                    </textButton>
+                    <textButton id="addHButton" fill="true" onChange="addHAttack" row="true">H
+                    </textButton>
+                    <textButton id="addOButton" fill="true" onChange="addOAttack" row="true">O
+                    </textButton>
+                    <textButton id="add0Button" fill="true" onChange="add0Attack" row="true">0
+                    </textButton>
+                    <textButton id="addNButton" fill="true" onChange="add_Attack" row="true">!
+                    </textButton>
+                </table>
+            </table>
+            <table>
+                <checkbox id="toggleOffensive" onchange="toggleOffensive" row="true">Offensive
+                </checkbox>
+                <textButton id="removePower" fill="true" onChange="removePower" row="true">Remove
+                </textButton>
+            </table>
+        </table>
+        <table>
+            <gameboard id="testGameBoard" areanumber="2" preview="false" left="true" />
         </table>
     </table>
 </window>
