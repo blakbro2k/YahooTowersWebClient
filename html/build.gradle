@@ -54,7 +54,8 @@ dependencies {
     api "com.kotcrab.vis:vis-ui:$visUiVersion:sources"
     api "com.rafaskoberg.gdx:typing-label:$typingLabelVersion:sources"
 
-    api fileTree(dir: "U:\\yokelTowers\\core\\build\\libs", include: "yokel-towers-$yokelVersion-sources.jar")
+    api files("U:\\YahooTowersWebClient\\assets\\lib\\yokel-towers-" + yokelVersion + ".jar")
+    api files("U:\\YahooTowersWebClient\\assets\\lib\\yokel-towers-" + yokelVersion + "-sources.jar")
 
     implementation project(':core')
 

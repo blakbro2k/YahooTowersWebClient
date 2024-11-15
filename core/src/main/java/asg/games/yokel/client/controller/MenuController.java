@@ -1,11 +1,11 @@
 package asg.games.yokel.client.controller;
 
-	import com.badlogic.gdx.graphics.Texture;
-	import com.badlogic.gdx.graphics.g2d.Batch;
-	import com.badlogic.gdx.scenes.scene2d.Stage;
-	import com.github.czyzby.autumn.mvc.component.ui.controller.ViewRenderer;
-	import com.github.czyzby.autumn.mvc.stereotype.Asset;
-	import com.github.czyzby.autumn.mvc.stereotype.View;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.github.czyzby.autumn.mvc.component.ui.controller.ViewRenderer;
+import com.github.czyzby.autumn.mvc.stereotype.Asset;
+import com.github.czyzby.autumn.mvc.stereotype.View;
 
 	/** Thanks to View annotation, this class will be automatically found and initiated.
 	 *

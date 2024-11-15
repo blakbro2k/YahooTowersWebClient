@@ -21,11 +21,11 @@ import asg.games.yokel.client.controller.dialog.ErrorController;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
 import asg.games.yokel.client.managers.ClientManager;
 import asg.games.yokel.client.utils.LogUtil;
-import asg.games.yokel.enums.ServerRequest;
 import asg.games.yokel.managers.GameManager;
 import asg.games.yokel.objects.YokelKeyMap;
 import asg.games.yokel.objects.YokelPlayer;
 import asg.games.yokel.objects.YokelTable;
+import asg.games.yokel.persistence.enums.ServerRequest;
 import asg.games.yokel.utils.PayloadUtil;
 import asg.games.yokel.utils.YokelUtilities;
 

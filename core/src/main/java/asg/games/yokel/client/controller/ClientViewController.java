@@ -93,6 +93,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
     private GamePlayerBoard uiArea7;
     @LmlActor("8:area")
     private GamePlayerBoard uiArea8;
+
     private float brokenCheck = BREAK_CHECK_INTERVAL;
     private boolean isGameOver;
     private boolean isYahooActive;

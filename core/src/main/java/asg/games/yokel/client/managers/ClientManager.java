@@ -9,9 +9,9 @@ import com.github.czyzby.websocket.data.WebSocketException;
 import com.github.czyzby.websocket.net.ExtendedNet;
 import com.github.czyzby.websocket.serialization.impl.ManualSerializer;
 
-import asg.games.yokel.enums.ServerRequest;
 import asg.games.yokel.objects.YokelPlayer;
 import asg.games.yokel.objects.YokelTable;
+import asg.games.yokel.persistence.enums.ServerRequest;
 import asg.games.yokel.server.ClientRequest;
 import asg.games.yokel.server.Packets;
 import asg.games.yokel.server.PayloadType;

@@ -1,8 +1,8 @@
 package asg.games.yokel.client.controller.action;
 
-	import com.github.czyzby.autumn.mvc.stereotype.ViewActionContainer;
-	import com.github.czyzby.lml.annotation.LmlAction;
-	import com.github.czyzby.lml.parser.action.ActionContainer;
+import com.github.czyzby.autumn.mvc.stereotype.ViewActionContainer;
+import com.github.czyzby.lml.annotation.LmlAction;
+import com.github.czyzby.lml.parser.action.ActionContainer;
 
 	/** Since this class implements ActionContainer and is annotated with ViewActionContainer, its methods will be reflected
 	 * and available in all LML templates. Note that this class is a component like any other, so it can inject any fields,

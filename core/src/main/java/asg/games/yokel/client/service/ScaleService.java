@@ -1,12 +1,13 @@
 package asg.games.yokel.client.service;
 
-	import com.github.czyzby.autumn.annotation.Component;
-	import com.github.czyzby.autumn.annotation.Inject;
-	import com.github.czyzby.autumn.mvc.component.ui.InterfaceService;
-	import com.github.czyzby.autumn.mvc.component.ui.SkinService;
-	import com.kotcrab.vis.ui.VisUI;
-	import com.kotcrab.vis.ui.VisUI.SkinScale;
-	import asg.games.yokel.client.configuration.preferences.ScalePreference;
+import com.github.czyzby.autumn.annotation.Component;
+import com.github.czyzby.autumn.annotation.Inject;
+import com.github.czyzby.autumn.mvc.component.ui.InterfaceService;
+import com.github.czyzby.autumn.mvc.component.ui.SkinService;
+import com.kotcrab.vis.ui.VisUI;
+import com.kotcrab.vis.ui.VisUI.SkinScale;
+
+import asg.games.yokel.client.configuration.preferences.ScalePreference;
 
 	/** Thanks to the ViewActionContainer annotation, this class will be automatically found and processed.
 	 *
