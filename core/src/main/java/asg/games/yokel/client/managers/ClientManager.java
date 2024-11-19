@@ -1,25 +1,7 @@
 package asg.games.yokel.client.managers;
 
-import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.Queue;
-import com.github.czyzby.websocket.WebSocket;
-import com.github.czyzby.websocket.WebSocketHandler;
-import com.github.czyzby.websocket.WebSocketListener;
-import com.github.czyzby.websocket.data.WebSocketException;
-import com.github.czyzby.websocket.net.ExtendedNet;
-import com.github.czyzby.websocket.serialization.impl.ManualSerializer;
-
-import asg.games.yokel.objects.YokelPlayer;
-import asg.games.yokel.objects.YokelTable;
-import asg.games.yokel.persistence.enums.ServerRequest;
-import asg.games.yokel.server.ClientRequest;
-import asg.games.yokel.server.Packets;
-import asg.games.yokel.server.PayloadType;
-import asg.games.yokel.server.ServerResponse;
-import asg.games.yokel.utils.PayloadUtil;
-import asg.games.yokel.utils.YokelUtilities;
-
-public class ClientManager implements Disposable {
+public class ClientManager {
+    /*
     //private static final com.github.czyzby.kiwi.log.Logger LOGGER = LoggerService.forClass(ClientManager.class);
     private final static String[] EMPTY_PAYLOAD = new String[]{""};
     private final static PayloadType EMPTY_PAYLOAD_TYPE = new PayloadType(ServerRequest.REQUEST_EMPTY, new String[]{""});
@@ -263,5 +245,5 @@ public class ClientManager implements Disposable {
             }
         }
         return EMPTY_PAYLOAD;
-    }
+    }*/
 }

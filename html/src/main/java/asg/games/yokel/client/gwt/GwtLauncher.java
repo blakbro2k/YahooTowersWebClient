@@ -2,6 +2,7 @@ package asg.games.yokel.client.gwt;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.backends.gwt.GwtApplication;
 import com.badlogic.gdx.backends.gwt.GwtApplicationConfiguration;
@@ -26,6 +27,9 @@ public class GwtLauncher extends GwtApplication {
 		SoundUtil gwtSoundUtil = new GwtSoundUtil();
 		UIUtil.getInstance().setSoundUtil(gwtSoundUtil);
 		GwtWebSockets.initiate();
+		Gdx.input.setCatchKey(Input.Keys.SPACE, true);
+		Gdx.input.setCatchKey(Input.Keys.DOWN, true);
+		Gdx.input.setCatchKey(Input.Keys.UP, true);
 		return new AutumnApplication(new GwtClassScanner(), YahooTowersClient.class);
 	}
 

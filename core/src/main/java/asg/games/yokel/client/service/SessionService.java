@@ -25,7 +25,6 @@ import asg.games.yokel.managers.GameManager;
 import asg.games.yokel.objects.YokelKeyMap;
 import asg.games.yokel.objects.YokelPlayer;
 import asg.games.yokel.objects.YokelTable;
-import asg.games.yokel.persistence.enums.ServerRequest;
 import asg.games.yokel.utils.PayloadUtil;
 import asg.games.yokel.utils.YokelUtilities;
 
@@ -68,7 +67,7 @@ public class SessionService {
         logger = LogUtil.getLogger(loggerService, this.getClass());
         logger.setDebug();
         logger.enter("initialize");
-        client = new ClientManager("localhost", 8000);
+        //client = new ClientManager("localhost", 8000);
 
         //TODO: Create PHPSESSION token6
         //TODO: Create CSRF Token
@@ -86,18 +85,19 @@ public class SessionService {
     }
 
     public void closeClient() {
-        client.dispose();
+        //client.dispose();
     }
 
     public boolean connectToServer() throws InterruptedException {
         logger.enter("connectToServer");
-        return client.connectToServer();
+        //return client.connectToServer();
+        return false;
     }
 
     public void registerPlayer() throws InterruptedException {
         logger.enter("registerPlayer");
         if(player == null) throw new InterruptedException("No Authorized player in current session!");
-        client.requestPlayerRegister(getCurrentPlayer());
+        //client.requestPlayerRegister(getCurrentPlayer());
         logger.exit("registerPlayer");
     }
     /*
@@ -109,85 +109,89 @@ public class SessionService {
 
     public Array<YokelPlayer> getAllPlayers() throws InterruptedException {
         logger.enter("getAllPlayers");
-        client.requestPlayers();
-        client.waitForOneRequest();
-        String[] payload = client.getNextRequest().getPayload();
+        //client.requestPlayers();
+        //client.waitForOneRequest();
+        //String[] payload = client.getNextRequest().getPayload();
+        String[] payload = new String[]{""};
         logger.exit("getAllPlayers", payload);
         return PayloadUtil.getAllRegisteredPlayersRequest(payload);
     }
 
     public void requestTableSitRequest(String tableNumber, int seatNumber) throws InterruptedException {
-        client.requestTableSit(player, currentLoungeName, currentRoomName, tableNumber, seatNumber);
-        client.waitForOneRequest();
+        //client.requestTableSit(player, currentLoungeName, currentRoomName, tableNumber, seatNumber);
+        //client.waitForOneRequest();
     }
 
     public void asyncPlayerAllRequest() throws InterruptedException {
-        client.requestPlayers();
+        //client.requestPlayers();
     }
 
-    public Array<YokelPlayer> asyncGetPlayerAllRequest(){
-        return PayloadUtil.getAllRegisteredPlayersRequest(client.getNextRequest(ServerRequest.REQUEST_ALL_REGISTERED_PLAYERS));
+    public Array<YokelPlayer> asyncGetPlayerAllRequest() {
+        //return PayloadUtil.getAllRegisteredPlayersRequest(client.getNextRequest(ServerRequest.REQUEST_ALL_REGISTERED_PLAYERS));
+        return PayloadUtil.getAllRegisteredPlayersRequest(new String[]{""});
     }
 
     public void asyncTableAllRequest() throws InterruptedException {
-        client.requestTables(currentLoungeName, currentRoomName);
+        //client.requestTables(currentLoungeName, currentRoomName);
     }
 
     public void asyncCreateGameRequest(YokelTable.ACCESS_TYPE accessType, boolean isRated) throws InterruptedException {
-        client.requestCreateGame(currentLoungeName, currentRoomName, accessType, isRated);
+        //client.requestCreateGame(currentLoungeName, currentRoomName, accessType, isRated);
     }
 
     public void asyncTableSitRequest(String tableNumber, int seatNumber) throws InterruptedException {
-        client.requestTableSit(player, currentLoungeName, currentRoomName, tableNumber, seatNumber);
+        //client.requestTableSit(player, currentLoungeName, currentRoomName, tableNumber, seatNumber);
     }
 
     public void asyncTableStandRequest(String tableNumber, int seatNumber) throws InterruptedException {
-        client.requestTableStand(currentLoungeName, currentRoomName, tableNumber, seatNumber);
+        //client.requestTableStand(currentLoungeName, currentRoomName, tableNumber, seatNumber);
     }
 
-    public Array<YokelTable> asyncGetTableAllRequest(){
+    public Array<YokelTable> asyncGetTableAllRequest() {
         //TODO: Save tables states
-        return PayloadUtil.getAllTablesRequest(client.getNextRequest(ServerRequest.REQUEST_TABLE_INFO));
+        //return PayloadUtil.getAllTablesRequest(client.getNextRequest(ServerRequest.REQUEST_TABLE_INFO));new String[]{""}
+        return PayloadUtil.getAllTablesRequest(new String[]{""});
     }
 
     private void asyncMoveRightRequest() throws InterruptedException {
-        client.requestMoveRight(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
+        //client.requestMoveRight(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
     }
 
     private void asyncMoveLeftRequest() throws InterruptedException {
-        client.requestMoveLeft(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
+        //client.requestMoveLeft(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
     }
 
     private void asyncCycleDownRequest() throws InterruptedException {
-        client.requestCycleDown(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
+        //client.requestCycleDown(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
     }
 
     private void asyncCycleUpRequest() throws InterruptedException {
-        client.requestCycleUp(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
+        //client.requestCycleUp(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
     }
 
     private void asyncMoveStartDownRequest() throws InterruptedException {
-        client.requestMoveStartDown(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
+        //client.requestMoveStartDown(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
     }
 
     private void asyncMoveStopDownRequest() throws InterruptedException {
-        client.requestMoveStopDown(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
+        //client.requestMoveStopDown(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
     }
 
     private void asyncTargetAttackRequest(int currentSeat, int targetSeat) throws InterruptedException {
-        client.requestTargetAttack(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat, targetSeat);
+        //client.requestTargetAttack(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat, targetSeat);
     }
 
     private void asyncRandomAttackRequest(int currentSeat) throws InterruptedException {
-        client.requestRandomAttack(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
+        //client.requestRandomAttack(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
     }
 
     public void asyncGameManagerFromServerRequest() throws InterruptedException {
-        client.requestGameManager(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
+        //client.requestGameManager(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
     }
 
     public GameManager asyncGetGameManagerFromServerRequest() {
-        return PayloadUtil.getGameManagerRequest(client.getNextRequest(ServerRequest.REQUEST_TABLE_GAME_MANAGER));
+        //return PayloadUtil.getGameManagerRequest(client.getNextRequest(ServerRequest.REQUEST_TABLE_GAME_MANAGER));new String[]{""}
+        return PayloadUtil.getGameManagerRequest(new String[]{""});
     }
 
     public Array<String> toPlayerNames(Array<YokelPlayer> players) {

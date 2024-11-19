@@ -31,7 +31,7 @@ public class GameNameLabel extends Table implements GameObject {
         }
 
         if (player == null) {
-            player = YokelPlayer.BLANK_PLAYER;
+            player = YokelUtilities.getBlankPlayer();
         }
 
         setIcon(player.getIcon());
@@ -49,7 +49,7 @@ public class GameNameLabel extends Table implements GameObject {
 
     public void setNameTag(String name) {
         if (playerName == null) {
-            playerName = new Label(YokelPlayer.BLANK_PLAYER.getName(), getSkin());
+            playerName = new Label(YokelUtilities.getBlankPlayer().getName(), getSkin());
         }
         playerName.setText(name);
     }

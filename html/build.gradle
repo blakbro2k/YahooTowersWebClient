@@ -15,6 +15,7 @@ buildscript {
     }
 }
 apply plugin: "gwt"
+//apply plugin: "org.docstr.gwt"
 apply plugin: "war"
 apply plugin: "org.gretty"
 
@@ -54,8 +55,11 @@ dependencies {
     api "com.kotcrab.vis:vis-ui:$visUiVersion:sources"
     api "com.rafaskoberg.gdx:typing-label:$typingLabelVersion:sources"
 
+
     api files("U:\\YahooTowersWebClient\\assets\\lib\\yokel-towers-" + yokelVersion + ".jar")
     api files("U:\\YahooTowersWebClient\\assets\\lib\\yokel-towers-" + yokelVersion + "-sources.jar")
+    api files("U:\\YahooTowersWebClient\\assets\\lib\\gwt-servlet-jakarta.jar")
+    api files("U:\\YahooTowersWebClient\\assets\\lib\\gwt-servlet-jakarta-sources.jar")
 
     implementation project(':core')
 

@@ -1,17 +1,19 @@
 buildscript {
 	repositories {
 		mavenCentral()
+		mavenLocal()
 		maven { url 'https://s01.oss.sonatype.org' }
 		maven { url "https://jitpack.io" }
-		mavenLocal()
 		google()
 		gradlePluginPortal()
 		maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
 		maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+		maven { url "https://plugins.gradle.org/m2/" }
 	}
 	dependencies {
 		classpath "io.freefair.gradle:lombok-plugin:6.5.0.3"
 		classpath "org.wisepersist:gwt-gradle-plugin:$gwtPluginVersion"
+		//classpath "org.docstr.gwt:gwt-gradle-plugin:2.1.0"
 
 		// This follows advice from https://blog.gradle.org/log4j-vulnerability
 		constraints {
