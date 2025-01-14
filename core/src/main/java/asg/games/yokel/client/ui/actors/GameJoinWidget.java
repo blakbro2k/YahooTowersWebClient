@@ -1,18 +1,3 @@
-package asg.games.yokel.client.ui.actors;
-
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.Touchable;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.Align;
-
-import asg.games.yokel.utils.YokelUtilities;
-
 /*******************************************************************************
  * Copyright 2011 See AUTHORS file.
  *
@@ -28,12 +13,29 @@ import asg.games.yokel.utils.YokelUtilities;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
+package asg.games.yokel.client.ui.actors;
 
-/** A table that can be dragged and act as a modal window. The top padding is used as the window's title height.
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Align;
+
+import asg.games.yokel.utils.YokelUtilities;
+
+/**
+ * A table that can be dragged and act as a modal window. The top padding is used as the window's title height.
  * <p>
  * The preferred size of a window is the preferred size of the title text and the children as laid out by the table. After adding
  * children to the window, it can be convenient to call {@link #pack()} to size the window to the size of the children.
- * @author Nathan Sweet */
+ *
+ * @author Nathan Sweet
+ */
 public class GameJoinWidget extends Table {
     static private final String WAITING_TEXT = "Waiting for\nMore\nPlayers";
     static private final String JOIN_TEXT = "Join";

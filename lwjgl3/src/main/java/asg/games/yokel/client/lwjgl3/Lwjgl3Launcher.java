@@ -56,11 +56,11 @@ public class Lwjgl3Launcher {
 	private static class Lwjgl3SoundUtil extends SoundUtil {
 		@Override
 		protected float getDuration(Sound soundFile) {
+			float duration = -1;
 			if(soundFile instanceof OpenALSound){
-				return ((OpenALSound) soundFile).duration();
-			} else {
-				return -1;
+                duration = ((OpenALSound) soundFile).duration();
 			}
+            return duration;
 		}
 	}
 }

@@ -19,7 +19,7 @@ import com.github.czyzby.websocket.data.WebSocketException;
 
 import asg.games.yokel.client.controller.dialog.ErrorController;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
-import asg.games.yokel.client.managers.ClientManager;
+import asg.games.yokel.client.managers.GameClient;
 import asg.games.yokel.client.utils.LogUtil;
 import asg.games.yokel.managers.GameManager;
 import asg.games.yokel.objects.YokelKeyMap;
@@ -51,7 +51,7 @@ public class SessionService {
     Log4LibGDXLogger logger;
 
     private final String CONNECT_MSG = "Connecting...";
-    private ClientManager client;
+    private GameClient client;
     private String currentLoungeName;
     private String currentRoomName;
     private YokelTable currentTable;
@@ -85,19 +85,18 @@ public class SessionService {
     }
 
     public void closeClient() {
-        //client.dispose();
+        client.dispose();
     }
 
     public boolean connectToServer() throws InterruptedException {
         logger.enter("connectToServer");
-        //return client.connectToServer();
-        return false;
+        return client.connectToServer();
     }
 
     public void registerPlayer() throws InterruptedException {
         logger.enter("registerPlayer");
         if(player == null) throw new InterruptedException("No Authorized player in current session!");
-        //client.requestPlayerRegister(getCurrentPlayer());
+        client.requestPlayerRegister(getCurrentPlayer());
         logger.exit("registerPlayer");
     }
     /*
