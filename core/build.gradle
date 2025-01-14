@@ -27,7 +27,8 @@ dependencies {
     api "com.kotcrab.vis:vis-ui:$visUiVersion"
     api "com.rafaskoberg.gdx:typing-label:$typingLabelVersion"
     api "org.projectlombok:lombok:$lombokVersion"
+    api 'org.testng:testng:6.9.6'
 
     //annotationProcessor "org.projectlombok:lombok:$lombokVersion"
-    api files("U:\\YahooTowersWebClient\\assets\\lib\\yokel-towers-" + yokelVersion + ".jar")
+    //api files("U:\\YahooTowersWebClient\\assets\\lib\\yokel-towers-" + yokelVersion + ".jar")
 }
