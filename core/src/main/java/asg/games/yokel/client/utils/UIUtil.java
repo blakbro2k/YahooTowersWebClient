@@ -19,12 +19,11 @@ import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
 
 import asg.games.yokel.client.factories.YokelObjectFactory;
+import asg.games.yokel.client.objects.YokelBlock;
+import asg.games.yokel.client.objects.YokelBlockEval;
 import asg.games.yokel.client.ui.actors.GameBlock;
 import asg.games.yokel.client.ui.actors.GameBlockGrid;
 import asg.games.yokel.client.ui.actors.GameBrokenBlockSpriteContainer;
-import asg.games.yokel.objects.YokelBlock;
-import asg.games.yokel.objects.YokelBlockEval;
-import asg.games.yokel.utils.YokelUtilities;
 
 public class UIUtil {
     private static final UIUtil myInstance = new UIUtil();

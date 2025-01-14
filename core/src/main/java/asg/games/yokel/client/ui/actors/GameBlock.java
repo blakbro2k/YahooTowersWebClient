@@ -10,9 +10,9 @@ import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
 
 import java.util.Objects;
 
+import asg.games.yokel.client.objects.Copyable;
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.objects.Copyable;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 /**
  * Created by Blakbro2k on 3/15/2018.
