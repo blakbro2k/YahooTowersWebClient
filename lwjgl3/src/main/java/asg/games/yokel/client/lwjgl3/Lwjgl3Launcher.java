@@ -16,6 +16,8 @@ import asg.games.yokel.client.utils.UIUtil;
 
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
+	//private static final Logger logger = LoggerFactory.getLogger(Lwjgl3Launcher.class);
+
 	public static void main(String[] args) {
 		if (args != null) {
 			for (String arg : args) {
@@ -32,8 +34,20 @@ public class Lwjgl3Launcher {
 
 					System.exit(0);
 				}
+
+				// Set debug mode as system property
+				if ("-debug".equalsIgnoreCase(arg)) {
+					System.setProperty("debugMode", "true");
+				}
+
+				// Parse JWT from -jwt=...
+				if (arg.startsWith("-jwt=")) {
+					String jwt = arg.substring("-jwt=".length());
+					System.setProperty("jwtToken", jwt);
+				}
 			}
 		}
+
 		createApplication();
 	}
 

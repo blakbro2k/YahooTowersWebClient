@@ -1,33 +1,47 @@
 package asg.games.yokel.client.controller;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.github.czyzby.autumn.mvc.component.ui.controller.ViewRenderer;
-import com.github.czyzby.autumn.mvc.stereotype.Asset;
+import com.badlogic.gdx.utils.ObjectMap;
+import com.github.czyzby.autumn.annotation.Inject;
+import com.github.czyzby.autumn.mvc.component.ui.controller.ViewController;
+import com.github.czyzby.autumn.mvc.component.ui.controller.ViewInitializer;
 import com.github.czyzby.autumn.mvc.stereotype.View;
+import com.github.czyzby.kiwi.log.LoggerService;
+import com.github.czyzby.lml.annotation.LmlAction;
 
-	/** Thanks to View annotation, this class will be automatically found and initiated.
+import asg.games.yokel.client.factories.Log4LibGDXLogger;
+import asg.games.yokel.client.service.SessionService;
+import asg.games.yokel.client.utils.LogUtil;
+
+/** Thanks to View annotation, this class will be automatically found and initiated.
 	 *
 	 * This is application's main view, displaying a menu with several options. */
 	@View(id = "menu", value = "ui/templates/menu.lml", themes = "music/theme.ogg")
-	public class MenuController implements ViewRenderer {
+	public class MenuController implements ViewInitializer {
+	Log4LibGDXLogger logger;
 		/** Asset-annotated files will be found and automatically loaded by the AssetsService. */
-		@Asset("images/libgdx.png") private Texture logo;
+		@Inject
+		private SessionService sessionService;
+	@Inject
+	private LoggerService loggerService;
 
 		@Override
-		public void render(final Stage stage, final float delta) {
-			// As a proof of concept that you can pair custom logic with Autumn MVC views, this class implements
-			// ViewRenderer and handles view rendering manually. It renders libGDX logo before drawing the stage.
-			stage.act(delta);
+		public void initialize(Stage stage, ObjectMap<String, Actor> actorMappedByIds) {
+			logger = LogUtil.getLogger(loggerService, this.getClass());
+			logger.error("stage={}", stage);
+			logger.error("actorMappedByIds={}", actorMappedByIds);
+			logger.error("sessionService={}", sessionService);
+			logger.error("sessionService={}", sessionService.isDebug());
+		}
 
-			final Batch batch = stage.getBatch();
-			batch.setColor(stage.getRoot().getColor()); // We want the logo to share color alpha with the stage.
-			batch.begin();
-			batch.draw(logo, (int) (stage.getWidth() - logo.getWidth()) / 2,
-					(int) (stage.getHeight() - logo.getHeight()) / 2);
-			batch.end();
+	@Override
+	public void destroy(ViewController viewController) {
 
-			stage.draw();
+	}
+
+	@LmlAction("isDebug")
+	public boolean isDebug() {
+		return sessionService.isDebug();
 		}
 	}

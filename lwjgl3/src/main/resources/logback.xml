@@ -1,0 +1,35 @@
+<configuration>
+    <!-- Console Appender -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- File Appender -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/yipee.log</file>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Global Log Level -->
+    <root level="debug">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
+    </root>
+
+    <!-- Specific Log Levels for Packages -->
+    <logger name="asg.games.yipee" level="debug" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="asg.games.yipee.net.PacketRegistrar" level="debug" additivity="false">
+        <appender-ref ref="Console" />
+    </logger>
+
+    <logger name="com.esotericsoftware.kryonet" level="trace" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+</configuration>

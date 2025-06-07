@@ -1,6 +1,126 @@
 package asg.games.yokel.client.managers;
 
-public class ClientManager {
+import com.esotericsoftware.kryonet.Client;
+import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.Listener;
+
+import org.xml.sax.SAXException;
+
+import java.io.IOException;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
+
+import javax.xml.parsers.ParserConfigurationException;
+
+import asg.games.yipee.game.PlayerAction;
+import asg.games.yipee.net.PacketRegistrar;
+import asg.games.yipee.objects.YipeePlayer;
+
+public class KryoClientManager implements GameClientManager {
+    //private static final Logger logger = LoggerFactory.getLogger(KryoClientManager.class);
+
+    private Client client;
+    private int connectionTimeout;
+    private String host;
+    private int tcpPort;
+    private int udpPort;
+    private final Queue<Object> messageQueue = new ConcurrentLinkedQueue<>();
+
+
+    public KryoClientManager(int connectTimeout, String host, int tcpPort, int udpPort) {
+        this.connectionTimeout = connectTimeout;
+        this.host = host;
+        this.tcpPort = tcpPort;
+        this.udpPort = udpPort;
+        client = new Client();
+        client.start();
+        try {
+            PacketRegistrar.reloadConfigurationFromResource();
+        } catch (ParserConfigurationException | IOException | SAXException e) {
+            e.printStackTrace();
+        }
+        PacketRegistrar.registerPackets(client.getKryo());
+        System.out.println(PacketRegistrar.dumpRegisteredPackets());
+
+        client.addListener(new Listener() {
+            @Override
+            public void received(Connection connection, Object object) {
+                messageQueue.offer(object); // Non-blocking
+            }
+
+            @Override
+            public void disconnected(Connection connection) {
+                // You can also queue a special "DisconnectedEvent" if you want
+                System.out.println("Disconnected");
+            }
+        });
+    }
+
+    public KryoClientManager(int connectTimeout, String host, int tcpPort) {
+        this(connectTimeout, host, tcpPort, -1);
+    }
+
+
+    @Override
+    public boolean connect() {
+        try {
+            client.connect(connectionTimeout, host, tcpPort, udpPort); // timeout 5 seconds
+            System.out.println("client.connect() call succeeded.");
+            return true;
+        } catch (IOException ioe) {
+            System.err.println("client.connect() failed:");
+            ioe.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public boolean isConnected() {
+        return client.isConnected();
+    }
+
+    @Override
+    public boolean disconnect() {
+        client.close();
+        return true;
+    }
+
+    @Override
+    public void sendConnectionRequest(String clientId, String sessionId, YipeePlayer player) {
+
+    }
+
+    @Override
+    public void sendJoinRoomRequest(String roomName) {
+
+    }
+
+    @Override
+    public void sendStartGameRequest() {
+
+    }
+
+    @Override
+    public void sendSeatSitDownRequest(String tableId, int seatId) {
+
+    }
+
+    @Override
+    public void sendPlayerInput(PlayerAction action) {
+
+    }
+
+    @Override
+    public void registerListener(Class<?> packetClass, Consumer<Object> handler) {
+
+    }
+
+    @Override
+    public void dispose() {
+        disconnect();
+        client = null;
+    }
     /*
     //private static final com.github.czyzby.kiwi.log.Logger LOGGER = LoggerService.forClass(ClientManager.class);
     private final static String[] EMPTY_PAYLOAD = new String[]{""};

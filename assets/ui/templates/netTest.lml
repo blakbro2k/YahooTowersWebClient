@@ -1,0 +1,23 @@
+<table defaultPad="2" fillParent="true" defaultFillX="true" debug="true">
+    <table colspan="2" row="true">
+        <table row="true">
+            <label id="isConnectedLabel">Not Connected</label>
+        </table>
+        <table>
+            <playericon id="icon3">0</playericon>
+            <textField message="Username" id="username" />
+            <textField message="Rating" id="rating" row="true" />
+        </table>
+    </table>
+    <table>
+
+        <textButton onClick="netConnect" row="true">Connect...</textButton>
+        <textButton onClick="netDisconnect" row="true">Disconnect...</textButton>
+        <textButton onClick="isConnectionAlive" row="true">Is Alive</textButton>
+    </table>
+    <table>
+        <textButton onClick="goto:uiblocktest" row="true">@debugGameSprites</textButton>
+        <textButton onClick="goto:networkTest" row="true">Networking Test</textButton>
+        <textButton onChange="goto:menu" row="true">@back</textButton>
+    </table>
+</table>

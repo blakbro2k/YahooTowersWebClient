@@ -28,6 +28,11 @@ dependencies {
 	implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
 	implementation "com.crashinvaders.lml:gdx-autumn-fcs:$lmlVersion"
 	implementation "com.github.MrStahlfelge.gdx-websockets:common:$websocketVersion"
+    // SLF4J API
+    implementation 'org.slf4j:slf4j-api:1.7.36'
+
+    // Logback Classic (as the backend for SLF4J)
+    implementation 'ch.qos.logback:logback-classic:1.2.6'
 
 	implementation project(':core')
 }

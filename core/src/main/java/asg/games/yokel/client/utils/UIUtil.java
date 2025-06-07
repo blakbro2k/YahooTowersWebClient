@@ -24,23 +24,166 @@ import asg.games.yokel.client.objects.YokelBlockEval;
 import asg.games.yokel.client.ui.actors.GameBlock;
 import asg.games.yokel.client.ui.actors.GameBlockGrid;
 import asg.games.yokel.client.ui.actors.GameBrokenBlockSpriteContainer;
+import lombok.Setter;
 
 public class UIUtil {
     private static final UIUtil myInstance = new UIUtil();
     private static final float YAHOO_DURATION = 1.26f;
     private static final String PREVIEW_TAG = "_preview";
     private static final float BLOCK_BREAK_DURATION = 0.65f;
-    private static final int brokenCheck = 0;
+    private static final int YAHOO_X_CENTER_OFFSET = 300;
+    private static final int YAHOO_Y_CENTER_OFFSET = 300;
+    private static final int YAHOO_STARBURST_ADDED_WIDTH = 40;
+    private static final Interpolation interpolation = Interpolation.pow3In;
     private SoundUtil soundUtil;
 
+    @Setter
     private YokelObjectFactory factory;
 
     public static UIUtil getInstance() {
         return myInstance;
     }
 
-    public void setFactory(YokelObjectFactory factory) {
-        this.factory = factory;
+    public static void animateStandardBlockBreak(Stage stage, OrderedSet<GameBrokenBlockSpriteContainer> queue) {
+        final float duration = BLOCK_BREAK_DURATION;
+        final float delay = 0.05f;
+        final float blockOffSet = 32f;
+        final float endOfScreen = 0f;
+
+        if (queue.size == 0) return;
+
+        ObjectSet.ObjectSetIterator<GameBrokenBlockSpriteContainer> brokenIterator = queue.iterator();
+
+        if (brokenIterator.hasNext()) {
+            GameBrokenBlockSpriteContainer brokenGameSprite = brokenIterator.next();
+            if (brokenGameSprite != null) {
+
+                Image left = brokenGameSprite.getLeftSprite();
+                Image bottom = brokenGameSprite.getBottomSprite();
+                Image right = brokenGameSprite.getRightSprite();
+                GameBlock parent = brokenGameSprite.getParentGameBlock();
+
+                GameBlockGrid grid = brokenGameSprite.getGrid();
+
+                if (parent != null) {
+                    parent.setBlock(asg.games.yokel.objects.YokelBlockEval.addBrokenFlag(parent.getBlock()));
+                    float parentX = parent.getX();
+                    float parentY = parent.getY();
+
+                    //Get the coordinates of the parent block
+                    Vector2 blockV = left.localToParentCoordinates(new Vector2(parentX, parentY));
+
+                    if (grid != null) {
+                        GameBlock gameBlock = grid.getGameBlock(brokenGameSprite.getRow(), brokenGameSprite.getCol());
+                        blockV = grid.localToScreenCoordinates(new Vector2(gameBlock.getX(), gameBlock.getY()));
+                    }
+
+                    //Get the screen coordinates
+                    Vector2 blockV2 = left.localToScreenCoordinates(new Vector2(blockV.x, blockV.y));
+
+                    //Shift (and flip) block y
+                    blockV2.x -= parentX;
+                    blockV2.y = 1 - (blockV2.y - left.getWidth()) + stage.getViewport().getScreenHeight();
+
+                    left.setBounds(blockV2.x, blockV2.y, left.getWidth(), left.getHeight());
+                    left.addAction(Actions.sequence(Actions.delay(delay),
+                            Actions.moveTo(blockV2.x - blockOffSet, endOfScreen, duration, interpolation), Actions.removeActor(left)));
+
+                    bottom.setBounds(blockV2.x, blockV2.y, bottom.getWidth(), bottom.getHeight());
+                    bottom.addAction(Actions.sequence(Actions.delay(delay),
+                            Actions.moveTo(blockV2.x, endOfScreen, duration, interpolation), Actions.removeActor(bottom)));
+
+                    right.setBounds(blockV2.x, blockV2.y, right.getWidth(), right.getHeight());
+                    right.addAction(Actions.sequence(Actions.delay(delay),
+                            Actions.moveTo(blockV2.x + blockOffSet, endOfScreen, duration, interpolation), Actions.removeActor(right)));
+
+                    int brokenSize = queue.size;
+                    if (parent.isPreview()) {
+                        if (brokenSize % 3 == 1) {
+                            stage.addActor(left);
+                        } else if (brokenSize % 3 == 2) {
+                            stage.addActor(right);
+                        } else {
+                            stage.addActor(bottom);
+                        }
+                    } else {
+                        stage.addActor(left);
+                        stage.addActor(bottom);
+                        stage.addActor(right);
+                    }
+                }
+                brokenIterator.remove();
+                Pools.free(brokenGameSprite);
+            }
+        }
+    }
+
+    public static void animateYahooBlockBreak(Stage stage, OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue, float duration) {
+        if (stage == null || brokenBlocksQueue == null || brokenBlocksQueue.size == 0) return;
+
+        final int points = Math.max(brokenBlocksQueue.size, 3);
+        final double angle = Math.PI / points;
+
+        Array<Vector2> vectors = getPolygonVertices(points, stage.getWidth() + YAHOO_STARBURST_ADDED_WIDTH, YAHOO_X_CENTER_OFFSET, YAHOO_Y_CENTER_OFFSET);
+        Queue<Vector2> yahooStarEnds = new Queue<>();
+        double jitter = MathUtils.random(-0.2f, 0.2f); // subtle variation
+        for (Vector2 vector : vectors) {
+            yahooStarEnds.addLast(
+                    rotatePoint(vector.x, vector.y, YAHOO_X_CENTER_OFFSET, YAHOO_Y_CENTER_OFFSET, angle + jitter)
+            );
+        }
+
+        for (Vector2 vector : vectors) {
+            yahooStarEnds.addLast(rotatePoint(vector.x, vector.y, YAHOO_X_CENTER_OFFSET, YAHOO_Y_CENTER_OFFSET, angle));
+        }
+
+        ObjectSet.ObjectSetIterator<GameBrokenBlockSpriteContainer> iterator = brokenBlocksQueue.iterator();
+
+        while (iterator.hasNext()) {
+            GameBrokenBlockSpriteContainer sprite = iterator.next();
+            if (sprite == null) continue;
+
+            GameBlock parent = sprite.getParentGameBlock();
+            GameBlockGrid grid = sprite.getGrid();
+            Image left = sprite.getLeftSprite();
+            Image bottom = sprite.getBottomSprite();
+            Image right = sprite.getRightSprite();
+
+            if (parent != null) {
+                Image block = new Image(parent.getImage().getDrawable());
+                parent.setBlock(YokelBlockEval.addBrokenFlag(parent.getBlock()));
+
+                float parentX = parent.getX();
+                float parentY = parent.getY();
+                Vector2 blockV = left.localToParentCoordinates(new Vector2(parentX, parentY));
+
+                if (grid != null) {
+                    GameBlock gameBlock = grid.getGameBlock(sprite.getRow(), sprite.getCol());
+                    blockV = grid.localToScreenCoordinates(new Vector2(gameBlock.getX(), gameBlock.getY()));
+                }
+
+                Vector2 blockV2 = left.localToScreenCoordinates(new Vector2(blockV.x, blockV.y));
+                blockV2.x -= parentX;
+                blockV2.y = 1 - (blockV2.y) + stage.getHeight();
+
+                block.setVisible(true);
+                block.setBounds(blockV2.x, blockV2.y, block.getWidth(), block.getHeight());
+
+                Vector2 end = yahooStarEnds.size > 0 ? yahooStarEnds.removeFirst() : new Vector2(blockV2.x, blockV2.y);
+                block.addAction(Actions.sequence(
+                        Actions.moveTo(end.x, end.y, duration, Interpolation.smoother),
+                        Actions.removeActor(block)));
+
+                left.setVisible(false);
+                bottom.setVisible(false);
+                right.setVisible(false);
+
+                stage.addActor(block);
+            }
+
+            Pools.free(sprite);
+            iterator.remove();
+        }
     }
 
     public YokelObjectFactory getFactory(){
@@ -183,79 +326,12 @@ public class UIUtil {
             ObjectSet.ObjectSetIterator<GameBrokenBlockSpriteContainer> brokenIterator = brokenBlocksQueue.iterator();
 
             if (isYahoo) {
-                int h = 300;
-                int k = 300;
-                // Angle of rotation
-                int points = MathUtils.random(1, 6);
-                double angle = Math.PI / points;
-
-                Array<Vector2> vectors = UIUtil.getPolygonVertices(brokenBlocksQueue.size, stage.getWidth() + 40, h, k);
-                Queue<Vector2> yahooStarEnds = new Queue<>();
-
-                for (Vector2 vector : vectors) {
-                    yahooStarEnds.addFirst(rotatePoint(vector.x, vector.y, h, k, angle));
-                }
-
-                while (brokenIterator.hasNext()) {
-                    GameBrokenBlockSpriteContainer brokenGameSprite = brokenIterator.next();
-
-                    if (brokenGameSprite != null) {
-                        GameBlock parent = brokenGameSprite.getParentGameBlock();
-                        GameBlockGrid grid = brokenGameSprite.getGrid();
-                        Image left = brokenGameSprite.getLeftSprite();
-                        Image bottom = brokenGameSprite.getBottomSprite();
-                        Image right = brokenGameSprite.getRightSprite();
-
-                        Interpolation interpolation = Interpolation.smoother;
-
-                        if (parent != null) {
-                            Image block = new Image(parent.getImage().getDrawable());
-                            parent.setBlock(YokelBlockEval.addBrokenFlag(parent.getBlock()));
-
-                            float parentX = parent.getX();
-                            float parentY = parent.getY();
-
-                            Vector2 cord = yahooStarEnds.removeFirst();
-
-                            float endOfScreenX = cord.x;
-                            float endOfScreenY = cord.y;
-
-                            //Get the coordinates of the parent block
-                            Vector2 blockV = left.localToParentCoordinates(new Vector2(parentX, parentY));
-
-                            if (grid != null) {
-                                GameBlock gameBlock = grid.getGameBlock(brokenGameSprite.getRow(), brokenGameSprite.getCol());
-                                blockV = grid.localToScreenCoordinates(new Vector2(gameBlock.getX(), gameBlock.getY()));
-                            }
-
-                            //Get the screen coordinates
-                            Vector2 blockV2 = left.localToScreenCoordinates(new Vector2(blockV.x, blockV.y));
-
-                            //Shift (and flip) block y
-                            blockV2.x -= parentX;
-                            blockV2.y = 1 - (blockV2.y) + stage.getHeight();
-
-                            block.setVisible(true);
-                            block.setBounds(blockV2.x, blockV2.y, block.getWidth(), block.getHeight());
-
-                            if (endOfScreenX == -1) {
-                                endOfScreenX = blockV2.x;
-                            }
-                            if (endOfScreenY == -1) {
-                                endOfScreenY = blockV2.y;
-                            }
-
-                            block.addAction(Actions.sequence(Actions.moveTo(endOfScreenX, endOfScreenY, YAHOO_DURATION, interpolation), Actions.removeActor(block)));
-                            left.setVisible(false);
-                            bottom.setVisible(false);
-                            right.setVisible(false);
-                            stage.addActor(block);
-                        }
-                        Pools.free(brokenGameSprite);
-                        brokenIterator.remove();
-                    }
-                }
+                UIUtil.animateYahooBlockBreak(stage, brokenBlocksQueue, YAHOO_DURATION);
             } else {
+                System.out.println("stage=" + stage);
+                System.out.println("brokenBlocksQueue=" + brokenBlocksQueue);
+                UIUtil.animateStandardBlockBreak(stage, brokenBlocksQueue);
+
                 if (brokenIterator.hasNext()) {
                     GameBrokenBlockSpriteContainer brokenGameSprite = brokenIterator.next();
                     if (brokenGameSprite != null) {

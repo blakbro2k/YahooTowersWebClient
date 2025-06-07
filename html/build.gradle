@@ -56,8 +56,8 @@ dependencies {
     api "com.rafaskoberg.gdx:typing-label:$typingLabelVersion:sources"
 
 
-    //api files("U:\\YahooTowersWebClient\\assets\\lib\\yokel-towers-" + yokelVersion + ".jar")
-    //api files("U:\\YahooTowersWebClient\\assets\\lib\\yokel-towers-" + yokelVersion + "-sources.jar")
+    api files("U:\\yokel-towers\\core\\build\\libs\\yokel-towers-" + yokelVersion + ".jar")
+    api files("U:\\yokel-towers\\core\\build\\libs\\yokel-towers-" + yokelVersion + "-sources.jar")
     api files("U:\\YahooTowersWebClient\\assets\\lib\\gwt-servlet-jakarta.jar")
     api files("U:\\YahooTowersWebClient\\assets\\lib\\gwt-servlet-jakarta-sources.jar")
 
