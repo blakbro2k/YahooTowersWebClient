@@ -3,8 +3,6 @@ package asg.games.yokel.client.controller.action;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.github.czyzby.autumn.mvc.component.ui.InterfaceService;
 
-import asg.games.yokel.client.controller.dialog.NextGameController;
-
 public class YokelActions {
 
     public static CountLabelToAction countTo(int nextGameSeconds, boolean isCountUp) {
@@ -14,9 +12,9 @@ public class YokelActions {
         return action;
     }
 
-    public static CloseDialogAction closeDialog(InterfaceService interfaceService) {
+    public static CloseDialogAction closeDialog(Class<?> dialogController, InterfaceService interfaceService) {
         CloseDialogAction action = Actions.action(CloseDialogAction.class);
-        action.setController(NextGameController.class, interfaceService);
+        action.setController(dialogController, interfaceService);
         return action;
     }
 }

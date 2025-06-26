@@ -1,0 +1,10 @@
+<dialog id="gameOverDialog" title="" style="dialog" resizable="false" movable="false">
+    <table id="gameOverTable" fill="true" align="center" height="600">
+        <label id="gameOverLabel" row="true">@gameOver</label>
+        <label id="winLoseLabel" row="true">@youWin</label>
+        <label id="congratsLabel" row="true">@congratsText</label>
+        <label id="player1Label">@player1Text</label>
+        <label id="andLabel" row="true">@and</label>
+        <label id="player2Label" row="true">@player2Text</label>
+    </table>
+</dialog>

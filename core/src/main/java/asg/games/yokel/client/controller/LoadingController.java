@@ -21,6 +21,7 @@ import com.kotcrab.vis.ui.widget.VisProgressBar;
 import java.io.Writer;
 
 import asg.games.yokel.client.GlobalConstants;
+import asg.games.yokel.client.service.SessionService;
 import asg.games.yokel.client.service.UserInterfaceService;
 import asg.games.yokel.client.utils.UIUtil;
 
@@ -41,6 +42,8 @@ public class LoadingController implements ViewRenderer {
     private UserInterfaceService uiService;
     @Inject
     private InterfaceService interfaceService;
+    @Inject
+    private SessionService sessionService;
     @Asset(GlobalConstants.GAME_ATLAS_PATH)
     private TextureAtlas gameAtlas;
 
@@ -75,10 +78,19 @@ public class LoadingController implements ViewRenderer {
             interfaceService.getSkin().addRegions(gameAtlas);
             UIUtil.getInstance().setFactory(uiService.getObjectsFactory());
         }
+
         if (!dtdSaved) {
             Gdx.app.log("", "Saving new DTD");
             saveDtdSchema(Gdx.files.local(GlobalConstants.DTD_SAVE_PATH));
             dtdSaved = true;
+        }
+
+        if ("true".equals(System.getProperty("debugMode"))) {
+            sessionService.setDebug(true); // Or whatever your DebugController @View ID is
+            interfaceService.show(DebugController.class);
+        } else {
+            sessionService.setDebug(false); // Replace with your standard view ID (e.g., GameViewController)
+            interfaceService.show(ClientViewController.class);
         }
     }
 

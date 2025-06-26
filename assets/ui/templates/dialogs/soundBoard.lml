@@ -2,4 +2,9 @@
     <:each soundId="$getAllSoundIds">
         <textButton id="{soundId}" row="$checkRow" onclick="playSound">@{soundId}</textButton>
     </:each>
+
+    <!-- Fallback: Add <cell/> to complete final row if needed -->
+    <:for i="0 to $padFinalRow - 1">
+        <actor />
+    </:for>
 </dialog>

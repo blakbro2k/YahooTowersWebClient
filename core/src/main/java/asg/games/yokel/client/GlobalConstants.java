@@ -54,6 +54,7 @@ public class GlobalConstants {
     //View Names
     public final static String CREATE_SESSION_VIEW = "createSession";
     public final static String DEBUG_VIEW = "debug";
+    public final static String NET_TEST_VIEW = "networkTest";
     public final static String LOADING_VIEW = "loading";
     public final static String LOGIN_VIEW = "login";
     public final static String LOUNGE_VIEW = "lounge";
@@ -61,9 +62,11 @@ public class GlobalConstants {
     public final static String POST_LOADER_VIEW = "postload";
     public final static String ROOM_VIEW = "room";
     public final static String UI_CLIENT_VIEW = "clientView";
-    public final static String UI_BLOCK_TEST_VIEW = "uiblocktest";
+    public final static String SPRITES_TEST_VIEW = "spritesTest";
     public final static String CREATE_GAME_DIALOG = "createGame";
     public final static String SOUND_BOARD_DIALOG = "soundBoard";
+    public final static String GAME_OVER_DIALOG = "gameOverDialog";
+
     public final static String GAME_LABEL_DIALOG = "gameLabelTest";
     public final static String ERROR_DIALOG = "error";
     public final static String GAME_DIALOG = "game";
@@ -71,19 +74,20 @@ public class GlobalConstants {
     public final static String REFRESH_DIALOG = "refresh";
     public final static String SETTINGS_DIALOG = "settings";
     public final static String JOIN_GAME_DIALOG = "joinGame";
-    public final static String NEXT_GAME_DIALOG = "nextGame";
+    public final static String NEXT_GAME_DIALOG = "nextGameDialog";
 
     //View Paths
     public final static String CREATE_SESSION_VIEW_PATH = "ui/templates/createSession.lml";
     public final static String DEBUG_VIEW_PATH = "ui/templates/debug.lml";
     public final static String LOADING_VIEW_PATH = "ui/templates/loading.lml";
     public final static String LOGIN_VIEW_PATH = "ui/templates/login.lml";
+    public final static String NET_TEST_VIEW_PATH = "ui/templates/netTest.lml";
     public final static String LOUNGE_VIEW_PATH = "ui/templates/lounge.lml";
     public final static String MENU_VIEW_PATH = "ui/templates/menu.lml";
     public final static String POST_LOADER_VIEW_PATH = "ui/templates/postloader.lml";
     public final static String ROOM_VIEW_PATH = "ui/templates/room.lml";
     public final static String UI_CLIENT_VIEW_PATH = "ui/templates/clientView.lml";
-    public final static String UI_BLOCK_TEST_VIEW_PATH = "ui/templates/uiblocktest.lml";
+    public final static String SPRITES_TEST_VIEW_PATH = "ui/templates/spritesTest.lml";
     public final static String CREATE_GAME_DIALOG_PATH = "ui/templates/dialogs/createGame.lml";
     public final static String SOUND_BOARD_DIALOG_PATH = "ui/templates/dialogs/soundBoard.lml";
     public final static String GAME_LABEL_DIALOG_PATH = "ui/templates/dialogs/gameLabelTest.lml";
@@ -94,6 +98,7 @@ public class GlobalConstants {
     public final static String SETTINGS_DIALOG_PATH = "ui/templates/dialogs/settings.lml";
     public final static String JOIN_GAME_PATH = "ui/templates/dialogs/joinGame.lml";
     public final static String NEXT_GAME_PATH = "ui/templates/dialogs/nextGame.lml";
+    public final static String GAME_OVER_DIALOG_PATH = "ui/templates/dialogs/gameOver.lml";
 
     //Game Atlas Path
     public final static String GAME_ATLAS_PATH = "ui/game/game.atlas";

@@ -19,7 +19,8 @@ import com.github.czyzby.websocket.data.WebSocketException;
 
 import asg.games.yokel.client.controller.dialog.ErrorController;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
-import asg.games.yokel.client.managers.GameClient;
+import asg.games.yokel.client.managers.GameClientManager;
+import asg.games.yokel.client.managers.KryoClientManager;
 import asg.games.yokel.client.utils.LogUtil;
 import asg.games.yokel.managers.GameManager;
 import asg.games.yokel.objects.YokelKeyMap;
@@ -39,6 +40,7 @@ import asg.games.yokel.utils.YokelUtilities;
 public class SessionService {
     long lastBlockDown = 0;
     private boolean downKeyPressed = false;
+    private boolean isDebug = false;
 
     @Inject
     private InterfaceService interfaceService;
@@ -51,24 +53,27 @@ public class SessionService {
     Log4LibGDXLogger logger;
 
     private final String CONNECT_MSG = "Connecting...";
-    private GameClient client;
+    private GameClientManager client;
     private String currentLoungeName;
     private String currentRoomName;
     private YokelTable currentTable;
     private int currentSeat;
     private String userName;
     private YokelPlayer player;
-    private ObjectMap<String, ViewController> views = GdxMaps.newObjectMap();
+    private final ObjectMap<String, ViewController> views = GdxMaps.newObjectMap();
     private final YokelKeyMap keyMap = new YokelKeyMap();
     private String currentErrorMessage;
+    private boolean isWinner;
+    private boolean isPartnered;
 
     @Initiate
-    public void initialize() throws WebSocketException {
+    public void initialize() throws WebSocketException, InterruptedException {
         logger = LogUtil.getLogger(loggerService, this.getClass());
         logger.setDebug();
         logger.enter("initialize");
-        //client = new ClientManager("localhost", 8000);
+        client = new KryoClientManager(5000, "localhost", 8081, 55000);
 
+        //connectToServer();
         //TODO: Create PHPSESSION token6
         //TODO: Create CSRF Token
         //TODO: Get host and port from configuration or preferences
@@ -90,14 +95,33 @@ public class SessionService {
 
     public boolean connectToServer() throws InterruptedException {
         logger.enter("connectToServer");
-        return client.connectToServer();
+        return client.connect();
     }
 
-    public void registerPlayer() throws InterruptedException {
-        logger.enter("registerPlayer");
-        if(player == null) throw new InterruptedException("No Authorized player in current session!");
-        client.requestPlayerRegister(getCurrentPlayer());
-        logger.exit("registerPlayer");
+    public boolean disconnectToServer() throws InterruptedException {
+        logger.enter("disconnectToServer");
+        return client.disconnect();
+    }
+
+    public boolean isConnected() throws InterruptedException {
+        logger.enter("isConnected");
+        return client.isConnected();
+    }
+
+    public boolean isWinner() {
+        return isWinner;
+    }
+
+    public void setWinner(boolean isWinner) {
+        this.isWinner = isWinner;
+    }
+
+    public boolean isPartnered() {
+        return isPartnered;
+    }
+
+    public void setPartnered(boolean isPartnered) {
+        this.isPartnered = isPartnered;
     }
     /*
     public Array<YokelLounge> getAllLounges() throws InterruptedException {
@@ -442,5 +466,14 @@ public class SessionService {
 
     public void showError(Throwable throwable) {
         showError(logger, throwable);
+    }
+
+    public boolean isDebug() {
+        return isDebug;
+    }
+
+    public void setDebug(boolean debug) {
+        isDebug = debug;
+        logger.error("debug={}", debug);
     }
 }

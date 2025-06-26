@@ -23,6 +23,7 @@ public class LogUtil {
     }
 
     public static Log4LibGDXLogger getLogger(final LoggerService loggerService, final Class<?> aClass) {
+        System.out.println("Getting logger for class: " + aClass);
         loggerService.setFactory(Log4LibGDXLogger.getFactory());
 
         Logger logger = loggerService.getLoggerForClass(aClass);

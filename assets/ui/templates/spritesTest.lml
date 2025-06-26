@@ -2,15 +2,17 @@
     <table>
         <table row="true" width="600">
             <table row="true">
-                <textButton id="playerOneWins" fill="true" onChange="resetAllBoards">Player1 Wins!
+                <textButton id="playerOneWins" fill="true" onChange="toggleGameOverOnePlayerWins">
+                    Player1 Wins!
                 </textButton>
-                <textButton id="playerTwoWins" fill="true" onChange="resetAllBoards" row="true">
-                    Player2 Wins!
+                <textButton id="playerTwoWins" fill="true" onChange="toggleGameOverTwoPlayerWins"
+                    row="true">Player2 Wins!
                 </textButton>
-                <textButton id="bothPlayersWin" fill="true" onChange="resetAllBoards">Both Win!
+                <textButton id="playerOneLoses" fill="true" onChange="toggleGameOverOnePlayerLoses">
+                    Player1 Loses!
                 </textButton>
-                <textButton id="youLose" fill="true" onChange="resetAllBoards" row="true">You
-                    Lose!
+                <textButton id="playerTwoLoses" fill="true" onChange="toggleGameOverTwoPlayerLoses"
+                    row="true">Player2 Loses!
                 </textButton>
             </table>
             <table>
@@ -113,12 +115,10 @@
                 </table>
                 <table>
                     <table>
+                        <gameblockgrid id="playerPartner" preview="false">8</gameblockgrid>
                         <gameblockgrid id="player" preview="false">8</gameblockgrid>
                     </table>
-                    <table>
-                        <textButton fill="true" onChange="cycleUp" row="true">Up!</textButton>
-                        <textButton fill="true" onChange="cycleDown" row="true">Down!</textButton>
-                    </table>
+
                 </table>
             </table>
         </table>

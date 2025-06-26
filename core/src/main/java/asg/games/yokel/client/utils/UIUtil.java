@@ -1,6 +1,10 @@
 package asg.games.yokel.client.utils;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -8,11 +12,14 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.ObjectSet;
 import com.badlogic.gdx.utils.OrderedSet;
+import com.badlogic.gdx.utils.Pool;
 import com.badlogic.gdx.utils.Pools;
 import com.badlogic.gdx.utils.Queue;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
@@ -24,23 +31,170 @@ import asg.games.yokel.client.objects.YokelBlockEval;
 import asg.games.yokel.client.ui.actors.GameBlock;
 import asg.games.yokel.client.ui.actors.GameBlockGrid;
 import asg.games.yokel.client.ui.actors.GameBrokenBlockSpriteContainer;
+import lombok.Setter;
 
 public class UIUtil {
     private static final UIUtil myInstance = new UIUtil();
     private static final float YAHOO_DURATION = 1.26f;
     private static final String PREVIEW_TAG = "_preview";
     private static final float BLOCK_BREAK_DURATION = 0.65f;
-    private static final int brokenCheck = 0;
+    private static final int YAHOO_X_CENTER_OFFSET = 300;
+    private static final int YAHOO_Y_CENTER_OFFSET = 300;
+    private static final int YAHOO_STARBURST_ADDED_WIDTH = 40;
+    private static final Interpolation defaultInterpolation = Interpolation.pow3In;
     private SoundUtil soundUtil;
 
+    @Setter
     private YokelObjectFactory factory;
 
     public static UIUtil getInstance() {
         return myInstance;
     }
 
-    public void setFactory(YokelObjectFactory factory) {
-        this.factory = factory;
+    public static void animateStandardBlockBreak(Stage stage, OrderedSet<GameBrokenBlockSpriteContainer> queue) {
+        animateStandardBlockBreak(stage, queue, defaultInterpolation);
+    }
+
+    public static void animateStandardBlockBreak(Stage stage, OrderedSet<GameBrokenBlockSpriteContainer> queue, Interpolation interpolation) {
+        final float duration = BLOCK_BREAK_DURATION;
+        final float delay = 0.05f;
+        final float blockOffSet = 32f;
+        final float endOfScreen = 0f;
+
+        if (queue.size == 0) return;
+
+        ObjectSet.ObjectSetIterator<GameBrokenBlockSpriteContainer> brokenIterator = queue.iterator();
+
+        if (brokenIterator.hasNext()) {
+            GameBrokenBlockSpriteContainer brokenGameSprite = brokenIterator.next();
+            if (brokenGameSprite != null) {
+
+                Image left = brokenGameSprite.getLeftSprite();
+                Image bottom = brokenGameSprite.getBottomSprite();
+                Image right = brokenGameSprite.getRightSprite();
+                GameBlock parent = brokenGameSprite.getParentGameBlock();
+
+                GameBlockGrid grid = brokenGameSprite.getGrid();
+
+                if (parent != null) {
+                    parent.setBlock(asg.games.yokel.objects.YokelBlockEval.addBrokenFlag(parent.getBlock()));
+                    float parentX = parent.getX();
+                    float parentY = parent.getY();
+
+                    //Get the coordinates of the parent block
+                    Vector2 blockV = left.localToParentCoordinates(new Vector2(parentX, parentY));
+
+                    if (grid != null) {
+                        GameBlock gameBlock = grid.getGameBlock(brokenGameSprite.getRow(), brokenGameSprite.getCol());
+                        blockV = grid.localToScreenCoordinates(new Vector2(gameBlock.getX(), gameBlock.getY()));
+                    }
+
+                    //Get the screen coordinates
+                    Vector2 blockV2 = left.localToScreenCoordinates(new Vector2(blockV.x, blockV.y));
+
+                    //Shift (and flip) block y
+                    blockV2.x -= parentX;
+                    blockV2.y = 1 - (blockV2.y - left.getWidth()) + stage.getViewport().getScreenHeight();
+
+                    left.setBounds(blockV2.x, blockV2.y, left.getWidth(), left.getHeight());
+                    left.addAction(Actions.sequence(Actions.delay(delay),
+                            Actions.moveTo(blockV2.x - blockOffSet, endOfScreen, duration, interpolation), Actions.removeActor(left)));
+
+                    bottom.setBounds(blockV2.x, blockV2.y, bottom.getWidth(), bottom.getHeight());
+                    bottom.addAction(Actions.sequence(Actions.delay(delay),
+                            Actions.moveTo(blockV2.x, endOfScreen, duration, interpolation), Actions.removeActor(bottom)));
+
+                    right.setBounds(blockV2.x, blockV2.y, right.getWidth(), right.getHeight());
+                    right.addAction(Actions.sequence(Actions.delay(delay),
+                            Actions.moveTo(blockV2.x + blockOffSet, endOfScreen, duration, interpolation), Actions.removeActor(right)));
+
+                    int brokenSize = queue.size;
+                    if (parent.isPreview()) {
+                        if (brokenSize % 3 == 1) {
+                            stage.addActor(left);
+                        } else if (brokenSize % 3 == 2) {
+                            stage.addActor(right);
+                        } else {
+                            stage.addActor(bottom);
+                        }
+                    } else {
+                        stage.addActor(left);
+                        stage.addActor(bottom);
+                        stage.addActor(right);
+                    }
+                }
+                brokenIterator.remove();
+                Pools.free(brokenGameSprite);
+            }
+        }
+    }
+
+    public static void animateYahooBlockBreak(Stage stage, OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue, float duration) {
+        if (stage == null || brokenBlocksQueue == null || brokenBlocksQueue.size == 0) return;
+
+        final int points = Math.max(brokenBlocksQueue.size, 3);
+        final double angle = Math.PI / points;
+
+        Array<Vector2> vectors = getPolygonVertices(points, stage.getWidth() + YAHOO_STARBURST_ADDED_WIDTH, YAHOO_X_CENTER_OFFSET, YAHOO_Y_CENTER_OFFSET);
+        Queue<Vector2> yahooStarEnds = new Queue<>();
+        double jitter = MathUtils.random(-0.2f, 0.2f); // subtle variation
+        for (Vector2 vector : vectors) {
+            yahooStarEnds.addLast(
+                    rotatePoint(vector.x, vector.y, YAHOO_X_CENTER_OFFSET, YAHOO_Y_CENTER_OFFSET, angle + jitter)
+            );
+        }
+
+        for (Vector2 vector : vectors) {
+            yahooStarEnds.addLast(rotatePoint(vector.x, vector.y, YAHOO_X_CENTER_OFFSET, YAHOO_Y_CENTER_OFFSET, angle));
+        }
+
+        ObjectSet.ObjectSetIterator<GameBrokenBlockSpriteContainer> iterator = brokenBlocksQueue.iterator();
+
+        while (iterator.hasNext()) {
+            GameBrokenBlockSpriteContainer sprite = iterator.next();
+            if (sprite == null) continue;
+
+            GameBlock parent = sprite.getParentGameBlock();
+            GameBlockGrid grid = sprite.getGrid();
+            Image left = sprite.getLeftSprite();
+            Image bottom = sprite.getBottomSprite();
+            Image right = sprite.getRightSprite();
+
+            if (parent != null) {
+                Image block = new Image(parent.getImage().getDrawable());
+                parent.setBlock(YokelBlockEval.addBrokenFlag(parent.getBlock()));
+
+                float parentX = parent.getX();
+                float parentY = parent.getY();
+                Vector2 blockV = left.localToParentCoordinates(new Vector2(parentX, parentY));
+
+                if (grid != null) {
+                    GameBlock gameBlock = grid.getGameBlock(sprite.getRow(), sprite.getCol());
+                    blockV = grid.localToScreenCoordinates(new Vector2(gameBlock.getX(), gameBlock.getY()));
+                }
+
+                Vector2 blockV2 = left.localToScreenCoordinates(new Vector2(blockV.x, blockV.y));
+                blockV2.x -= parentX;
+                blockV2.y = 1 - (blockV2.y) + stage.getHeight();
+
+                block.setVisible(true);
+                block.setBounds(blockV2.x, blockV2.y, block.getWidth(), block.getHeight());
+
+                Vector2 end = yahooStarEnds.size > 0 ? yahooStarEnds.removeFirst() : new Vector2(blockV2.x, blockV2.y);
+                block.addAction(Actions.sequence(
+                        Actions.moveTo(end.x, end.y, duration, Interpolation.smoother),
+                        Actions.removeActor(block)));
+
+                left.setVisible(false);
+                bottom.setVisible(false);
+                right.setVisible(false);
+
+                stage.addActor(block);
+            }
+
+            Pools.free(sprite);
+            iterator.remove();
+        }
     }
 
     public YokelObjectFactory getFactory(){
@@ -126,13 +280,14 @@ public class UIUtil {
         Pools.free(uiCell);
     }
 
-    public static void updateGameBlock(GameBlock original, int block, boolean isPreview) {
+    public static GameBlock updateGameBlock(GameBlock original, int block, boolean isPreview) {
         GameBlock incoming = getBlock(block, isPreview);
-        if(original != null && !original.equals(incoming)){
+        if (original != null && !original.equals(incoming)) {
             Pools.free(original);
-            original = incoming;
+            return incoming;
         } else {
             Pools.free(incoming);
+            return original;
         }
     }
 
@@ -183,79 +338,12 @@ public class UIUtil {
             ObjectSet.ObjectSetIterator<GameBrokenBlockSpriteContainer> brokenIterator = brokenBlocksQueue.iterator();
 
             if (isYahoo) {
-                int h = 300;
-                int k = 300;
-                // Angle of rotation
-                int points = MathUtils.random(1, 6);
-                double angle = Math.PI / points;
-
-                Array<Vector2> vectors = UIUtil.getPolygonVertices(brokenBlocksQueue.size, stage.getWidth() + 40, h, k);
-                Queue<Vector2> yahooStarEnds = new Queue<>();
-
-                for (Vector2 vector : vectors) {
-                    yahooStarEnds.addFirst(rotatePoint(vector.x, vector.y, h, k, angle));
-                }
-
-                while (brokenIterator.hasNext()) {
-                    GameBrokenBlockSpriteContainer brokenGameSprite = brokenIterator.next();
-
-                    if (brokenGameSprite != null) {
-                        GameBlock parent = brokenGameSprite.getParentGameBlock();
-                        GameBlockGrid grid = brokenGameSprite.getGrid();
-                        Image left = brokenGameSprite.getLeftSprite();
-                        Image bottom = brokenGameSprite.getBottomSprite();
-                        Image right = brokenGameSprite.getRightSprite();
-
-                        Interpolation interpolation = Interpolation.smoother;
-
-                        if (parent != null) {
-                            Image block = new Image(parent.getImage().getDrawable());
-                            parent.setBlock(YokelBlockEval.addBrokenFlag(parent.getBlock()));
-
-                            float parentX = parent.getX();
-                            float parentY = parent.getY();
-
-                            Vector2 cord = yahooStarEnds.removeFirst();
-
-                            float endOfScreenX = cord.x;
-                            float endOfScreenY = cord.y;
-
-                            //Get the coordinates of the parent block
-                            Vector2 blockV = left.localToParentCoordinates(new Vector2(parentX, parentY));
-
-                            if (grid != null) {
-                                GameBlock gameBlock = grid.getGameBlock(brokenGameSprite.getRow(), brokenGameSprite.getCol());
-                                blockV = grid.localToScreenCoordinates(new Vector2(gameBlock.getX(), gameBlock.getY()));
-                            }
-
-                            //Get the screen coordinates
-                            Vector2 blockV2 = left.localToScreenCoordinates(new Vector2(blockV.x, blockV.y));
-
-                            //Shift (and flip) block y
-                            blockV2.x -= parentX;
-                            blockV2.y = 1 - (blockV2.y) + stage.getHeight();
-
-                            block.setVisible(true);
-                            block.setBounds(blockV2.x, blockV2.y, block.getWidth(), block.getHeight());
-
-                            if (endOfScreenX == -1) {
-                                endOfScreenX = blockV2.x;
-                            }
-                            if (endOfScreenY == -1) {
-                                endOfScreenY = blockV2.y;
-                            }
-
-                            block.addAction(Actions.sequence(Actions.moveTo(endOfScreenX, endOfScreenY, YAHOO_DURATION, interpolation), Actions.removeActor(block)));
-                            left.setVisible(false);
-                            bottom.setVisible(false);
-                            right.setVisible(false);
-                            stage.addActor(block);
-                        }
-                        Pools.free(brokenGameSprite);
-                        brokenIterator.remove();
-                    }
-                }
+                UIUtil.animateYahooBlockBreak(stage, brokenBlocksQueue, YAHOO_DURATION);
             } else {
+                System.out.println("stage=" + stage);
+                System.out.println("brokenBlocksQueue=" + brokenBlocksQueue);
+                UIUtil.animateStandardBlockBreak(stage, brokenBlocksQueue);
+
                 if (brokenIterator.hasNext()) {
                     GameBrokenBlockSpriteContainer brokenGameSprite = brokenIterator.next();
                     if (brokenGameSprite != null) {
@@ -351,4 +439,126 @@ public class UIUtil {
 
         return new Vector2((float) newX, (float) newY);
     }
+
+    private static final Pool<Label> labelPool = new Pool<Label>() {
+        @Override
+        protected Label newObject() {
+            Skin skin = getInstance().getFactory().getUserInterfaceService().getSkin();
+            Label.LabelStyle style = skin.has("default", Label.LabelStyle.class) ? skin.get(Label.LabelStyle.class) : null;
+
+            if (style == null || style.font == null) {
+                Gdx.app.error("UIUtil", "LabelStyle 'default' is missing or has null font. Falling back to hardcoded font.");
+                style = new Label.LabelStyle(new BitmapFont(), Color.WHITE);
+            }
+            // Default fallback — this will be overridden per animation request
+            return new Label("", style);
+        }
+    };
+
+    public static void animateLabelFlyIn(Label original, float delay, float duration) {
+        if (original == null || original.getStage() == null || original.getStyle() == null) {
+            Gdx.app.error("GameLabelAnimator", "Cannot animate: missing label, stage, or style.");
+            return;
+        }
+
+        original.setVisible(false);
+
+        // Obtain a label from the pool
+        Label clone = labelPool.obtain();
+        clone.setStyle(original.getStyle());
+        clone.setText(original.getText());
+        clone.setAlignment(original.getLabelAlign());
+        clone.setFontScale(original.getFontScaleX(), original.getFontScaleY());
+        clone.setColor(original.getColor());
+
+        Vector2 screenPos = original.localToStageCoordinates(new Vector2(0, 0));
+        Stage stage = original.getStage();
+        clone.setPosition(screenPos.x, -clone.getHeight());
+
+        stage.addActor(clone);
+
+        clone.addAction(Actions.sequence(
+                Actions.delay(delay),
+                Actions.moveTo(screenPos.x, screenPos.y, duration, Interpolation.fade),
+                Actions.run(() -> {
+                    original.setVisible(true);
+                    clone.remove();
+                    labelPool.free(clone); // return to pool
+                })
+        ));
+    }
+
+    public static void animateLabelFlyInLetterByLetter(Label original, float delayBetweenChars, float duration) {
+        if (original == null || original.getStage() == null || original.getStyle() == null) {
+            Gdx.app.error("GameLabelAnimator", "Cannot animate: missing label, stage, or style.");
+            return;
+        }
+
+        original.setVisible(false);
+        String text = original.getText().toString();
+        if (text.isEmpty()) return;
+
+        Stage stage = original.getStage();
+        Vector2 screenPos = original.localToStageCoordinates(new Vector2(0, 0));
+        float x = screenPos.x, y = screenPos.y;
+        float fontScaleX = original.getFontScaleX();
+        float fontScaleY = original.getFontScaleY();
+        Color originalColor = original.getColor();
+
+        BitmapFont font = original.getStyle().font;
+        GlyphLayout layout = new GlyphLayout();
+
+        float spacing = 0f;
+        Array<Label> animatedChars = new Array<>();
+
+        for (int i = 0; i < text.length(); i++) {
+            String charStr = String.valueOf(text.charAt(i));
+
+            layout.setText(font, charStr); // get width of each char
+            float charWidth = layout.width * fontScaleX;
+
+            Label charLabel = labelPool.obtain();
+            charLabel.setText(""); // clear previous content
+            charLabel.clearActions();
+            charLabel.clearListeners();
+            charLabel.setVisible(true);
+            charLabel.setSize(0, 0); // reset size
+            charLabel.invalidateHierarchy(); // force layout update
+
+            charLabel.setStyle(original.getStyle());
+            charLabel.setText(charStr);
+            charLabel.setFontScale(fontScaleX, fontScaleY);
+            charLabel.setColor(originalColor);
+            charLabel.setAlignment(original.getLabelAlign());
+            charLabel.pack();
+
+            float finalX = x + spacing;
+            charLabel.setPosition(finalX, -charLabel.getHeight());
+            stage.addActor(charLabel);
+            animatedChars.add(charLabel);
+
+            charLabel.addAction(Actions.sequence(
+                    Actions.delay(i * delayBetweenChars),
+                    Actions.moveTo(finalX, y, duration, Interpolation.fade)
+            ));
+
+            spacing += charWidth + 1f;
+        }
+
+        // Cleanup
+        float totalDelay = (text.length() - 1) * delayBetweenChars + duration;
+        stage.addAction(Actions.sequence(
+                Actions.delay(totalDelay),
+                Actions.run(() -> {
+                    for (Label label : animatedChars) {
+                        label.remove();
+                        labelPool.free(label);
+                    }
+                    original.setVisible(true);
+                })
+        ));
+    }
+
+
+
 }

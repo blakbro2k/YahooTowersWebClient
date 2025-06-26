@@ -285,6 +285,4 @@ public class GameBlockGrid extends Stack {
         bgColor.setBackground(skin.getDrawable(DEAD_BACKGROUND));
         setActive(false);
     }
-
-
 }
