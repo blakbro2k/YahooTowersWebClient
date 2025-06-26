@@ -63,6 +63,8 @@ public class SessionService {
     private final ObjectMap<String, ViewController> views = GdxMaps.newObjectMap();
     private final YokelKeyMap keyMap = new YokelKeyMap();
     private String currentErrorMessage;
+    private boolean isWinner;
+    private boolean isPartnered;
 
     @Initiate
     public void initialize() throws WebSocketException, InterruptedException {
@@ -106,6 +108,21 @@ public class SessionService {
         return client.isConnected();
     }
 
+    public boolean isWinner() {
+        return isWinner;
+    }
+
+    public void setWinner(boolean isWinner) {
+        this.isWinner = isWinner;
+    }
+
+    public boolean isPartnered() {
+        return isPartnered;
+    }
+
+    public void setPartnered(boolean isPartnered) {
+        this.isPartnered = isPartnered;
+    }
     /*
     public Array<YokelLounge> getAllLounges() throws InterruptedException {
         client.requestLounges();
@@ -457,5 +474,6 @@ public class SessionService {
 
     public void setDebug(boolean debug) {
         isDebug = debug;
+        logger.error("debug={}", debug);
     }
 }

@@ -1,6 +1,10 @@
 package asg.games.yokel.client.utils;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -8,11 +12,14 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.ObjectSet;
 import com.badlogic.gdx.utils.OrderedSet;
+import com.badlogic.gdx.utils.Pool;
 import com.badlogic.gdx.utils.Pools;
 import com.badlogic.gdx.utils.Queue;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
@@ -34,7 +41,7 @@ public class UIUtil {
     private static final int YAHOO_X_CENTER_OFFSET = 300;
     private static final int YAHOO_Y_CENTER_OFFSET = 300;
     private static final int YAHOO_STARBURST_ADDED_WIDTH = 40;
-    private static final Interpolation interpolation = Interpolation.pow3In;
+    private static final Interpolation defaultInterpolation = Interpolation.pow3In;
     private SoundUtil soundUtil;
 
     @Setter
@@ -45,6 +52,10 @@ public class UIUtil {
     }
 
     public static void animateStandardBlockBreak(Stage stage, OrderedSet<GameBrokenBlockSpriteContainer> queue) {
+        animateStandardBlockBreak(stage, queue, defaultInterpolation);
+    }
+
+    public static void animateStandardBlockBreak(Stage stage, OrderedSet<GameBrokenBlockSpriteContainer> queue, Interpolation interpolation) {
         final float duration = BLOCK_BREAK_DURATION;
         final float delay = 0.05f;
         final float blockOffSet = 32f;
@@ -269,13 +280,14 @@ public class UIUtil {
         Pools.free(uiCell);
     }
 
-    public static void updateGameBlock(GameBlock original, int block, boolean isPreview) {
+    public static GameBlock updateGameBlock(GameBlock original, int block, boolean isPreview) {
         GameBlock incoming = getBlock(block, isPreview);
-        if(original != null && !original.equals(incoming)){
+        if (original != null && !original.equals(incoming)) {
             Pools.free(original);
-            original = incoming;
+            return incoming;
         } else {
             Pools.free(incoming);
+            return original;
         }
     }
 
@@ -427,4 +439,126 @@ public class UIUtil {
 
         return new Vector2((float) newX, (float) newY);
     }
+
+    private static final Pool<Label> labelPool = new Pool<Label>() {
+        @Override
+        protected Label newObject() {
+            Skin skin = getInstance().getFactory().getUserInterfaceService().getSkin();
+            Label.LabelStyle style = skin.has("default", Label.LabelStyle.class) ? skin.get(Label.LabelStyle.class) : null;
+
+            if (style == null || style.font == null) {
+                Gdx.app.error("UIUtil", "LabelStyle 'default' is missing or has null font. Falling back to hardcoded font.");
+                style = new Label.LabelStyle(new BitmapFont(), Color.WHITE);
+            }
+            // Default fallback — this will be overridden per animation request
+            return new Label("", style);
+        }
+    };
+
+    public static void animateLabelFlyIn(Label original, float delay, float duration) {
+        if (original == null || original.getStage() == null || original.getStyle() == null) {
+            Gdx.app.error("GameLabelAnimator", "Cannot animate: missing label, stage, or style.");
+            return;
+        }
+
+        original.setVisible(false);
+
+        // Obtain a label from the pool
+        Label clone = labelPool.obtain();
+        clone.setStyle(original.getStyle());
+        clone.setText(original.getText());
+        clone.setAlignment(original.getLabelAlign());
+        clone.setFontScale(original.getFontScaleX(), original.getFontScaleY());
+        clone.setColor(original.getColor());
+
+        Vector2 screenPos = original.localToStageCoordinates(new Vector2(0, 0));
+        Stage stage = original.getStage();
+        clone.setPosition(screenPos.x, -clone.getHeight());
+
+        stage.addActor(clone);
+
+        clone.addAction(Actions.sequence(
+                Actions.delay(delay),
+                Actions.moveTo(screenPos.x, screenPos.y, duration, Interpolation.fade),
+                Actions.run(() -> {
+                    original.setVisible(true);
+                    clone.remove();
+                    labelPool.free(clone); // return to pool
+                })
+        ));
+    }
+
+    public static void animateLabelFlyInLetterByLetter(Label original, float delayBetweenChars, float duration) {
+        if (original == null || original.getStage() == null || original.getStyle() == null) {
+            Gdx.app.error("GameLabelAnimator", "Cannot animate: missing label, stage, or style.");
+            return;
+        }
+
+        original.setVisible(false);
+        String text = original.getText().toString();
+        if (text.isEmpty()) return;
+
+        Stage stage = original.getStage();
+        Vector2 screenPos = original.localToStageCoordinates(new Vector2(0, 0));
+        float x = screenPos.x, y = screenPos.y;
+        float fontScaleX = original.getFontScaleX();
+        float fontScaleY = original.getFontScaleY();
+        Color originalColor = original.getColor();
+
+        BitmapFont font = original.getStyle().font;
+        GlyphLayout layout = new GlyphLayout();
+
+        float spacing = 0f;
+        Array<Label> animatedChars = new Array<>();
+
+        for (int i = 0; i < text.length(); i++) {
+            String charStr = String.valueOf(text.charAt(i));
+
+            layout.setText(font, charStr); // get width of each char
+            float charWidth = layout.width * fontScaleX;
+
+            Label charLabel = labelPool.obtain();
+            charLabel.setText(""); // clear previous content
+            charLabel.clearActions();
+            charLabel.clearListeners();
+            charLabel.setVisible(true);
+            charLabel.setSize(0, 0); // reset size
+            charLabel.invalidateHierarchy(); // force layout update
+
+            charLabel.setStyle(original.getStyle());
+            charLabel.setText(charStr);
+            charLabel.setFontScale(fontScaleX, fontScaleY);
+            charLabel.setColor(originalColor);
+            charLabel.setAlignment(original.getLabelAlign());
+            charLabel.pack();
+
+            float finalX = x + spacing;
+            charLabel.setPosition(finalX, -charLabel.getHeight());
+            stage.addActor(charLabel);
+            animatedChars.add(charLabel);
+
+            charLabel.addAction(Actions.sequence(
+                    Actions.delay(i * delayBetweenChars),
+                    Actions.moveTo(finalX, y, duration, Interpolation.fade)
+            ));
+
+            spacing += charWidth + 1f;
+        }
+
+        // Cleanup
+        float totalDelay = (text.length() - 1) * delayBetweenChars + duration;
+        stage.addAction(Actions.sequence(
+                Actions.delay(totalDelay),
+                Actions.run(() -> {
+                    for (Label label : animatedChars) {
+                        label.remove();
+                        labelPool.free(label);
+                    }
+                    original.setVisible(true);
+                })
+        ));
+    }
+
+
+
 }

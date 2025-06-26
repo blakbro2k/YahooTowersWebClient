@@ -31,6 +31,7 @@ import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.rafaskoberg.gdx.typinglabel.TypingLabel;
 
 import asg.games.yokel.client.GlobalConstants;
+import asg.games.yokel.client.controller.dialog.GameOverDialogController;
 import asg.games.yokel.client.controller.dialog.NextGameController;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
 import asg.games.yokel.client.service.SessionService;
@@ -230,6 +231,7 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
 
     GameManager gameManager;
 
+    long gameOverDialogTimestamp = 0;
     private boolean toggleYahoo, nextGameDialog, attemptGameStart, isGameReady = false;
     private long nextGame = 0;
     float brokenCheck = BREAK_CHECK_INTERVAL;
@@ -239,7 +241,7 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
     private boolean downKeyPressed = false;
     private final YokelKeyMap keyMap = new YokelKeyMap();
     private int breakTimer = -1;
-    private static int y;
+    private int y;
     private int a;
     private int n;
     private int o;
@@ -600,6 +602,10 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
         }
     }
 
+    @LmlAction("showGameOver")
+    public void showGameOver() {
+        interfaceService.showDialog(GameOverDialogController.class);
+    }
 
     private void animateBrokenBlocks(Stage stage, OrderedSet<GameBrokenBlockSpriteContainer> queue, boolean isYahoo) {
         if (queue == null || queue.size == 0) return;
@@ -607,7 +613,8 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
         if (isYahoo) {
             UIUtil.animateYahooBlockBreak(stage, queue, 1.26f);
         } else {
-            UIUtil.animateStandardBlockBreak(stage, queue);
+            //UIUtil.animateStandardBlockBreak(stage, queue);
+            UIUtil.animateStandardBlockBreak(stage, queue, interpolationMap.get(YokelUtilities.otos(interpolationSelectBox.getSelected())));
         }
     }
 
@@ -655,7 +662,7 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
                 UIUtil.animateYahooBlockBreak(stage, brokenBlocksQueue, YAHOO_DURATION);
                 //logger.error("size: " + brokenBlocksQueue.size);
             } else {
-                UIUtil.animateStandardBlockBreak(stage, brokenBlocksQueue);
+                UIUtil.animateStandardBlockBreak(stage, brokenBlocksQueue, interpolationMap.get(YokelUtilities.otos(interpolationSelectBox.getSelected())));
             }
             //logger.info("{}: ({},{})", "stage", stage.getWidth(), stage.getHeight());
             //logger.exit("addBrokenBlockActorToStage");
@@ -762,11 +769,13 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
                 }
 
                 if (getElapsedSeconds() > NextGameController.NEXT_GAME_SECONDS) {
-                    interfaceService.destroyDialog(NextGameController.class);
+                    //interfaceService.destroyDialog(NextGameController.class);
                     attemptGameStart = false;
                     startGame();
                 }
             }
+
+
             //logger.exit("checkGameStart");
         } catch (Exception e) {
             String errorMsg = "Error in checkGameStart()";
@@ -793,6 +802,67 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             throw new ReflectionException(errorMsg, e);
         }
     }
+
+    @LmlAction("toggleGameOverOnePlayerWins")
+    private void toggleGameOverOnePlayerWins() throws ReflectionException {
+        try {
+            logger.enter("toggleGameOverOnePlayerWins");
+            sessionService.setWinner(true);
+            sessionService.setPartnered(false);
+            interfaceService.showDialog(GameOverDialogController.class);
+            logger.exit("toggleGameOverOnePlayerWins");
+        } catch (Exception e) {
+            String errorMsg = "Error in toggleGameOverOnePlayerWins()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException(errorMsg, e);
+        }
+    }
+
+    @LmlAction("toggleGameOverTwoPlayerWins")
+    private void toggleGameOverTwoPlayerWins() throws ReflectionException {
+        try {
+            logger.enter("toggleGameOverTwoPlayerWins");
+            sessionService.setWinner(true);
+            sessionService.setPartnered(true);
+            interfaceService.showDialog(GameOverDialogController.class);
+            logger.exit("toggleGameOverTwoPlayerWins");
+        } catch (Exception e) {
+            String errorMsg = "Error in toggleGameOverTwoPlayerWins()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException(errorMsg, e);
+        }
+    }
+
+    @LmlAction("toggleGameOverOnePlayerLoses")
+    private void toggleGameOverOnePlayerLoses() throws ReflectionException {
+        try {
+            logger.enter("toggleGameOverOnePlayerLoses");
+            sessionService.setWinner(false);
+            sessionService.setPartnered(false);
+            interfaceService.showDialog(GameOverDialogController.class);
+            logger.exit("toggleGameOverOnePlayerLoses");
+        } catch (Exception e) {
+            String errorMsg = "Error in toggleGameOverOnePlayerLoses()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException(errorMsg, e);
+        }
+    }
+
+    @LmlAction("toggleGameOverTwoPlayerLoses")
+    private void toggleGameOverTwoPlayerLoses() throws ReflectionException {
+        try {
+            logger.enter("toggleGameOverTwoPlayerLoses");
+            sessionService.setWinner(false);
+            sessionService.setPartnered(true);
+            interfaceService.showDialog(GameOverDialogController.class);
+            logger.exit("toggleGameOverTwoPlayerLoses");
+        } catch (Exception e) {
+            String errorMsg = "Error in toggleGameOverTwoPlayerLoses()";
+            logger.error(errorMsg, e);
+            throw new ReflectionException(errorMsg, e);
+        }
+    }
+
 
     @LmlAction("breakBlocks")
     private void breakBlocks() throws ReflectionException {

@@ -1,5 +1,6 @@
 package asg.games.yokel.client.controller.dialog;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
@@ -26,13 +27,16 @@ public class NextGameController implements ActionContainer, ViewDialogShower {
 
     @Override
     public void doBeforeShow(Window dialog) {
+        System.out.println("Enter doBeforeShow()");
         soundFXService.playGameStartSound();
 
         if(timerLabel != null) {
+            timerLabel.setColor(Color.ORANGE);
             timerLabel.addAction(
                     Actions.sequence(YokelActions.countTo(NEXT_GAME_SECONDS, false),
-                            YokelActions.closeDialog(interfaceService))
-            );
+                            YokelActions.closeDialog(this.getClass(), interfaceService)
+                    ));
         }
+        System.out.println("Exit doBeforeShow()");
     }
 }

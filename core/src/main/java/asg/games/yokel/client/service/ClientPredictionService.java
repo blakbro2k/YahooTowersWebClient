@@ -6,8 +6,10 @@ import com.github.czyzby.autumn.annotation.Component;
 import asg.games.yipee.game.PlayerAction;
 import asg.games.yipee.game.YipeeGameBoard;
 import asg.games.yipee.objects.YipeeGameBoardState;
+import lombok.Getter;
 
 @Component
+@Getter
 public class ClientPredictionService {
 
     private YipeeGameBoard localBoard;
@@ -21,14 +23,10 @@ public class ClientPredictionService {
     }
 
     public void applyAction(PlayerAction action) {
-        localBoard.applyAction(action); // mutate board locally
+        //localBoard.applyAction(action); // mutate board locally
         localBoard.update(1 / 60f);     // simulate a tick (or however your loop runs)
-        predictedStates.add(localBoard.getCurrentState());
+        //predictedStates.add(localBoard.getCurrentState());
         currentTick++;
-    }
-
-    public Array<YipeeGameBoardState> getPredictedStates() {
-        return predictedStates;
     }
 
     public YipeeGameBoardState getLatestState() {

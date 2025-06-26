@@ -87,8 +87,10 @@ public class LoadingController implements ViewRenderer {
 
         if ("true".equals(System.getProperty("debugMode"))) {
             sessionService.setDebug(true); // Or whatever your DebugController @View ID is
+            interfaceService.show(DebugController.class);
         } else {
             sessionService.setDebug(false); // Replace with your standard view ID (e.g., GameViewController)
+            interfaceService.show(ClientViewController.class);
         }
     }
 

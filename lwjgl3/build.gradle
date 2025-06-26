@@ -33,6 +33,7 @@ dependencies {
 
     // Logback Classic (as the backend for SLF4J)
     implementation 'ch.qos.logback:logback-classic:1.2.6'
+    implementation 'org.slf4j:slf4j-simple:1.7.36'
 
 	implementation project(':core')
 }

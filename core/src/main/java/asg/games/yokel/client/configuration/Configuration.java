@@ -180,7 +180,7 @@ public class Configuration {
             prefs.putString(JWT_KEY, jwtSysProp);
         }
 
-        // --- GWT Query String (only if running in GWT) ---
+        /* --- GWT Query String (only if running in GWT) ---
         try {
             String query = com.google.gwt.user.client.Window.Location.getQueryString();
             if (query != null) {
@@ -195,11 +195,11 @@ public class Configuration {
 
         } catch (Throwable ignored) {
             // Not GWT or GWT-only classes not available
-        }
+        }*/
 
         prefs.flush();
     }
-
+/*
     private String extractQueryParam(String key, String query) {
         if (query == null || query.length() < 2) return null;
         String[] params = query.substring(1).split("&");
@@ -210,5 +210,5 @@ public class Configuration {
             }
         }
         return null;
-    }
+    }*/
 }

@@ -1,9 +1,11 @@
 package asg.games.yokel.client.controller.dialog;
 
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.utils.Array;
 import com.github.czyzby.autumn.annotation.Inject;
 import com.github.czyzby.autumn.mvc.component.ui.InterfaceService;
+import com.github.czyzby.autumn.mvc.component.ui.controller.ViewDialogShower;
 import com.github.czyzby.autumn.mvc.stereotype.ViewDialog;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.lml.annotation.LmlAction;
@@ -20,7 +22,7 @@ import asg.games.yokel.client.service.SoundFXService;
  * will be available in the LML template.
  */
 @ViewDialog(id = GlobalConstants.SOUND_BOARD_DIALOG, value = GlobalConstants.SOUND_BOARD_DIALOG_PATH)
-public class SoundBoardController implements ActionContainer {
+public class SoundBoardController implements ActionContainer, ViewDialogShower {
     @Inject private InterfaceService interfaceService;
     //@Inject private SessionService sessionService;
     @Inject private SoundFXService soundFXService;
@@ -43,17 +45,28 @@ public class SoundBoardController implements ActionContainer {
         rowCount = 0;
     }
 
+    private static final int COLUMNS = 4;
+
+    @Override
+    public void doBeforeShow(Window dialog) {
+        reset();
+    }
+
     @LmlAction("checkRow")
-    public String checkRow() {
-        boolean isRowTrue = ++rowCount % 4 == 0;
-        return isRowTrue + "";
+    public boolean checkRow() {
+        return ++rowCount % COLUMNS == 0;
     }
 
     @LmlAction("getAllSoundIds")
     public Array<String> getAllSoundIds() {
-        reset();
         return GdxArrays.newArray(ID_YAHOO_MUSIC_START,ID_YAHOO_MUSIC_STOP,ID_YAHOO_BLAST,
                 ID_PLACED,ID_WHOOSH,ID_YAH,ID_CYCLE,ID_BROKEN,ID_BOARD_DEATH,ID_GAME_START,ID_GAME_STOP);
+    }
+
+    @LmlAction("padFinalRow")
+    public int padFinalRow() {
+        int remaining = COLUMNS - (rowCount % COLUMNS);
+        return remaining == COLUMNS ? 0 : remaining;
     }
 
     @LmlAction("playSound")

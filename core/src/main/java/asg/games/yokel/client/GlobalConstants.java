@@ -65,6 +65,8 @@ public class GlobalConstants {
     public final static String SPRITES_TEST_VIEW = "spritesTest";
     public final static String CREATE_GAME_DIALOG = "createGame";
     public final static String SOUND_BOARD_DIALOG = "soundBoard";
+    public final static String GAME_OVER_DIALOG = "gameOverDialog";
+
     public final static String GAME_LABEL_DIALOG = "gameLabelTest";
     public final static String ERROR_DIALOG = "error";
     public final static String GAME_DIALOG = "game";
@@ -72,7 +74,7 @@ public class GlobalConstants {
     public final static String REFRESH_DIALOG = "refresh";
     public final static String SETTINGS_DIALOG = "settings";
     public final static String JOIN_GAME_DIALOG = "joinGame";
-    public final static String NEXT_GAME_DIALOG = "nextGame";
+    public final static String NEXT_GAME_DIALOG = "nextGameDialog";
 
     //View Paths
     public final static String CREATE_SESSION_VIEW_PATH = "ui/templates/createSession.lml";
@@ -96,6 +98,7 @@ public class GlobalConstants {
     public final static String SETTINGS_DIALOG_PATH = "ui/templates/dialogs/settings.lml";
     public final static String JOIN_GAME_PATH = "ui/templates/dialogs/joinGame.lml";
     public final static String NEXT_GAME_PATH = "ui/templates/dialogs/nextGame.lml";
+    public final static String GAME_OVER_DIALOG_PATH = "ui/templates/dialogs/gameOver.lml";
 
     //Game Atlas Path
     public final static String GAME_ATLAS_PATH = "ui/game/game.atlas";
