@@ -16,10 +16,8 @@ public class GlobalConstants {
     public static final int APP_HEIGHT = 600;
     public static final int HTTP_REQUEST_TIMEOUT = 2500;
     public static final int ERROR_MSG_TIMEOUT = 4000;
-
     public static final int VIEWPORT_WIDTH = APP_WIDTH;
     public static final int VIEWPORT_HEIGHT = APP_HEIGHT;
-
     public static final String DEFAULT_FONT_PATH = "default.fnt";
     public static final String DEFAULT_FONT_IMAGE_PATH = "default.png";
     public static final String DEFAULT_UISKIN_ATLAS = "uiskin.atlas";

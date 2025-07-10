@@ -8,7 +8,6 @@ import com.github.czyzby.kiwi.log.Logger;
 import com.github.czyzby.kiwi.log.LoggerService;
 
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
-import asg.games.yokel.utils.YokelUtilities;
 
 public class LogUtil {
     private static final String LOG_PROPERTIES_FILENAME = "Log4LibGDX.properties";

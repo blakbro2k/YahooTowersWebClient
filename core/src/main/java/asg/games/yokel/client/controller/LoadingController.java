@@ -5,9 +5,11 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.GdxRuntimeException;
+import com.github.czyzby.autumn.annotation.Initiate;
 import com.github.czyzby.autumn.annotation.Inject;
 import com.github.czyzby.autumn.annotation.OnMessage;
 import com.github.czyzby.autumn.mvc.component.asset.AssetService;
+import com.github.czyzby.autumn.mvc.component.preferences.PreferencesService;
 import com.github.czyzby.autumn.mvc.component.ui.InterfaceService;
 import com.github.czyzby.autumn.mvc.component.ui.controller.ViewRenderer;
 import com.github.czyzby.autumn.mvc.config.AutumnMessage;
@@ -21,6 +23,7 @@ import com.kotcrab.vis.ui.widget.VisProgressBar;
 import java.io.Writer;
 
 import asg.games.yokel.client.GlobalConstants;
+import asg.games.yokel.client.configuration.preferences.BootstrapConfig;
 import asg.games.yokel.client.service.SessionService;
 import asg.games.yokel.client.service.UserInterfaceService;
 import asg.games.yokel.client.utils.UIUtil;
@@ -36,6 +39,8 @@ public class LoadingController implements ViewRenderer {
     /**
      * Will be injected automatically. Manages assets. Used to display loading progress.
      */
+    @Inject
+    private PreferencesService preferencesService;
     @Inject
     private AssetService assetService;
     @Inject
@@ -55,6 +60,14 @@ public class LoadingController implements ViewRenderer {
 
     private boolean regionsAssigned;
     private boolean dtdSaved = true;
+    //@SuppressWarnings("unused")
+    //private static final I18NBundle GWT_FORCE_INCLUDE_I18N_BUNDLE = null;
+
+    @Initiate
+    public void init() {
+        preferencesService.getPreference("debugMode", Boolean.class).set(BootstrapConfig.isDebugMode());
+        preferencesService.getPreference("jwtToken", String.class).set(BootstrapConfig.getJwtToken());
+    }
 
     // Since this class implements ViewRenderer, it can modify the way its view is drawn. Additionally to drawing the
     // stage, this view also updates assets manager and reads its progress.
@@ -85,11 +98,12 @@ public class LoadingController implements ViewRenderer {
             dtdSaved = true;
         }
 
-        if ("true".equals(System.getProperty("debugMode"))) {
-            sessionService.setDebug(true); // Or whatever your DebugController @View ID is
+        boolean isDebug = preferencesService.getPreference("debugMode", Boolean.class).get();
+        if (isDebug) {
+            sessionService.setDebug(true);
             interfaceService.show(DebugController.class);
         } else {
-            sessionService.setDebug(false); // Replace with your standard view ID (e.g., GameViewController)
+            sessionService.setDebug(false);
             interfaceService.show(ClientViewController.class);
         }
     }

@@ -3,14 +3,20 @@ package asg.games.yokel.client.utils;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -22,12 +28,16 @@ import com.badlogic.gdx.utils.OrderedSet;
 import com.badlogic.gdx.utils.Pool;
 import com.badlogic.gdx.utils.Pools;
 import com.badlogic.gdx.utils.Queue;
+import com.badlogic.gdx.utils.reflect.ClassReflection;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
 
+import asg.games.yipee.libgdx.game.YipeeBlockEvalGDX;
+import asg.games.yipee.libgdx.objects.YipeeBlockGDX;
+import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
+import asg.games.yipee.net.game.GameBoardState;
+import asg.games.yipee.net.game.GameManager;
 import asg.games.yokel.client.factories.YokelObjectFactory;
-import asg.games.yokel.client.objects.YokelBlock;
-import asg.games.yokel.client.objects.YokelBlockEval;
 import asg.games.yokel.client.ui.actors.GameBlock;
 import asg.games.yokel.client.ui.actors.GameBlockGrid;
 import asg.games.yokel.client.ui.actors.GameBrokenBlockSpriteContainer;
@@ -77,7 +87,7 @@ public class UIUtil {
                 GameBlockGrid grid = brokenGameSprite.getGrid();
 
                 if (parent != null) {
-                    parent.setBlock(asg.games.yokel.objects.YokelBlockEval.addBrokenFlag(parent.getBlock()));
+                    parent.setBlock(YipeeBlockEvalGDX.addBrokenFlag(parent.getBlock()));
                     float parentX = parent.getX();
                     float parentY = parent.getY();
 
@@ -162,7 +172,7 @@ public class UIUtil {
 
             if (parent != null) {
                 Image block = new Image(parent.getImage().getDrawable());
-                parent.setBlock(YokelBlockEval.addBrokenFlag(parent.getBlock()));
+                parent.setBlock(YipeeBlockEvalGDX.addBrokenFlag(parent.getBlock()));
 
                 float parentX = parent.getX();
                 float parentY = parent.getY();
@@ -255,7 +265,7 @@ public class UIUtil {
     }
 
     public static GameBlock getClearBlock(boolean isPreview) {
-        return UIUtil.getInstance().getGameBlock(YokelBlock.CLEAR_BLOCK, isPreview);
+        return UIUtil.getInstance().getGameBlock(YipeeBlockGDX.CLEAR_BLOCK, isPreview);
     }
 
     public static GameBlock getBlock(int block) {
@@ -276,6 +286,18 @@ public class UIUtil {
         }
     }
 
+    public static void setHeightFromDrawable(final Actor actor, final Drawable drawable) {
+        if (actor != null && drawable != null) {
+            actor.setHeight(drawable.getMinHeight());
+        }
+    }
+
+    public static void setWidthFromDrawable(final Actor actor, final Drawable drawable) {
+        if (actor != null && drawable != null) {
+            actor.setWidth(drawable.getMinWidth());
+        }
+    }
+
     public static void freeBlock(GameBlock uiCell) {
         Pools.free(uiCell);
     }
@@ -292,10 +314,10 @@ public class UIUtil {
     }
 
     public static int getTrueBlock(int block) {
-        if (YokelBlockEval.hasAddedByYahooFlag(block) || YokelBlockEval.hasBrokenFlag(block)) {
-            return YokelBlockEval.getCellFlag(block);
+        if (YipeeBlockEvalGDX.hasAddedByYahooFlag(block) || YipeeBlockEvalGDX.hasBrokenFlag(block)) {
+            return YipeeBlockEvalGDX.getCellFlag(block);
         } else {
-            return YokelBlockEval.getIDFlag(YokelBlockEval.getID(block), block);
+            return YipeeBlockEvalGDX.getIDFlag(YipeeBlockEvalGDX.getID(block), block);
         }
     }
 
@@ -308,7 +330,7 @@ public class UIUtil {
     }
 
     public static GameBrokenBlockSpriteContainer getBrokenBlockSprites(GameBlock parent, int block, GameBlockGrid grid, int row, int col) {
-        String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
+        String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YipeeBlockEvalGDX.addBrokenFlag(block));
         GameBrokenBlockSpriteContainer spriteContainer = Pools.obtain(GameBrokenBlockSpriteContainer.class);
 
         Image left = getNewImage(myInstance.getBlockImage(brokenBlockString + "_left"));
@@ -329,7 +351,7 @@ public class UIUtil {
         spriteContainer.setGrid(grid);
         spriteContainer.setRow(row);
         spriteContainer.setCol(col);
-        spriteContainer.setName("" + YokelBlockEval.getNormalLabel(block));
+        spriteContainer.setName("" + YipeeBlockEvalGDX.getNormalLabel(block));
         return spriteContainer;
     }
 
@@ -362,7 +384,7 @@ public class UIUtil {
                         GameBlockGrid grid = brokenGameSprite.getGrid();
 
                         if (parent != null) {
-                            parent.setBlock(YokelBlockEval.addBrokenFlag(parent.getBlock()));
+                            parent.setBlock(YipeeBlockEvalGDX.addBrokenFlag(parent.getBlock()));
                             float parentX = parent.getX();
                             float parentY = parent.getY();
 
@@ -465,6 +487,13 @@ public class UIUtil {
 
         // Obtain a label from the pool
         Label clone = labelPool.obtain();
+        clone.setText(""); // clear previous content
+        clone.clearActions();
+        clone.clearListeners();
+        clone.setVisible(true);
+        clone.setSize(0, 0); // reset size
+        clone.invalidateHierarchy(); // force layout update
+
         clone.setStyle(original.getStyle());
         clone.setText(original.getText());
         clone.setAlignment(original.getLabelAlign());
@@ -559,6 +588,104 @@ public class UIUtil {
         ));
     }
 
+    public static Label createLabel(final Skin skin, final String text, float size) {
+        Label label = new Label("", skin);
+        if (!YokelUtilities.isEmpty(text)) {
+            label.setText(text);
+        }
+        label.setFontScale(size);
+        return label;
+    }
+
+    /**
+     * @param actor might have an ID attached using name setter.
+     * @return actor's ID or null.
+     */
+    public static String getActorId(final Actor actor) {
+        String id = "";
+        if (actor != null) {
+            id = actor.getName();
+        }
+        return id;
+    }
+
+    public static <T extends Actor> T getActorFromCell(Class<T> klass, final Cell<T> cell) {
+        if (cell != null && klass != null && ClassReflection.isInstance(klass, cell.getActor())) {
+            return cell.getActor();
+        }
+        return null;
+    }
+
+    public static String printBounds(Actor actor) {
+        if (actor != null) {
+            String name = actor.getClass().getSimpleName() + "@" + Integer.toHexString(actor.hashCode());
+            String cname = actor.getName();
+            if (cname != null) {
+                name = cname;
+            }
+            return name + "(" + actor.getX() + "," + actor.getY() + ")[w:" + actor.getWidth() + " h:" + actor.getHeight() + "]";
+        } else {
+            return "";
+        }
+    }
 
 
+    public static boolean setDebug(boolean b, Actor... actors) {
+        if (actors != null) {
+            for (Actor actor : actors) {
+                if (actor != null) {
+                    actor.setDebug(b);
+                }
+            }
+        }
+        return b;
+    }
+
+
+    public static TextureRegion get2DAnimationFrame(Animation<Object> animation, int keyFrame) throws GdxRuntimeException {
+        if (animation == null) {
+            throw new GdxRuntimeException("Animation cannot be null.");
+        }
+        if (keyFrame < 0) {
+            throw new GdxRuntimeException("keyFrame must be greater than 0.");
+        }
+
+        Object frame = animation.getKeyFrame(keyFrame);
+        if (frame == null) {
+            return null;
+        }
+
+        if (frame instanceof TextureRegion) {
+            return (TextureRegion) frame;
+        }
+        throw new GdxRuntimeException("Frame is not an instance of " + TextureRegion.class + ". frame=" + frame.getClass());
+    }
+
+    public static void drawBackgroundRect(Batch batch, Rectangle rectangle, Color color) {
+        if (batch != null && rectangle != null && color != null) {
+            batch.end();
+
+            ShapeRenderer shapeRenderer = new ShapeRenderer();
+            shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(color);
+            shapeRenderer.rect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+            shapeRenderer.end();
+            shapeRenderer.dispose();
+
+            batch.begin();
+        }
+    }
+
+    public static YipeeGameBoardStateGDX getYipeeBoardState(GameManager gameManager, int seatNumber) throws Exception {
+        if (gameManager == null) {
+            throw new IllegalArgumentException("Game Manager is null.");
+        }
+        GameBoardState state = gameManager.getBoardState(seatNumber);
+        if (state instanceof YipeeGameBoardStateGDX) {
+            return (YipeeGameBoardStateGDX) state;
+        }
+        return null;
+        //throw new Exception("Cannot find YipeeGameBoardStateGDX");
+    }
 }

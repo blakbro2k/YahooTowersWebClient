@@ -5,8 +5,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 
+import asg.games.yipee.libgdx.objects.YipeePieceGDX;
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.objects.YokelPiece;
 
 class GamePieceDrawable extends Actor {
     private final GameBlock[] blocks = new GameBlock[3];
@@ -67,7 +67,7 @@ class GamePieceDrawable extends Actor {
         }
     }
 
-    void setBlocks(YokelPiece piece) {
+    void setBlocks(YipeePieceGDX piece) {
         if (piece != null && isActive) {
             updateIndex(0, piece.getBlock1());
             updateIndex(1, piece.getBlock2());

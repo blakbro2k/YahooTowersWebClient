@@ -24,6 +24,8 @@ public class GameOverDialogController implements ActionContainer, ViewDialogShow
     private static final float LABEL_ANIMATION_DELAY = 0f;
     private static final float LABEL_ANIMATION_DURATION = 1f;
     public static final float LABEL_ANIMATION_CHAR_DELAY = 0.05f;
+    public static final String LABEL_KEY_YOU_LOSE = "youLose";
+    public static final String LABEL_KEY_YOU_WIN = "youWin";
 
     @Inject
     private InterfaceService interfaceService;
@@ -83,9 +85,9 @@ public class GameOverDialogController implements ActionContainer, ViewDialogShow
         if (winLoseLabel != null) {
             totalDuration += LABEL_ANIMATION_DURATION;
             if (!sessionService.isWinner()) {
-                winLoseLabel.setText(i18nBundle.get("youLose"));
+                winLoseLabel.setText(i18nBundle.get(LABEL_KEY_YOU_LOSE));
             } else {
-                winLoseLabel.setText(i18nBundle.get("youWin"));
+                winLoseLabel.setText(i18nBundle.get(LABEL_KEY_YOU_WIN));
             }
             winLoseLabel.setColor(Color.YELLOW);
             winLoseLabel.addAction(Actions.sequence(

@@ -26,7 +26,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.utils.UIUtil;
 
 /**
  * A table that can be dragged and act as a modal window. The top padding is used as the window's title height.
@@ -116,7 +116,7 @@ public class GameJoinWidget extends Table {
 
     @Override
     public void setDebug(boolean debug) {
-        super.setDebug(YokelUtilities.setDebug(debug, joinButton, startButton, spaceButton, waitingLabel, readyLabel));
+        super.setDebug(UIUtil.setDebug(debug, joinButton, startButton, spaceButton, waitingLabel, readyLabel));
     }
 
     private void setButtonsVisibility(boolean isVisible) {

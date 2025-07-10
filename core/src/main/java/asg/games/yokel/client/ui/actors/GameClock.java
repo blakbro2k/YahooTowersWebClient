@@ -6,8 +6,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.TimeUtils;
 
-import asg.games.yokel.objects.YokelClock;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yipee.libgdx.objects.YipeeClockGDX;
+import asg.games.yokel.client.utils.UIUtil;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 public class GameClock extends Table implements GameObject {
     private final static String NO_DIGIT_NME = "no_digit";
@@ -147,7 +148,7 @@ public class GameClock extends Table implements GameObject {
 
     @Override
     public void updateYokelData(String data) {
-        YokelClock clock = YokelUtilities.getObjectFromJsonString(YokelClock.class, data);
+        YipeeClockGDX clock = YokelUtilities.getObjectFromJsonString(YipeeClockGDX.class, data);
         if (clock != null) {
             start = clock.getStart();
             isRunning = clock.isRunning();
@@ -156,6 +157,6 @@ public class GameClock extends Table implements GameObject {
 
     @Override
     public void setDebug(boolean debug) {
-        super.setDebug(YokelUtilities.setDebug(debug, digit_1, digit_2, digit_3, digit_4, colon));
+        super.setDebug(UIUtil.setDebug(debug, digit_1, digit_2, digit_3, digit_4, colon));
     }
 }

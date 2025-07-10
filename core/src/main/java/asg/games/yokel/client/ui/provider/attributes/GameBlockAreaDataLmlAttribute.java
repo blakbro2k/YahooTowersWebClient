@@ -5,8 +5,8 @@ import com.github.czyzby.lml.parser.action.ActorConsumer;
 import com.github.czyzby.lml.parser.tag.LmlAttribute;
 import com.github.czyzby.lml.parser.tag.LmlTag;
 
+import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
 import asg.games.yokel.client.ui.actors.GameBlockGrid;
-import asg.games.yokel.objects.YokelGameBoard;
 
 public class GameBlockAreaDataLmlAttribute implements LmlAttribute<GameBlockGrid> {
     public GameBlockAreaDataLmlAttribute() {
@@ -21,7 +21,7 @@ public class GameBlockAreaDataLmlAttribute implements LmlAttribute<GameBlockGrid
         if (action == null) {
             parser.throwError("Could not find action for: " + rawAttributeData + " with actor: " + actor);
         } else {
-            actor.renderBoard((YokelGameBoard) action.consume(actor));
+            actor.renderBoard((YipeeGameBoardGDX) action.consume(actor));
         }
     }
 }

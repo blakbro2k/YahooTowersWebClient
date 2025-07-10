@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE module PUBLIC "-//Google Inc.//DTD Google Web Toolkit 2.8.2//EN" "http://www.gwtproject.org/doctype/2.8.2/gwt-module.dtd">
 <module rename-to="asg.games.yokel.client">
-    <source path="net/games/client" />
+    <source path="asg/games/yokel/client" />
 
-    <inherits name="asg.games.Yokel" />
+    <inherits name="asg.games.yipee.libgdx.yipee-libgdx" />
+    <inherits name="asg.games.yipee.net.yipee-net" />
+    <inherits name="com.github.czyzby.lml.GdxLml" />
+    <inherits name="com.github.czyzby.lml.vis.GdxLmlVis" />
 
     <!-- Logging module inherits                                      -->
     <inherits name="com.google.gwt.logging.Logging" />
@@ -32,14 +35,7 @@
         value="asg.games.yokel.client.ui.provider.tags" />
     <extend-configuration-property name="gdx.reflect.include"
         value="asg.games.yokel.client.managers" />
-    <extend-configuration-property name="gdx.reflect.include"
-        value="asg.games.yokel.objects.AbstractYokelObject" />
-    <extend-configuration-property name="gdx.reflect.include"
-        value="asg.games.yokel.objects.YokelPlayer" />
-    <extend-configuration-property name="gdx.reflect.include"
-        value="asg.games.yokel.objects.YokelPiece" />
-    <extend-configuration-property name="gdx.reflect.include"
-        value="asg.games.yokel.objects.YokelObject" />
+
     <extend-configuration-property name="gdx.reflect.include" value="java.lang.Long" />
 
     <!-- Sometimes you'll get a cryptic "Couldn't find Type for class" GWT error - this is because Autumn relies on reflection:
@@ -53,19 +49,35 @@
     <extend-configuration-property name="gdx.reflect.include"
         value="com.badlogic.gdx.ApplicationAdapter" />
     <extend-configuration-property name="gdx.reflect.include"
-        value="com.github.czyzby.lml.parser.impl.tag.actor.AbstractActorLmlTag" />
+        value="com.github.czyzby.lml.parser.impl.tag.ImageButtonLmlTag" />
     <extend-configuration-property name="gdx.reflect.include"
-        value="com.github.czyzby.lml.parser.impl.tag.actor.AbstractNonParentalActorLmlTag" />
+        value="com.github.czyzby.lml.parser.impl.tag.ButtonLmlTag" />
     <extend-configuration-property name="gdx.reflect.include"
-        value="com.github.czyzby.lml.parser.impl.tag.actor.ImageButtonLmlTag" />
+        value="com.github.czyzby.lml.parser.impl.tag.TableLmlTag" />
     <extend-configuration-property name="gdx.reflect.include"
-        value="com.github.czyzby.lml.parser.impl.tag.actor.ButtonLmlTag" />
-    <extend-configuration-property name="gdx.reflect.include"
-        value="com.github.czyzby.lml.parser.impl.tag.actor.TableLmlTag" />
-    <extend-configuration-property name="gdx.reflect.include"
-        value="com.github.czyzby.lml.parser.impl.tag.actor.LabelLmlTag" />
+        value="com.github.czyzby.lml.parser.impl.tag.LabelLmlTag" />
     <extend-configuration-property name="gdx.reflect.include"
         value="com.github.czyzby.kiwi.log.LoggerService" />
     <extend-configuration-property name="gdx.reflect.include"
         value="jsinterop.annotations.JsType" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.badlogic.gdx.utils.I18NBundle" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.badlogic.gdx.utils.I18NBundle$Reader" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.badlogic.gdx.utils.I18NBundle$PropertiesReader" />
+    <!-- Autumn / LML / Kiwi fixes -->
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.github.czyzby.lml.parser.impl.tag.AbstractLmlTag" />h
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.github.czyzby.lml.parser.impl.tag.AbstractActorLmlTag" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.github.czyzby.lml.parser.impl.tag.AbstractNonParentalActorLmlTag" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.github.czyzby.autumn.mvc.stereotype.View" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.github.czyzby.kiwi.log.impl.DefaultLogger" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.github.czyzby.kiwi.util.common.UtilitiesClass" />
+
 </module>

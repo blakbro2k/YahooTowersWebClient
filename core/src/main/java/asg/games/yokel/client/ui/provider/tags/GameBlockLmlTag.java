@@ -6,9 +6,9 @@ import com.github.czyzby.lml.parser.impl.tag.AbstractNonParentalActorLmlTag;
 import com.github.czyzby.lml.parser.tag.LmlActorBuilder;
 import com.github.czyzby.lml.parser.tag.LmlTag;
 
+import asg.games.yipee.libgdx.objects.YipeeBlockGDX;
 import asg.games.yokel.client.ui.actors.GameBlock;
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.objects.YokelBlock;
 
 public class GameBlockLmlTag extends AbstractNonParentalActorLmlTag {
     public GameBlockLmlTag(LmlParser parser, LmlTag parentTag, StringBuilder rawTagData) {
@@ -18,7 +18,7 @@ public class GameBlockLmlTag extends AbstractNonParentalActorLmlTag {
     @Override
     protected Actor getNewInstanceOfActor(LmlActorBuilder builder) {
 
-        return UIUtil.getBlock(YokelBlock.CLEAR_BLOCK);
+        return UIUtil.getBlock(YipeeBlockGDX.CLEAR_BLOCK);
     }
 
     protected GameBlock getGameBlock() {

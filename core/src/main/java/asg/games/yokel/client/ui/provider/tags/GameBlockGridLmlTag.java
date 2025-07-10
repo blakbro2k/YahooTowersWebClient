@@ -7,7 +7,7 @@ import com.github.czyzby.lml.parser.tag.LmlActorBuilder;
 import com.github.czyzby.lml.parser.tag.LmlTag;
 
 import asg.games.yokel.client.ui.actors.GameBlockGrid;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 public class GameBlockGridLmlTag extends AbstractNonParentalActorLmlTag {
     public GameBlockGridLmlTag(LmlParser parser, LmlTag parentTag, StringBuilder rawTagData) {

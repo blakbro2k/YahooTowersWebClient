@@ -7,8 +7,9 @@ import org.testng.annotations.Test;
 import java.util.LinkedList;
 import java.util.List;
 
-import asg.games.yokel.client.objects.YokelGameBoard;
-import asg.games.yokel.client.objects.YokelGameBoardState;
+import asg.games.yipee.game.GameBoardState;
+import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
+import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
 
 
 public class TestGameBoard {
@@ -25,9 +26,9 @@ public class TestGameBoard {
 
         int gameSeed = -1;
         int maxTicks = 129;
-        YokelGameBoard playerB = new YokelGameBoard(gameSeed);
+        YipeeGameBoardGDX playerB = new YipeeGameBoardGDX(gameSeed);
         playerB.setDebug(true);
-        YokelGameBoard partnerB = new YokelGameBoard(gameSeed);
+        YipeeGameBoardGDX partnerB = new YipeeGameBoardGDX(gameSeed);
         partnerB.setDebug(false);
         boolean isPartnerRight = true;
         playerB.begin();
@@ -37,7 +38,7 @@ public class TestGameBoard {
         int partnerBIndex = 1;
         //serverGameState.setGameState(playerBIndex, playerB.getGameState());
         //serverGameState.setGameState(partnerBIndex, partnerB.getGameState());
-        List<YokelGameBoardState> states = new LinkedList<>();
+        List<GameBoardState> states = new LinkedList<>();
 
         long gameStartTime = TimeUtils.millis();
         long serverTickTime;
@@ -69,7 +70,7 @@ public class TestGameBoard {
             playerB.update(delta);
             partnerB.update(delta);
 
-            YokelGameBoardState gameState = playerB.getGameState();
+            YipeeGameBoardStateGDX gameState = playerB.exportGameState();
             gameState.setServerGameStartTime(gameStartTime);
             gameState.setCurrentStateTimeStamp(TimeUtils.millis());
             states.add(gameState);

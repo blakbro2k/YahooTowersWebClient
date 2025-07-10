@@ -5,12 +5,14 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
-import asg.games.yokel.objects.YokelPlayer;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 public class GameNameLabel extends Table implements GameObject {
     public static final Color YAHOO_ON = new Color(1f, 0f, 0f, 1);
     public static final Color YAHOO_OFF = new Color(1f, 1f, 1f, 1);
+
+    private final YipeePlayerGDX BLANK_PLAYER = new YipeePlayerGDX("<NoPlayer_Def>", 1500, 1);
 
     private GameIcon icon;
     private Label playerName;
@@ -25,13 +27,13 @@ public class GameNameLabel extends Table implements GameObject {
 
     @Override
     public void updateYokelData(String data) {
-        YokelPlayer player = null;
+        YipeePlayerGDX player = null;
         if (data != null) {
-            player = YokelUtilities.getObjectFromJsonString(YokelPlayer.class, data);
+            player = YokelUtilities.getObjectFromJsonString(YipeePlayerGDX.class, data);
         }
 
         if (player == null) {
-            player = YokelUtilities.getBlankPlayer();
+            player = BLANK_PLAYER;
         }
 
         setIcon(player.getIcon());
@@ -49,7 +51,7 @@ public class GameNameLabel extends Table implements GameObject {
 
     public void setNameTag(String name) {
         if (playerName == null) {
-            playerName = new Label(YokelUtilities.getBlankPlayer().getName(), getSkin());
+            playerName = new Label(BLANK_PLAYER.getName(), getSkin());
         }
         playerName.setText(name);
     }

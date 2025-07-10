@@ -15,19 +15,19 @@ import com.github.czyzby.kiwi.log.LoggerService;
 import com.github.czyzby.kiwi.util.gdx.asset.Disposables;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
-import com.github.czyzby.websocket.data.WebSocketException;
 
+import asg.games.yipee.libgdx.objects.YipeeKeyMapGDX;
+import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
+import asg.games.yipee.libgdx.objects.YipeeTableGDX;
+import asg.games.yipee.net.game.GameManager;
+import asg.games.yipee.net.packets.PlayerAction;
 import asg.games.yokel.client.controller.dialog.ErrorController;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
-import asg.games.yokel.client.managers.GameClientManager;
-import asg.games.yokel.client.managers.KryoClientManager;
+import asg.games.yokel.client.managers.GameNetFactory;
+import asg.games.yokel.client.managers.GameNetworkManager;
 import asg.games.yokel.client.utils.LogUtil;
-import asg.games.yokel.managers.GameManager;
-import asg.games.yokel.objects.YokelKeyMap;
-import asg.games.yokel.objects.YokelPlayer;
-import asg.games.yokel.objects.YokelTable;
-import asg.games.yokel.utils.PayloadUtil;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.utils.PayloadUtil;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 
 /**
@@ -53,25 +53,25 @@ public class SessionService {
     Log4LibGDXLogger logger;
 
     private final String CONNECT_MSG = "Connecting...";
-    private GameClientManager client;
+    private GameNetworkManager client;
     private String currentLoungeName;
     private String currentRoomName;
-    private YokelTable currentTable;
+    private YipeeTableGDX currentTable;
     private int currentSeat;
     private String userName;
-    private YokelPlayer player;
+    private YipeePlayerGDX player;
     private final ObjectMap<String, ViewController> views = GdxMaps.newObjectMap();
-    private final YokelKeyMap keyMap = new YokelKeyMap();
+    private final YipeeKeyMapGDX keyMap = new YipeeKeyMapGDX();
     private String currentErrorMessage;
     private boolean isWinner;
     private boolean isPartnered;
 
     @Initiate
-    public void initialize() throws WebSocketException, InterruptedException {
+    public void initialize() throws InterruptedException {
         logger = LogUtil.getLogger(loggerService, this.getClass());
         logger.setDebug();
         logger.enter("initialize");
-        client = new KryoClientManager(5000, "localhost", 8081, 55000);
+        client = GameNetFactory.getClientManager();
 
         //connectToServer();
         //TODO: Create PHPSESSION token6
@@ -130,7 +130,7 @@ public class SessionService {
         return PayloadUtil.getAllLoungesRequest(client.getNextRequest().getPayload());
     }*/
 
-    public Array<YokelPlayer> getAllPlayers() throws InterruptedException {
+    public Array<YipeePlayerGDX> getAllPlayers() throws InterruptedException {
         logger.enter("getAllPlayers");
         //client.requestPlayers();
         //client.waitForOneRequest();
@@ -149,7 +149,7 @@ public class SessionService {
         //client.requestPlayers();
     }
 
-    public Array<YokelPlayer> asyncGetPlayerAllRequest() {
+    public Array<YipeePlayerGDX> asyncGetPlayerAllRequest() {
         //return PayloadUtil.getAllRegisteredPlayersRequest(client.getNextRequest(ServerRequest.REQUEST_ALL_REGISTERED_PLAYERS));
         return PayloadUtil.getAllRegisteredPlayersRequest(new String[]{""});
     }
@@ -158,7 +158,7 @@ public class SessionService {
         //client.requestTables(currentLoungeName, currentRoomName);
     }
 
-    public void asyncCreateGameRequest(YokelTable.ACCESS_TYPE accessType, boolean isRated) throws InterruptedException {
+    public void asyncCreateGameRequest(YipeeTableGDX.ACCESS_TYPE accessType, boolean isRated) throws InterruptedException {
         //client.requestCreateGame(currentLoungeName, currentRoomName, accessType, isRated);
     }
 
@@ -170,10 +170,11 @@ public class SessionService {
         //client.requestTableStand(currentLoungeName, currentRoomName, tableNumber, seatNumber);
     }
 
-    public Array<YokelTable> asyncGetTableAllRequest() {
+    public Array<YipeeTableGDX> asyncGetTableAllRequest() {
         //TODO: Save tables states
         //return PayloadUtil.getAllTablesRequest(client.getNextRequest(ServerRequest.REQUEST_TABLE_INFO));new String[]{""}
-        return PayloadUtil.getAllTablesRequest(new String[]{""});
+        //return PayloadUtil.getAllTablesRequest(new String[]{""});
+        return null;
     }
 
     private void asyncMoveRightRequest() throws InterruptedException {
@@ -214,13 +215,14 @@ public class SessionService {
 
     public GameManager asyncGetGameManagerFromServerRequest() {
         //return PayloadUtil.getGameManagerRequest(client.getNextRequest(ServerRequest.REQUEST_TABLE_GAME_MANAGER));new String[]{""}
-        return PayloadUtil.getGameManagerRequest(new String[]{""});
+        // return PayloadUtil.getGameManagerRequest(new String[]{""});
+        return null;
     }
 
-    public Array<String> toPlayerNames(Array<YokelPlayer> players) {
+    public Array<String> toPlayerNames(Array<YipeePlayerGDX> players) {
         Array<String> playerNames = GdxArrays.newArray();
         if(players != null){
-            for(YokelPlayer player : YokelUtilities.safeIterable(players)){
+            for (YipeePlayerGDX player : YokelUtilities.safeIterable(players)) {
                 if(player != null){
                     playerNames.add(player.getName());
                 }
@@ -260,11 +262,11 @@ public class SessionService {
         return currentSeat;
     }
 
-    public void setCurrentTable(YokelTable currentTable){
+    public void setCurrentTable(YipeeTableGDX currentTable) {
         this.currentTable = currentTable;
     }
 
-    public YokelTable getCurrentTable(){
+    public YipeeTableGDX getCurrentTable() {
         return currentTable;
     }
 
@@ -301,19 +303,20 @@ public class SessionService {
         return currentErrorMessage;
     }
 
-    public void setCurrentPlayer(YokelPlayer yokelPlayer) {
+    public void setCurrentPlayer(YipeePlayerGDX yokelPlayer) {
         this.player = yokelPlayer;
+        this.userName = yokelPlayer.getName();
     }
 
-    public boolean isCurrentPlayer(YokelPlayer player) {
+    public boolean isCurrentPlayer(YipeePlayerGDX player) {
         return player != null && player.equals(getCurrentPlayer());
     }
 
-    public YokelPlayer getCurrentPlayer() {
+    public YipeePlayerGDX getCurrentPlayer() {
         return player;
     }
 
-    public void handlePlayerSimulatedInput(GameManager game){
+    public void handlePlayerInput(GameManager game) {
         logger.enter("handleLocalPlayerInput");
         int currentSeat = getCurrentSeat();
         logger.debug("currentSeat={}", currentSeat);
@@ -321,47 +324,40 @@ public class SessionService {
         if(game == null || currentSeat < 0) return;
 
         //TODO: Remove, moves test player's key to the right
-        game.handleMoveRight(7);
         if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
-            game.testMedusa(currentSeat);
+            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.O_MEDUSA, currentSeat, 10, null));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.X)) {
-            game.testMidas(currentSeat);
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.C)) {
-            game.showGameBoard(currentSeat);
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.V)) {
-            game.testGameBoard(currentSeat);
+            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.O_MIDAS, currentSeat, 10, null));
         }
 
         if (Gdx.input.isKeyJustPressed(keyMap.getRightKey())) {
-            game.handleMoveRight(currentSeat);
+            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.P_MOVE_RIGHT, currentSeat, 10, null));
         }
         if (Gdx.input.isKeyJustPressed(keyMap.getLeftKey())) {
-            game.handleMoveLeft(currentSeat);
+            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.P_MOVE_LEFT, currentSeat, 10, null));
         }
         if (Gdx.input.isKeyJustPressed(keyMap.getCycleDownKey())) {
             soundFXService.playCycleClickSound();
-            game.handleCycleDown(currentSeat);
+            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.P_CYCLE_DOWN, currentSeat, 10, null));
         }
         if (Gdx.input.isKeyJustPressed(keyMap.getCycleUpKey())) {
             soundFXService.playCycleClickSound();
-            game.handleCycleUp(currentSeat);
+            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.P_CYCLE_UP, currentSeat, 10, null));
         }
         if (Gdx.input.isKeyPressed(keyMap.getDownKey())) {
             if(!downKeyPressed){
                 downKeyPressed = true;
             }
             soundFXService.playBlockDownSound();
-            game.handleStartMoveDown(currentSeat);
+            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.P_MOVE_DOWN_START, currentSeat, 10, null));
         }
         if (!Gdx.input.isKeyPressed(keyMap.getDownKey())) {
             downKeyPressed = false;
-            game.handleStopMoveDown(currentSeat);
+            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.P_MOVE_DOWN_END, currentSeat, 10, null));
         }
         if (Gdx.input.isKeyJustPressed(keyMap.getRandomAttackKey())) {
-            game.handleRandomAttack(currentSeat);
+            //game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.P_MOVE_LEFT, currentSeat, 10, null));
         }
         /*
         if (Gdx.input.isKeyJustPressed(keyMap.getTarget1())) {

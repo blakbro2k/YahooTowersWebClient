@@ -10,7 +10,7 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.utils.UIUtil;
 
 public class GameIcon extends ImageButton implements Disposable {
     private static final String ICON_ATTR_NAME = "player_icon";
@@ -57,8 +57,8 @@ public class GameIcon extends ImageButton implements Disposable {
             style = getGameIconStyle(getSkin(), currentIconNumber);
             styles.put(key, style);
         }
-        YokelUtilities.setWidthFromDrawable(this, style.imageUp);
-        YokelUtilities.setHeightFromDrawable(this, style.imageUp);
+        UIUtil.setWidthFromDrawable(this, style.imageUp);
+        UIUtil.setHeightFromDrawable(this, style.imageUp);
         setStyle(style);
     }
 

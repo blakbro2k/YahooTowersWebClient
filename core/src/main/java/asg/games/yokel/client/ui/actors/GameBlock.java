@@ -10,7 +10,7 @@ import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
 
 import java.util.Objects;
 
-import asg.games.yokel.client.objects.Copyable;
+import asg.games.yipee.libgdx.objects.Copyable;
 import asg.games.yokel.client.utils.UIUtil;
 import asg.games.yokel.client.utils.YokelUtilities;
 
@@ -138,10 +138,10 @@ public class GameBlock extends Table implements Pool.Poolable, Copyable<GameBloc
     @Override
     public void act(float delta) {
         super.act(delta);
-        if (uiBlock == null || (previousBlock != currentBlock)) {
+        if (uiBlock == null || previousBlock != currentBlock) {
             setImage(currentBlock);
-            setBlock(currentBlock);
         }
+        setBlock(currentBlock); // always update after
     }
 
     private void setDrawable(Image image) {
@@ -170,13 +170,13 @@ public class GameBlock extends Table implements Pool.Poolable, Copyable<GameBloc
 
     private void calculateImageSize(Drawable drawable) {
         if (getWidth() < 0) {
-            YokelUtilities.setWidthFromDrawable(uiBlock, drawable);
-            YokelUtilities.setWidthFromDrawable(this, drawable);
+            UIUtil.setWidthFromDrawable(uiBlock, drawable);
+            UIUtil.setWidthFromDrawable(this, drawable);
         }
 
         if (getHeight() < 0) {
-            YokelUtilities.setHeightFromDrawable(uiBlock, drawable);
-            YokelUtilities.setHeightFromDrawable(this, drawable);
+            UIUtil.setHeightFromDrawable(uiBlock, drawable);
+            UIUtil.setHeightFromDrawable(this, drawable);
         }
     }
 
@@ -197,7 +197,9 @@ public class GameBlock extends Table implements Pool.Poolable, Copyable<GameBloc
     @Override
     public void setPosition(float x, float y) {
         super.setPosition(x, y);
-        uiBlock.setPosition(x, y);
+        if (uiBlock != null) {
+            uiBlock.setPosition(x, y);
+        }
     }
 
     public void setCurrentFrame(int frame) {
@@ -240,7 +242,7 @@ public class GameBlock extends Table implements Pool.Poolable, Copyable<GameBloc
 
     @Override
     public void setDebug(boolean enabled) {
-        super.setDebug(YokelUtilities.setDebug(enabled, uiBlock));
+        super.setDebug(UIUtil.setDebug(enabled, uiBlock));
     }
 
     @Override
@@ -248,6 +250,7 @@ public class GameBlock extends Table implements Pool.Poolable, Copyable<GameBloc
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         GameBlock gameBlock = (GameBlock) o;
+        if (uiBlock == null || gameBlock.uiBlock == null) return false;
         return uiBlock.getName().equals(gameBlock.getName()) && isPreview == gameBlock.isPreview() && isActive == gameBlock.isActive();
     }
 
@@ -267,6 +270,11 @@ public class GameBlock extends Table implements Pool.Poolable, Copyable<GameBloc
         deep.setImage(this.getImage());
         deep.setActive(this.isActive());
         return deep;
+    }
+
+    @Override
+    public String toString() {
+        return "GameBlock{name=" + getImageBlockName() + ", block=" + getBlock() + ", preview=" + isPreview + "}";
     }
 
     public void setDelay(float delay) {

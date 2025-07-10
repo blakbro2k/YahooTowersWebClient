@@ -18,21 +18,23 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import asg.games.yokel.client.objects.AbstractYokelObject;
-import asg.games.yokel.client.objects.Copyable;
-import asg.games.yokel.client.objects.YokelBlock;
-import asg.games.yokel.client.objects.YokelBlockMove;
-import asg.games.yokel.client.objects.YokelBoardPair;
-import asg.games.yokel.client.objects.YokelBrokenBlock;
-import asg.games.yokel.client.objects.YokelClock;
-import asg.games.yokel.client.objects.YokelGameBoard;
-import asg.games.yokel.client.objects.YokelKeyMap;
-import asg.games.yokel.client.objects.YokelObject;
-import asg.games.yokel.client.objects.YokelPiece;
-import asg.games.yokel.client.objects.YokelPlayer;
-import asg.games.yokel.client.objects.YokelRoom;
-import asg.games.yokel.client.objects.YokelSeat;
-import asg.games.yokel.client.objects.YokelTable;
+import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
+import asg.games.yipee.libgdx.objects.AbstractYipeeObjectGDX;
+import asg.games.yipee.libgdx.objects.Copyable;
+import asg.games.yipee.libgdx.objects.YipeeBlockGDX;
+import asg.games.yipee.libgdx.objects.YipeeBlockMoveGDX;
+import asg.games.yipee.libgdx.objects.YipeeBoardPairGDX;
+import asg.games.yipee.libgdx.objects.YipeeBrokenBlockGDX;
+import asg.games.yipee.libgdx.objects.YipeeClockGDX;
+import asg.games.yipee.libgdx.objects.YipeeKeyMapGDX;
+import asg.games.yipee.libgdx.objects.YipeeObjectGDX;
+import asg.games.yipee.libgdx.objects.YipeePieceGDX;
+import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
+import asg.games.yipee.libgdx.objects.YipeeRoomGDX;
+import asg.games.yipee.libgdx.objects.YipeeSeatGDX;
+import asg.games.yipee.libgdx.objects.YipeeTableGDX;
+import asg.games.yipee.libgdx.tools.LibGDXUtil;
+import asg.games.yipee.tools.NetUtil;
 import asg.games.yokel.client.utils.RandomUtil;
 import asg.games.yokel.client.utils.YokelUtilities;
 
@@ -57,13 +59,13 @@ public class TestGameObjects {
     }
 
     @Test(dataProvider = "yokel_objects")
-    public void testAbstractEqualsAndHashNullIds(AbstractYokelObject y1, AbstractYokelObject y2, AbstractYokelObject x1) {
+    public void testAbstractEqualsAndHashNullIds(AbstractYipeeObjectGDX y1, AbstractYipeeObjectGDX y2, AbstractYipeeObjectGDX x1) {
         Assert.assertEquals(y1, y2);
         Assert.assertNotEquals(y1, x1);
         Assert.assertNotEquals(y2, x1);
 
         //HashSet uses hashes to determine uniqueness.
-        Set<YokelObject> set = new HashSet<>();
+        Set<YipeeObjectGDX> set = new HashSet<>();
         set.add(y1);
         set.add(y2);
         set.add(x1);
@@ -71,7 +73,7 @@ public class TestGameObjects {
     }
 
     @Test(dataProvider = "yokel_objects_ids")
-    public void testAbstractEqualsAndHash(AbstractYokelObject y1, AbstractYokelObject y2, AbstractYokelObject x1) {
+    public void testAbstractEqualsAndHash(AbstractYipeeObjectGDX y1, AbstractYipeeObjectGDX y2, AbstractYipeeObjectGDX x1) {
         Assert.assertNotEquals(y1, y2);
         Assert.assertNotEquals(y1, x1);
         Assert.assertNotEquals(y2, x1);
@@ -80,14 +82,14 @@ public class TestGameObjects {
         Assert.assertNotEquals(Objects.hash(y1.getId()), y2.hashCode());
         System.out.println("y1: " + y1);
         System.out.println("y1: " + y1.getClass());
-        YokelObject copy = YokelUtilities.getObjectFromJsonString(y1.getClass(), y1.getJsonString());
+        YipeeObjectGDX copy = YokelUtilities.getObjectFromJsonString(y1.getClass(), NetUtil.toJsonClient(y1));
         Assert.assertEquals(copy, y1);
         Assert.assertEquals(copy.getId(), y1.getId());
         Assert.assertEquals(copy.hashCode(), y1.hashCode());
     }
 
     @Test(dataProvider = "yokel_objects_ids")
-    public void testAbstractYokeObjectDeepCopy(AbstractYokelObject y1, AbstractYokelObject y2, AbstractYokelObject x1) {
+    public void testAbstractYokeObjectDeepCopy(AbstractYipeeObjectGDX y1, AbstractYipeeObjectGDX y2, AbstractYipeeObjectGDX x1) {
         //test Deep Copy
         if (y1 instanceof Copyable<?>) {
             Object copy1 = ((Copyable<?>) y1).deepCopy();
@@ -106,11 +108,11 @@ public class TestGameObjects {
     }
 
     @Test(dataProvider = "yokel_objects_ids")
-    public void testJSONConversion(AbstractYokelObject y1, AbstractYokelObject y2, AbstractYokelObject x1) {
+    public void testJSONConversion(AbstractYipeeObjectGDX y1, AbstractYipeeObjectGDX y2, AbstractYipeeObjectGDX x1) {
         //Test Json
-        String jsonStringBlock1 = y1.getJsonString();
-        String jsonStringYblock2 = y2.getJsonString();
-        String jsonStringXblock1 = x1.getJsonString();
+        String jsonStringBlock1 = NetUtil.toJsonClient(y1);
+        String jsonStringYblock2 = NetUtil.toJsonClient(y2);
+        String jsonStringXblock1 = NetUtil.toJsonClient(x1);
         System.out.println(y1);
         System.out.println(jsonStringBlock1);
         System.out.println(y2);
@@ -118,32 +120,32 @@ public class TestGameObjects {
         System.out.println(x1);
         System.out.println(jsonStringXblock1);
 
-        YokelObject readBlock1 = YokelUtilities.getObjectFromJsonString(y1.getClass(), jsonStringBlock1);
-        YokelObject readYBlock1 = YokelUtilities.getObjectFromJsonString(y2.getClass(), jsonStringYblock2);
-        YokelObject readYBlock2 = YokelUtilities.getObjectFromJsonString(x1.getClass(), jsonStringXblock1);
-        Assert.assertEquals(jsonStringBlock1, y1.getJsonString());
-        Assert.assertEquals(jsonStringYblock2, y2.getJsonString());
-        Assert.assertEquals(jsonStringXblock1, x1.getJsonString());
+        YipeeObjectGDX readBlock1 = YokelUtilities.getObjectFromJsonString(y1.getClass(), jsonStringBlock1);
+        YipeeObjectGDX readYBlock1 = YokelUtilities.getObjectFromJsonString(y2.getClass(), jsonStringYblock2);
+        YipeeObjectGDX readYBlock2 = YokelUtilities.getObjectFromJsonString(x1.getClass(), jsonStringXblock1);
+        Assert.assertEquals(jsonStringBlock1, NetUtil.toJsonClient(y1));
+        Assert.assertEquals(jsonStringYblock2, NetUtil.toJsonClient(y2));
+        Assert.assertEquals(jsonStringXblock1, NetUtil.toJsonClient(x1));
         Assert.assertEquals(readBlock1, y1);
         Assert.assertEquals(readYBlock1, y2);
         Assert.assertEquals(readYBlock2, x1);
     }
 
     @Test
-    public void testYokelBlock() {
-        YokelBlock block1 = new YokelBlock(1, 1);
-        YokelBlock yblock1 = new YokelBlock(1, 1, YokelBlock.Y_BLOCK);
+    public void testYipeeBlockGDX() {
+        YipeeBlockGDX block1 = new YipeeBlockGDX(1, 1);
+        YipeeBlockGDX yblock1 = new YipeeBlockGDX(1, 1, YipeeBlockGDX.Y_BLOCK);
         setIdAndName(block1, yblock1);
 
         //getBlockType() {
-        Assert.assertEquals(yblock1.getBlockType(), YokelBlock.Y_BLOCK);
+        Assert.assertEquals(yblock1.getBlockType(), YipeeBlockGDX.Y_BLOCK);
         //public void setBlockType(int blockType) {
-        yblock1.setBlockType(YokelBlock.OFFENSIVE_BASH_BLOCK_MEGA);
-        Assert.assertEquals(yblock1.getBlockType(), YokelBlock.OFFENSIVE_BASH_BLOCK_MEGA);
+        yblock1.setBlockType(YipeeBlockGDX.OFFENSIVE_BASH_BLOCK_MEGA);
+        Assert.assertEquals(yblock1.getBlockType(), YipeeBlockGDX.OFFENSIVE_BASH_BLOCK_MEGA);
 
         //public void reset() {
         block1.dispose();
-        Assert.assertEquals(block1.getBlockType(), YokelBlock.CLEAR_BLOCK);
+        Assert.assertEquals(block1.getBlockType(), YipeeBlockGDX.CLEAR_BLOCK);
 
         //public void setPowerIntensity(int intensity) {
         //public int getPowerIntensity() {
@@ -158,32 +160,32 @@ public class TestGameObjects {
 
         //Test Json
         block1.setPowerIntensity(4);
-        String json = YokelUtilities.getJsonString(YokelBlock.class, block1);
-        YokelBlock readYokelBlock = YokelUtilities.getObjectFromJsonString(YokelBlock.class, json);
-        Assert.assertEquals(json, block1.getJsonString());
-        System.out.println("Expected: " + block1.getJsonString());
-        System.out.println("Actual: " + readYokelBlock.getJsonString());
-        Assert.assertEquals(block1, readYokelBlock);
+        String json = YokelUtilities.getJsonString(YipeeBlockGDX.class, block1);
+        YipeeBlockGDX readYipeeBlockGDX = YokelUtilities.getObjectFromJsonString(YipeeBlockGDX.class, json);
+        Assert.assertEquals(json, NetUtil.toJsonClient(block1));
+        System.out.println("Expected: " + NetUtil.toJsonClient(block1));
+        System.out.println("Actual: " + NetUtil.toJsonClient(readYipeeBlockGDX));
+        Assert.assertEquals(block1, readYipeeBlockGDX);
 
         //Test Json complete
         //getBlockType() {
-        Assert.assertEquals(readYokelBlock.getBlockType(), YokelBlock.CLEAR_BLOCK);
-        Assert.assertEquals(readYokelBlock.getPowerIntensity(), 4);
+        Assert.assertEquals(readYipeeBlockGDX.getBlockType(), YipeeBlockGDX.CLEAR_BLOCK);
+        Assert.assertEquals(readYipeeBlockGDX.getPowerIntensity(), 4);
         Assert.assertTrue(block1.hasPower());
     }
 
     @Test
-    public void testYokelClock() {
-        YokelClock clock = new YokelClock();
+    public void testYipeeClockGDX() {
+        YipeeClockGDX clock = new YipeeClockGDX();
         setIdAndName(clock);
 
         //Test Json
-        String jsonStringClock1 = clock.getJsonString();
+        String jsonStringClock1 = NetUtil.toJsonClient(clock);
         System.out.println("clock: " + jsonStringClock1);
 
         //Test methods
-        YokelClock readClock1 = YokelUtilities.getObjectFromJsonString(YokelClock.class, jsonStringClock1);
-        Assert.assertEquals(jsonStringClock1, clock.getJsonString());
+        YipeeClockGDX readClock1 = YokelUtilities.getObjectFromJsonString(YipeeClockGDX.class, jsonStringClock1);
+        Assert.assertEquals(jsonStringClock1, NetUtil.toJsonClient(clock));
         Assert.assertEquals(readClock1, clock);
 
         Assert.assertFalse(clock.isRunning());
@@ -198,80 +200,80 @@ public class TestGameObjects {
         Assert.assertEquals(clock.getMinutes(), 0);
 
         //Test Json
-        String json = YokelUtilities.getJsonString(YokelClock.class, clock);
-        YokelClock readYokelClock = YokelUtilities.getObjectFromJsonString(YokelClock.class, json);
-        Assert.assertEquals(json, clock.getJsonString());
-        System.out.println("Expected: " + clock.getJsonString());
-        System.out.println("Actual: " + readYokelClock.getJsonString());
-        Assert.assertEquals(clock, readYokelClock);
+        String json = YokelUtilities.getJsonString(YipeeClockGDX.class, clock);
+        YipeeClockGDX readYipeeClockGDX = YokelUtilities.getObjectFromJsonString(YipeeClockGDX.class, json);
+        Assert.assertEquals(json, NetUtil.toJsonClient(clock));
+        System.out.println("Expected: " + NetUtil.toJsonClient(clock));
+        System.out.println("Actual: " + NetUtil.toJsonClient(readYipeeClockGDX));
+        Assert.assertEquals(clock, readYipeeClockGDX);
     }
 
     @Test
-    public void testYokelBoardPair() {
-        YokelGameBoard board1 = new YokelGameBoard();
-        YokelGameBoard board2 = new YokelGameBoard(14);
-        YokelBoardPair pair = new YokelBoardPair(board1, board2);
-        setIdAndName(board1, board2, pair);
+    public void testYipeeBoardPairGDX() {
+        YipeeGameBoardGDX board1 = new YipeeGameBoardGDX();
+        YipeeGameBoardGDX board2 = new YipeeGameBoardGDX(14);
+        YipeeBoardPairGDX pair = new YipeeBoardPairGDX(board1.exportGameState(), board2.exportGameState());
+        setIdAndName(board1.exportGameState(), board2.exportGameState(), pair);
 
         //Test methods
-        String jsonStringBoard1 = board1.getJsonString();
-        String jsonStringBoard2 = board2.getJsonString();
-        String jsonStringPair = pair.getJsonString();
+        String jsonStringBoard1 = NetUtil.toJsonClient(board1);
+        String jsonStringBoard2 = NetUtil.toJsonClient(board2);
+        String jsonStringPair = NetUtil.toJsonClient(pair);
         System.out.println("board1: " + jsonStringBoard1);
         System.out.println("board2: " + jsonStringBoard2);
         System.out.println("pair: " + jsonStringPair);
 
         //Json Test
-        YokelGameBoard readStringBoard1 = YokelUtilities.getObjectFromJsonString(YokelGameBoard.class, jsonStringBoard1);
-        YokelGameBoard readStringBoard2 = YokelUtilities.getObjectFromJsonString(YokelGameBoard.class, jsonStringBoard2);
-        YokelBoardPair readStringPair = YokelUtilities.getObjectFromJsonString(YokelBoardPair.class, jsonStringPair);
-        Assert.assertEquals(jsonStringBoard1, board1.getJsonString());
-        Assert.assertEquals(jsonStringBoard2, board2.getJsonString());
-        Assert.assertEquals(jsonStringPair, pair.getJsonString());
+        YipeeGameBoardGDX readStringBoard1 = YokelUtilities.getObjectFromJsonString(YipeeGameBoardGDX.class, jsonStringBoard1);
+        YipeeGameBoardGDX readStringBoard2 = YokelUtilities.getObjectFromJsonString(YipeeGameBoardGDX.class, jsonStringBoard2);
+        YipeeBoardPairGDX readStringPair = YokelUtilities.getObjectFromJsonString(YipeeBoardPairGDX.class, jsonStringPair);
+        Assert.assertEquals(jsonStringBoard1, NetUtil.toJsonClient(board1));
+        Assert.assertEquals(jsonStringBoard2, NetUtil.toJsonClient(board2));
+        Assert.assertEquals(jsonStringPair, NetUtil.toJsonClient(pair));
         Assert.assertEquals(readStringBoard1, board1);
         Assert.assertEquals(readStringBoard2, board2);
         Assert.assertEquals(readStringPair, pair);
 
-        Assert.assertEquals(pair.getLeftBoard(), board1);
-        Assert.assertEquals(pair.getRightBoard(), board2);
+        Assert.assertEquals(pair.getLeftBoard(), board1.exportGameState());
+        Assert.assertEquals(pair.getRightBoard(), board2.exportGameState());
 
-        Assert.assertEquals(readStringPair.getLeftBoard(), board1);
-        Assert.assertEquals(readStringPair.getRightBoard(), board2);
+        Assert.assertEquals(readStringPair.getLeftBoard(), board1.exportGameState());
+        Assert.assertEquals(readStringPair.getRightBoard(), board2.exportGameState());
     }
 
     @Test
-    public void testYokelBlockMove() {
+    public void testYipeeBlockMoveGDX() {
         //TODO: UPDATE TEST
-        YokelBlockMove blockMove = new YokelBlockMove(5, 5, 1, 2, 4);
+        YipeeBlockMoveGDX blockMove = new YipeeBlockMoveGDX(5, 5, 1, 2, 4);
         setIdAndName(blockMove);
         System.out.println(" blockMove: " + blockMove);
 
-        String json = YokelUtilities.getJsonString(YokelBlockMove.class, blockMove);
-        YokelBlockMove readBlockMove = YokelUtilities.getObjectFromJsonString(YokelBlockMove.class, json);
-        Assert.assertEquals(json, blockMove.getJsonString());
+        String json = YokelUtilities.getJsonString(YipeeBlockMoveGDX.class, blockMove);
+        YipeeBlockMoveGDX readBlockMove = YokelUtilities.getObjectFromJsonString(YipeeBlockMoveGDX.class, json);
+        Assert.assertEquals(json, NetUtil.toJsonClient(blockMove));
         Assert.assertEquals(blockMove, readBlockMove);
 
-        Assert.assertEquals(blockMove.col, 1);
-        Assert.assertEquals(blockMove.y, 2);
-        Assert.assertEquals(blockMove.targetRow, 4);
-        Assert.assertEquals(json, blockMove.getJsonString());
-        Assert.assertEquals(blockMove, YokelUtilities.getObjectFromJsonString(YokelBlockMove.class, json));
+        Assert.assertEquals(blockMove.getCol(), 1);
+        Assert.assertEquals(blockMove.getRow(), 2);
+        Assert.assertEquals(blockMove.getTargetRow(), 4);
+        Assert.assertEquals(json, NetUtil.toJsonClient(blockMove));
+        Assert.assertEquals(blockMove, YokelUtilities.getObjectFromJsonString(YipeeBlockMoveGDX.class, json));
     }
 
     @Test
-    public void testYokelBrokenBlock() {
+    public void testYipeeBrokenBlockGDX() {
         int row = 0;
         int col = 1;
         int block = 3;
-        YokelBrokenBlock brokenBlock = new YokelBrokenBlock(block, row, col);
+        YipeeBrokenBlockGDX brokenBlock = new YipeeBrokenBlockGDX(block, row, col);
         Assert.assertEquals(brokenBlock.getRow(), row);
         Assert.assertEquals(brokenBlock.getBlock(), block);
         Assert.assertEquals(brokenBlock.getCol(), col);
 
-        String json = YokelUtilities.getJsonString(YokelBrokenBlock.class, brokenBlock);
+        String json = YokelUtilities.getJsonString(YipeeBrokenBlockGDX.class, brokenBlock);
 
-        YokelBrokenBlock readBrokenBlock = YokelUtilities.getObjectFromJsonString(YokelBrokenBlock.class, json);
-        Assert.assertEquals(json, readBrokenBlock.getJsonString());
+        YipeeBrokenBlockGDX readBrokenBlock = YokelUtilities.getObjectFromJsonString(YipeeBrokenBlockGDX.class, json);
+        Assert.assertEquals(json, NetUtil.toJsonClient(readBrokenBlock));
         Assert.assertEquals(brokenBlock, readBrokenBlock);
 
         Assert.assertEquals(readBrokenBlock.getRow(), row);
@@ -280,13 +282,13 @@ public class TestGameObjects {
     }
 
     @Test
-    public void testYokelPiece() {
+    public void testYipeePieceGDX() {
         int[] expected = new int[3];
         int expectedIndex = 1;
         expected[0] = 4;
         expected[2] = 2;
 
-        YokelPiece yokelPiece = new YokelPiece(1, 2, 0, 4);
+        YipeePieceGDX yokelPiece = new YipeePieceGDX(1, 2, 0, 4);
         setIdAndName(yokelPiece);
         System.out.println("yokelPiece: " + yokelPiece);
 
@@ -320,19 +322,19 @@ public class TestGameObjects {
         Assert.assertEquals(yokelPiece.getBlock3(), expected[0]);
 
         //Test Json
-        String json = YokelUtilities.getJsonString(YokelPiece.class, yokelPiece);
-        YokelPiece readBlockMove = YokelUtilities.getObjectFromJsonString(YokelPiece.class, json);
-        Assert.assertEquals(json, yokelPiece.getJsonString());
-        System.out.println("Expected: " + yokelPiece.getJsonString());
-        System.out.println("Actual: " + readBlockMove.getJsonString());
+        String json = YokelUtilities.getJsonString(YipeePieceGDX.class, yokelPiece);
+        YipeePieceGDX readBlockMove = YokelUtilities.getObjectFromJsonString(YipeePieceGDX.class, json);
+        Assert.assertEquals(json, NetUtil.toJsonClient(yokelPiece));
+        System.out.println("Expected: " + NetUtil.toJsonClient(yokelPiece));
+        System.out.println("Actual: " + NetUtil.toJsonClient(readBlockMove));
         Assert.assertEquals(yokelPiece, readBlockMove);
     }
 
     @Test
-    public void testYokelPlayer() {
-        YokelPlayer yokelPlayer = new YokelPlayer("TestUser1", 500, 4);
-        YokelPlayer yokelPlayer2 = new YokelPlayer("TestUser2", 2500);
-        YokelPlayer yokelPlayer3 = new YokelPlayer("TestUser3");
+    public void testYipeePlayerGDX() {
+        YipeePlayerGDX yokelPlayer = new YipeePlayerGDX("TestUser1", 500, 4);
+        YipeePlayerGDX yokelPlayer2 = new YipeePlayerGDX("TestUser2", 2500);
+        YipeePlayerGDX yokelPlayer3 = new YipeePlayerGDX("TestUser3");
         yokelPlayer3.setIcon(12);
         yokelPlayer3.increaseRating(10);
         yokelPlayer3.decreaseRating(5);
@@ -356,29 +358,29 @@ public class TestGameObjects {
         Assert.assertEquals(yokelPlayer3.getRating(), 1505);
 
         //Test Json
-        String json = YokelUtilities.getJsonString(YokelPlayer.class, yokelPlayer3);
-        YokelPlayer readYokelPlayer3 = YokelUtilities.getObjectFromJsonString(YokelPlayer.class, json);
-        Assert.assertEquals(json, yokelPlayer3.getJsonString());
-        Assert.assertEquals(yokelPlayer3, readYokelPlayer3);
+        String json = YokelUtilities.getJsonString(YipeePlayerGDX.class, yokelPlayer3);
+        YipeePlayerGDX readYipeePlayerGDX3 = YokelUtilities.getObjectFromJsonString(YipeePlayerGDX.class, json);
+        Assert.assertEquals(json, NetUtil.toJsonClient(yokelPlayer3));
+        Assert.assertEquals(yokelPlayer3, readYipeePlayerGDX3);
 
-        YokelPlayer copy = new YokelPlayer(YokelPlayer.class, json);
-        System.out.println("Expected: " + readYokelPlayer3.getJsonString());
-        System.out.println("Actual: " + copy.getJsonString());
-        Assert.assertEquals(copy, readYokelPlayer3);
+        YipeePlayerGDX copy = new YipeePlayerGDX("playerOne");
+        System.out.println("Expected: " + NetUtil.toJsonClient(readYipeePlayerGDX3));
+        System.out.println("Actual: " + NetUtil.toJsonClient(copy));
+        Assert.assertEquals(copy, readYipeePlayerGDX3);
     }
 
     @Test
-    public void testYokelSeat() {
-        Assert.assertThrows(RuntimeException.class, () -> new YokelSeat("12", 8));
-        Assert.assertThrows(RuntimeException.class, () -> new YokelSeat("12", -1));
-        YokelPlayer yokelPlayer = new YokelPlayer("TestUser1", 500, 4);
-        YokelPlayer yokelPlayer2 = new YokelPlayer("TestUser2", 2500);
-        YokelPlayer yokelPlayer3 = new YokelPlayer("TestUser3");
+    public void testYipeeSeatGDX() {
+        Assert.assertThrows(RuntimeException.class, () -> new YipeeSeatGDX("12", 8));
+        Assert.assertThrows(RuntimeException.class, () -> new YipeeSeatGDX("12", -1));
+        YipeePlayerGDX yokelPlayer = new YipeePlayerGDX("TestUser1", 500, 4);
+        YipeePlayerGDX yokelPlayer2 = new YipeePlayerGDX("TestUser2", 2500);
+        YipeePlayerGDX yokelPlayer3 = new YipeePlayerGDX("TestUser3");
         setIdAndName(yokelPlayer, yokelPlayer2, yokelPlayer3);
 
-        YokelSeat yokelSeat = new YokelSeat("sim:table:1#1", 0);
+        YipeeSeatGDX yokelSeat = new YipeeSeatGDX("sim:table:1#1", 0);
         Assert.assertEquals(yokelSeat.getSeatNumber(), 0);
-        Assert.assertEquals(yokelSeat.getTableId(), "sim:table:1#1");
+        Assert.assertEquals(yokelSeat.getParentTableId(), "sim:table:1#1");
 
         Assert.assertNull(yokelSeat.getSeatedPlayer());
         Assert.assertFalse(yokelSeat.isOccupied());
@@ -387,7 +389,7 @@ public class TestGameObjects {
         Assert.assertFalse(yokelSeat.sitDown(yokelPlayer));
         Assert.assertEquals(yokelSeat.getSeatedPlayer(), yokelPlayer);
         Assert.assertTrue(yokelSeat.isOccupied());
-        YokelPlayer standUp = yokelSeat.standUp();
+        YipeePlayerGDX standUp = yokelSeat.standUp();
         Assert.assertFalse(yokelSeat.isOccupied());
         Assert.assertEquals(standUp, yokelPlayer);
 
@@ -398,33 +400,33 @@ public class TestGameObjects {
         Assert.assertFalse(yokelSeat.isOccupied());
 
         //Test Json
-        String json = YokelUtilities.getJsonString(YokelSeat.class, yokelSeat);
-        YokelSeat readYokelSeat = YokelUtilities.getObjectFromJsonString(YokelSeat.class, json);
-        Assert.assertEquals(json, yokelSeat.getJsonString());
-        System.out.println("Expected: " + readYokelSeat.getJsonString());
-        System.out.println("Actual: " + yokelSeat.getJsonString());
-        Assert.assertEquals(yokelSeat, readYokelSeat);
+        String json = YokelUtilities.getJsonString(YipeeSeatGDX.class, yokelSeat);
+        YipeeSeatGDX readYipeeSeatGDX = YokelUtilities.getObjectFromJsonString(YipeeSeatGDX.class, json);
+        Assert.assertEquals(json, NetUtil.toJsonClient(yokelSeat));
+        System.out.println("Expected: " + NetUtil.toJsonClient(readYipeeSeatGDX));
+        System.out.println("Actual: " + NetUtil.toJsonClient(yokelSeat));
+        Assert.assertEquals(yokelSeat, readYipeeSeatGDX);
     }
 
     @Test
-    public void testYokelRoom() {
-        YokelRoom yokelRoom1 = new YokelRoom("Eiffel Tower", YokelRoom.ADVANCED_LOUNGE);
-        YokelPlayer yokelPlayer = new YokelPlayer("TestUser1", 500, 4);
-        YokelPlayer yokelPlayer2 = new YokelPlayer("TestUser2", 2500);
-        YokelPlayer yokelPlayer3 = new YokelPlayer("TestUser3");
+    public void testYipeeRoomGDX() {
+        YipeeRoomGDX yokelRoom1 = new YipeeRoomGDX("Eiffel Tower", YipeeRoomGDX.ADVANCED_LOUNGE);
+        YipeePlayerGDX yokelPlayer = new YipeePlayerGDX("TestUser1", 500, 4);
+        YipeePlayerGDX yokelPlayer2 = new YipeePlayerGDX("TestUser2", 2500);
+        YipeePlayerGDX yokelPlayer3 = new YipeePlayerGDX("TestUser3");
         setIdAndName(yokelRoom1, yokelPlayer, yokelPlayer2, yokelPlayer3);
         yokelRoom1.setName("Eiffel Tower");
 
         Assert.assertEquals(yokelRoom1.getName(), "Eiffel Tower");
-        Assert.assertEquals(yokelRoom1.getLoungeName(), YokelRoom.ADVANCED_LOUNGE);
+        Assert.assertEquals(yokelRoom1.getLoungeName(), YipeeRoomGDX.ADVANCED_LOUNGE);
 
         System.out.println("yokelRoom1: " + yokelRoom1);
-        Array<YokelPlayer> expectedPlayers = GdxArrays.newArray();
-        ObjectMap<Integer, YokelTable> expectedTables = GdxMaps.newObjectMap();
+        Array<YipeePlayerGDX> expectedPlayers = GdxArrays.newArray();
+        ObjectMap<Integer, YipeeTableGDX> expectedTables = GdxMaps.newObjectMap();
 
-        Assert.assertEquals(yokelRoom1.getAllTableIndexes(), YokelUtilities.getMapKeys(expectedTables));
-        Assert.assertEquals(yokelRoom1.getAllTables(), YokelUtilities.getMapValues(expectedTables));
-        Assert.assertEquals(yokelRoom1.getAllPlayers(), expectedPlayers);
+        Assert.assertEquals(yokelRoom1.getTableIndexes(), YokelUtilities.getMapKeys(expectedTables));
+        Assert.assertEquals(yokelRoom1.getTables(), YokelUtilities.getMapValues(expectedTables));
+        Assert.assertEquals(yokelRoom1.getPlayers(), expectedPlayers);
 
         //Test players watch list
         yokelRoom1.joinRoom(yokelPlayer);
@@ -435,50 +437,50 @@ public class TestGameObjects {
         yokelRoom1.leaveRoom(yokelPlayer3);
         expectedPlayers.add(yokelPlayer);
         expectedPlayers.add(yokelPlayer2);
-        Assert.assertEquals(yokelRoom1.getAllPlayers(), expectedPlayers);
+        Assert.assertEquals(yokelRoom1.getPlayers(), expectedPlayers);
 
-        YokelRoom room = new YokelRoom("NewRoom");
+        YipeeRoomGDX room = new YipeeRoomGDX("NewRoom");
         room.dispose();
 
         //Test table list
         yokelRoom1.addTable();
 
         OrderedMap<String, Object> arguments = GdxMaps.newOrderedMap();
-        arguments.put(YokelTable.ARG_TYPE, YokelTable.ENUM_VALUE_PRIVATE);
-        arguments.put(YokelTable.ARG_RATED, true);
+        arguments.put(YipeeTableGDX.ARG_TYPE, YipeeTableGDX.ENUM_VALUE_PRIVATE);
+        arguments.put(YipeeTableGDX.ARG_RATED, true);
         yokelRoom1.addTable(arguments);
 
-        arguments.put(YokelTable.ARG_TYPE, YokelTable.ENUM_VALUE_PROTECTED);
-        arguments.put(YokelTable.ARG_RATED, false);
+        arguments.put(YipeeTableGDX.ARG_TYPE, YipeeTableGDX.ENUM_VALUE_PROTECTED);
+        arguments.put(YipeeTableGDX.ARG_RATED, false);
         yokelRoom1.addTable(arguments);
 
         yokelRoom1.addTable();
-        Assert.assertEquals(yokelRoom1.getAllTables().size, 4);
-        yokelRoom1.removeTable(2);
-        Assert.assertEquals(yokelRoom1.getAllTables().size, 3);
+        Assert.assertEquals(LibGDXUtil.sizeOf(yokelRoom1.getTables()), 4);
+        yokelRoom1.removeTableAt(2);
+        Assert.assertEquals(LibGDXUtil.sizeOf(yokelRoom1.getTables()), 3);
 
-        Array<YokelTable> tables = yokelRoom1.getAllTables();
-        for (YokelTable table : tables) {
+        Iterable<YipeeTableGDX> tables = yokelRoom1.getTables();
+        for (YipeeTableGDX table : tables) {
             table.setId(YokelUtilities.IDGenerator.getID());
         }
 
-        Assert.assertNotNull(yokelRoom1.getTable(4));
-        Assert.assertNull(yokelRoom1.getTable(2));
+        Assert.assertNotNull(yokelRoom1.getTableAt(4));
+        Assert.assertNull(yokelRoom1.getTableAt(2));
         yokelRoom1.addTable();
-        Assert.assertNotNull(yokelRoom1.getTable(2));
+        Assert.assertNotNull(yokelRoom1.getTableAt(2));
 
         //Test Json
-        String json = YokelUtilities.getJsonString(YokelRoom.class, yokelRoom1);
-        YokelRoom readYokelRoom = YokelUtilities.getObjectFromJsonString(YokelRoom.class, json);
-        Assert.assertEquals(json, yokelRoom1.getJsonString());
-        System.out.println("Expected: " + yokelRoom1.getJsonString());
-        System.out.println("Actual  : " + readYokelRoom.getJsonString());
-        Assert.assertEquals(readYokelRoom, yokelRoom1);
+        String json = YokelUtilities.getJsonString(YipeeRoomGDX.class, yokelRoom1);
+        YipeeRoomGDX readYipeeRoomGDX = YokelUtilities.getObjectFromJsonString(YipeeRoomGDX.class, json);
+        Assert.assertEquals(json, NetUtil.toJsonClient(yokelRoom1));
+        System.out.println("Expected: " + NetUtil.toJsonClient(yokelRoom1));
+        System.out.println("Actual  : " + NetUtil.toJsonClient(readYipeeRoomGDX));
+        Assert.assertEquals(readYipeeRoomGDX, yokelRoom1);
     }
 
     @Test
-    public void testYokelKeyMap() {
-        YokelKeyMap blockKeyMap = new YokelKeyMap();
+    public void testYipeeKeyMapGDX() {
+        YipeeKeyMapGDX blockKeyMap = new YipeeKeyMapGDX();
         System.out.println("blockKeyMap: " + blockKeyMap);
 
         Assert.assertEquals(blockKeyMap.getRightKey(), Input.Keys.RIGHT);
@@ -539,17 +541,19 @@ public class TestGameObjects {
     }
 
     @Test
-    public void testYokelTable() {
-        YokelTable yokelTable = new YokelTable("sim:room1", 1);
-        YokelTable yokelTable2 = new YokelTable("sim:room2", 2);
-
-        YokelPlayer yokelPlayer = new YokelPlayer("TestUser1", 500, 4);
-        YokelPlayer yokelPlayer2 = new YokelPlayer("TestUser2", 2500);
-
+    public void testYipeeTableGDX() {
         OrderedMap<String, Object> arguments = GdxMaps.newOrderedMap();
-        arguments.put(YokelTable.ARG_RATED, true);
-        arguments.put(YokelTable.ARG_TYPE, YokelTable.ENUM_VALUE_PRIVATE);
-        YokelTable yokelTable3 = new YokelTable("sim:room3", 1, arguments);
+        arguments.put(YipeeTableGDX.ARG_RATED, true);
+        arguments.put(YipeeTableGDX.ARG_TYPE, YipeeTableGDX.ENUM_VALUE_PRIVATE);
+
+        YipeeTableGDX yokelTable = new YipeeTableGDX(1, arguments);
+        YipeeTableGDX yokelTable2 = new YipeeTableGDX(2, arguments);
+
+        YipeePlayerGDX yokelPlayer = new YipeePlayerGDX("TestUser1", 500, 4);
+        YipeePlayerGDX yokelPlayer2 = new YipeePlayerGDX("TestUser2", 2500);
+
+
+        YipeeTableGDX yokelTable3 = new YipeeTableGDX(3, arguments);
         setIdAndName(yokelTable, yokelTable2, yokelTable3, yokelPlayer, yokelPlayer2);
         yokelTable.setName("sim:room1");
         yokelTable.setTableName(1);
@@ -558,10 +562,10 @@ public class TestGameObjects {
         yokelTable3.setName("sim:room3");
         yokelTable3.setTableName(1);
 
-        yokelTable2.setAccessType(YokelTable.ACCESS_TYPE.PROTECTED);
-        Assert.assertEquals(yokelTable.getAccessType(), YokelTable.ACCESS_TYPE.PUBLIC);
-        Assert.assertEquals(yokelTable2.getAccessType().getValue(), YokelTable.ACCESS_TYPE.PROTECTED.toString());
-        Assert.assertEquals(yokelTable3.getAccessType(), YokelTable.ACCESS_TYPE.PRIVATE);
+        yokelTable2.setAccessType(YipeeTableGDX.ACCESS_TYPE.PROTECTED);
+        Assert.assertEquals(yokelTable.getAccessType(), YipeeTableGDX.ACCESS_TYPE.PUBLIC);
+        Assert.assertEquals(yokelTable2.getAccessType().getValue(), YipeeTableGDX.ACCESS_TYPE.PROTECTED.toString());
+        Assert.assertEquals(yokelTable3.getAccessType(), YipeeTableGDX.ACCESS_TYPE.PRIVATE);
 
         Assert.assertEquals(yokelTable.getTableNumber(), 1);
         Assert.assertEquals(yokelTable2.getTableNumber(), 2);
@@ -585,71 +589,71 @@ public class TestGameObjects {
         }
 
         //Test Json
-        String json = YokelUtilities.getJsonString(YokelTable.class, yokelTable);
-        YokelTable readYokelTable = YokelUtilities.getObjectFromJsonString(YokelTable.class, json);
-        Assert.assertEquals(json, yokelTable.getJsonString());
-        System.out.println("Expected: " + yokelTable.getJsonString());
-        System.out.println("Actual  : " + readYokelTable.getJsonString());
-        Assert.assertEquals(readYokelTable, yokelTable);
+        String json = YokelUtilities.getJsonString(YipeeTableGDX.class, yokelTable);
+        YipeeTableGDX readYipeeTableGDX = YokelUtilities.getObjectFromJsonString(YipeeTableGDX.class, json);
+        Assert.assertEquals(json, NetUtil.toJsonClient(yokelTable));
+        System.out.println("Expected: " + NetUtil.toJsonClient(yokelTable));
+        System.out.println("Actual  : " + NetUtil.toJsonClient(readYipeeTableGDX));
+        Assert.assertEquals(readYipeeTableGDX, yokelTable);
     }
 
     @DataProvider(name = "yokel_objects")
-    public Object[][] provideYokelObjects() {
-        YokelBlock yokelBlock1 = new YokelBlock();
-        YokelBlock yokelBlock2 = new YokelBlock();
-        YokelBlock yokelBlock3 = new YokelBlock();
+    public Object[][] provideYipeeObjectGDXs() {
+        YipeeBlockGDX yokelBlock1 = new YipeeBlockGDX();
+        YipeeBlockGDX yokelBlock2 = new YipeeBlockGDX();
+        YipeeBlockGDX yokelBlock3 = new YipeeBlockGDX();
         yokelBlock3.setModified(TimeUtils.millis() + 1);
 
-        YokelClock yokelClock1 = new YokelClock();
-        YokelClock yokelClock2 = new YokelClock();
-        YokelClock yokelClock3 = new YokelClock();
+        YipeeClockGDX yokelClock1 = new YipeeClockGDX();
+        YipeeClockGDX yokelClock2 = new YipeeClockGDX();
+        YipeeClockGDX yokelClock3 = new YipeeClockGDX();
         yokelClock3.setModified(TimeUtils.millis() + 1);
 
-        YokelPlayer player1 = new YokelPlayer();
-        YokelPlayer player2 = new YokelPlayer();
-        YokelPlayer player3 = new YokelPlayer();
+        YipeePlayerGDX player1 = new YipeePlayerGDX();
+        YipeePlayerGDX player2 = new YipeePlayerGDX();
+        YipeePlayerGDX player3 = new YipeePlayerGDX();
         player3.setModified(TimeUtils.millis() + 1);
 
-        YokelPiece piece1 = new YokelPiece();
-        YokelPiece piece2 = new YokelPiece();
-        YokelPiece piece3 = new YokelPiece();
+        YipeePieceGDX piece1 = new YipeePieceGDX();
+        YipeePieceGDX piece2 = new YipeePieceGDX();
+        YipeePieceGDX piece3 = new YipeePieceGDX();
         piece3.setModified(TimeUtils.millis() + 1);
 
-        YokelBlockMove yokelBlockMove1 = new YokelBlockMove();
-        YokelBlockMove yokelBlockMove2 = new YokelBlockMove();
-        YokelBlockMove yokelBlockMove3 = new YokelBlockMove();
+        YipeeBlockMoveGDX yokelBlockMove1 = new YipeeBlockMoveGDX();
+        YipeeBlockMoveGDX yokelBlockMove2 = new YipeeBlockMoveGDX();
+        YipeeBlockMoveGDX yokelBlockMove3 = new YipeeBlockMoveGDX();
         yokelBlockMove3.setModified(TimeUtils.millis() + 1);
 
-        YokelBoardPair yokelBoardPair1 = new YokelBoardPair();
-        YokelBoardPair yokelBoardPair2 = new YokelBoardPair();
-        YokelBoardPair yokelBoardPair3 = new YokelBoardPair();
+        YipeeBoardPairGDX yokelBoardPair1 = new YipeeBoardPairGDX();
+        YipeeBoardPairGDX yokelBoardPair2 = new YipeeBoardPairGDX();
+        YipeeBoardPairGDX yokelBoardPair3 = new YipeeBoardPairGDX();
         yokelBoardPair3.setModified(TimeUtils.millis() + 1);
 
-        YokelRoom yokelRoom1 = new YokelRoom();
-        YokelRoom yokelRoom2 = new YokelRoom();
-        YokelRoom yokelRoom3 = new YokelRoom();
+        YipeeRoomGDX yokelRoom1 = new YipeeRoomGDX();
+        YipeeRoomGDX yokelRoom2 = new YipeeRoomGDX();
+        YipeeRoomGDX yokelRoom3 = new YipeeRoomGDX();
         yokelRoom3.setModified(TimeUtils.millis() + 1);
 
-        YokelSeat yokelSeat1 = new YokelSeat();
-        YokelSeat yokelSeat2 = new YokelSeat();
-        YokelSeat yokelSeat3 = new YokelSeat();
+        YipeeSeatGDX yokelSeat1 = new YipeeSeatGDX();
+        YipeeSeatGDX yokelSeat2 = new YipeeSeatGDX();
+        YipeeSeatGDX yokelSeat3 = new YipeeSeatGDX();
         yokelSeat3.setModified(TimeUtils.millis() + 1);
 
-        YokelTable yokelTablet1 = new YokelTable();
-        YokelTable yokelTablet2 = new YokelTable();
-        YokelTable yokelTablet3 = new YokelTable();
+        YipeeTableGDX yokelTablet1 = new YipeeTableGDX();
+        YipeeTableGDX yokelTablet2 = new YipeeTableGDX();
+        YipeeTableGDX yokelTablet3 = new YipeeTableGDX();
         yokelTablet3.setModified(TimeUtils.millis() + 1);
 
-        YokelBrokenBlock YokelBrokenBlock1 = new YokelBrokenBlock(1, 2, 3);
-        YokelBrokenBlock YokelBrokenBlock2 = new YokelBrokenBlock(1, 2, 3);
-        YokelBrokenBlock YokelBrokenBlock3 = new YokelBrokenBlock(1, 2, 3);
-        YokelBrokenBlock3.setModified(TimeUtils.millis() + 1);
+        YipeeBrokenBlockGDX YipeeBrokenBlockGDX1 = new YipeeBrokenBlockGDX(1, 2, 3);
+        YipeeBrokenBlockGDX YipeeBrokenBlockGDX2 = new YipeeBrokenBlockGDX(1, 2, 3);
+        YipeeBrokenBlockGDX YipeeBrokenBlockGDX3 = new YipeeBrokenBlockGDX(1, 2, 3);
+        YipeeBrokenBlockGDX3.setModified(TimeUtils.millis() + 1);
 
         return new Object[][]{
                 {yokelBlock1, yokelBlock2, yokelBlock3},
                 {yokelBlockMove1, yokelBlockMove2, yokelBlockMove3},
                 {yokelBoardPair1, yokelBoardPair2, yokelBoardPair3},
-                {YokelBrokenBlock1, YokelBrokenBlock2, YokelBrokenBlock3},
+                {YipeeBrokenBlockGDX1, YipeeBrokenBlockGDX2, YipeeBrokenBlockGDX3},
                 {yokelClock1, yokelClock2, yokelClock3},
                 {piece1, piece2, piece3},
                 {player1, player2, player3},
@@ -660,21 +664,21 @@ public class TestGameObjects {
     }
 
     @DataProvider(name = "yokel_objects_ids")
-    public Object[][] provideYokelObjectsWithIds() {
-        Object[][] objectsWithIds = provideYokelObjects();
+    public Object[][] provideYipeeObjectGDXsWithIds() {
+        Object[][] objectsWithIds = provideYipeeObjectGDXs();
         // let's loop through array to populate id and name
         for (Object[] objectsWithId : objectsWithIds) {
             for (Object object : objectsWithId) {
-                if (object instanceof YokelObject) {
-                    setIdAndName((YokelObject) object);
+                if (object instanceof YipeeObjectGDX) {
+                    setIdAndName((YipeeObjectGDX) object);
                 }
             }
         }
         return objectsWithIds;
     }
 
-    private void setIdAndName(YokelObject... yokelObjects) {
-        for (YokelObject yokelObject : YokelUtilities.safeIterable(yokelObjects)) {
+    private void setIdAndName(YipeeObjectGDX... yokelObjects) {
+        for (YipeeObjectGDX yokelObject : YokelUtilities.safeIterable(yokelObjects)) {
             if (yokelObject != null) {
                 int id = atomicId.getAndIncrement();
                 yokelObject.setId(YokelUtilities.IDGenerator.getID());

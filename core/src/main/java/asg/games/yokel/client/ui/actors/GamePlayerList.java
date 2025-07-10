@@ -6,8 +6,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.Array;
 
-import asg.games.yokel.objects.YokelPlayer;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
+import asg.games.yokel.client.utils.UIUtil;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 public class GamePlayerList extends Table {
     private final static String HEADER_NAME_STR = "Name";
@@ -43,7 +44,7 @@ public class GamePlayerList extends Table {
         add(header).row();
     }
 
-    private void addPlayer(YokelPlayer player){
+    private void addPlayer(YipeePlayerGDX player) {
         Table table = new Table(getSkin());
         table.add(labelize(player.getName())).left();
         table.add(labelize(player.getRating())).left();
@@ -52,12 +53,12 @@ public class GamePlayerList extends Table {
     }
 
     private Label labelize(Object text){
-        return YokelUtilities.createLabel(getSkin(), text.toString(), 1f);
+        return UIUtil.createLabel(getSkin(), text.toString(), 1f);
     }
 
-    public void updatePlayerList(Array<YokelPlayer> players){
+    public void updatePlayerList(Array<YipeePlayerGDX> players) {
         playerList.clearChildren();
-        for(YokelPlayer player : YokelUtilities.safeIterable(players)){
+        for (YipeePlayerGDX player : YokelUtilities.safeIterable(players)) {
             if(player != null){
                 addPlayer(player);
             }

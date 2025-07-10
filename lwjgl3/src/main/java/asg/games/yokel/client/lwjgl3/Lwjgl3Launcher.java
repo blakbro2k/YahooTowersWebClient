@@ -11,12 +11,16 @@ import com.github.czyzby.websocket.CommonWebSockets;
 
 import asg.games.yokel.client.GlobalConstants;
 import asg.games.yokel.client.YahooTowersClient;
+import asg.games.yokel.client.configuration.preferences.BootstrapConfig;
+import asg.games.yokel.client.managers.GameNetFactory;
 import asg.games.yokel.client.utils.SoundUtil;
 import asg.games.yokel.client.utils.UIUtil;
+
 
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
 	//private static final Logger logger = LoggerFactory.getLogger(Lwjgl3Launcher.class);
+    public static final String DEBUG_KEY = "debugMode";
 
 	public static void main(String[] args) {
 		if (args != null) {
@@ -37,15 +41,17 @@ public class Lwjgl3Launcher {
 
 				// Set debug mode as system property
 				if ("-debug".equalsIgnoreCase(arg)) {
-					System.setProperty("debugMode", "true");
+                    System.out.println("Setting Debug Setting");
+                    BootstrapConfig.setDebugMode(true);
 				}
 
 				// Parse JWT from -jwt=...
 				if (arg.startsWith("-jwt=")) {
 					String jwt = arg.substring("-jwt=".length());
-					System.setProperty("jwtToken", jwt);
+                    BootstrapConfig.setJwtToken(jwt);
 				}
-			}
+
+            }
 		}
 
 		createApplication();
@@ -53,6 +59,7 @@ public class Lwjgl3Launcher {
 
 	private static Lwjgl3Application createApplication() {
 		SoundUtil lwjgl3SoundUtil = new Lwjgl3SoundUtil();
+        GameNetFactory.registerClientManager(new KryoNetworkManager(5000, "localhost", 8081, 55000));
 		UIUtil.getInstance().setSoundUtil(lwjgl3SoundUtil);
 		CommonWebSockets.initiate();
 		return new Lwjgl3Application(new AutumnApplication(new DesktopClassScanner(), YahooTowersClient.class),
