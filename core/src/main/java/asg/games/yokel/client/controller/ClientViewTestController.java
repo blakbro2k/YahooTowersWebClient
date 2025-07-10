@@ -18,10 +18,10 @@ import com.github.czyzby.lml.annotation.LmlActor;
 
 import asg.games.yokel.client.service.UserInterfaceService;
 import asg.games.yokel.client.ui.actors.GamePlayerBoard;
-import asg.games.yokel.objects.YokelBlock;
-import asg.games.yokel.objects.YokelBlockEval;
-import asg.games.yokel.objects.YokelGameBoard;
-import asg.games.yokel.objects.YokelPlayer;
+import asg.games.yokel.client.objects.YokelBlock;
+import asg.games.yokel.client.objects.YokelBlockEval;
+import asg.games.yokel.client.objects.YokelGameBoard;
+import asg.games.yokel.client.objects.YokelPlayer;
 
 @View(id = "clientViewTest", value = "ui/templates/clientViewTest.lml")
 public class ClientViewTestController extends ClientViewController {

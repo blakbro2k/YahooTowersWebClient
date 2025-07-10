@@ -6,8 +6,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.TimeUtils;
 
-import asg.games.yokel.objects.YokelClock;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.objects.YokelClock;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 public class GameClock extends Table implements GameObject {
     private final static String NO_DIGIT_NME = "no_digit";

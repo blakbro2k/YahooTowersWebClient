@@ -13,7 +13,7 @@ import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 /**
  * Implements a logger with the following features

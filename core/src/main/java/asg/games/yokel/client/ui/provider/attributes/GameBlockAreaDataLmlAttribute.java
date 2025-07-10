@@ -6,7 +6,7 @@ import com.github.czyzby.lml.parser.tag.LmlAttribute;
 import com.github.czyzby.lml.parser.tag.LmlTag;
 
 import asg.games.yokel.client.ui.actors.GameBlockGrid;
-import asg.games.yokel.objects.YokelGameBoard;
+import asg.games.yokel.client.objects.YokelGameBoard;
 
 public class GameBlockAreaDataLmlAttribute implements LmlAttribute<GameBlockGrid> {
     public GameBlockAreaDataLmlAttribute() {

@@ -44,13 +44,13 @@ import asg.games.yokel.client.ui.actors.GameClock;
 import asg.games.yokel.client.ui.actors.GamePlayerBoard;
 import asg.games.yokel.client.utils.LogUtil;
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.managers.GameManager;
-import asg.games.yokel.objects.YokelBrokenBlock;
-import asg.games.yokel.objects.YokelGameBoardState;
-import asg.games.yokel.objects.YokelPlayer;
-import asg.games.yokel.objects.YokelSeat;
-import asg.games.yokel.objects.YokelTable;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.managers.GameClientManager;
+import asg.games.yokel.client.objects.YokelBrokenBlock;
+import asg.games.yokel.client.objects.YokelGameBoardState;
+import asg.games.yokel.client.objects.YokelPlayer;
+import asg.games.yokel.client.objects.YokelSeat;
+import asg.games.yokel.client.objects.YokelTable;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 @View(id = GlobalConstants.UI_CLIENT_VIEW, value = GlobalConstants.UI_CLIENT_VIEW_PATH)
 public class ClientViewController extends ApplicationAdapter implements ViewRenderer, ViewInitializer, ActionContainer {
@@ -107,7 +107,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
     private final YokelSeat[] order = new YokelSeat[8];
     private final boolean[] isYahooPlaying = new boolean[8];
     private final boolean[] isAlive = new boolean[8];
-    private GameManager simulatedGame;
+    private GameClientManager simulatedGame;
     private boolean yahooPlayed;
     private boolean isBrokenPlaying;
     private float yahTimer, brokenCellTimer;
@@ -154,7 +154,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
 
                 setSeat(6, player3, table);
                 setSeat(1, player2, table);
-                simulatedGame = new GameManager(table);
+                simulatedGame = new GameClientManager(table);
             } else {
                 //TODO: Fetch table state from server
                 isUsingServer = false;
@@ -218,9 +218,9 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
     public void render(Stage stage, float delta) {
         try{
             logger.enter("render");
-            //Fetch GameManager from Server
+            //Fetch GameClientManager from Server
             //fetch game state from server
-            GameManager game = fetchGameManagerFromServer(delta);
+            GameClientManager game = fetchGameManagerFromServer(delta);
             System.out.println(game);
 
             //Check if game is ready to start
@@ -265,7 +265,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private void addBrokenBlocksToAnimationQueue(GameManager game) {
+    private void addBrokenBlocksToAnimationQueue(GameClientManager game) {
         for (int boardSeat = 0; boardSeat < 8; boardSeat++) {
             for (YokelBrokenBlock cellBroken : game.getBoardState(boardSeat).getBrokenCells()) {
                 GameBlock gameBlock = UIUtil.getInstance().getGameBlock(cellBroken.getBlock(), uiAreas[boardSeat].isPreview());
@@ -295,7 +295,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         return verts;
     }
 
-    private void handleBrokenBlocks(GameManager game, Stage stage) {
+    private void handleBrokenBlocks(GameClientManager game, Stage stage) {
         if (brokenBlocksQueue1.size > 0) {
             YokelGameBoardState state = game.getBoardState(0);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue1);
@@ -463,7 +463,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
     }
 
     //Needs to update the simulated game with the server state.
-    private void updateGameState(GameManager game, float delta, Stage stage) throws ReflectionException {
+    private void updateGameState(GameClientManager game, float delta, Stage stage) throws ReflectionException {
         try {
             logger.enter("setUpDefaultSeats");
             if (logger.isDebugOn()) {
@@ -593,7 +593,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private boolean isGameRunning(GameManager game) throws ReflectionException {
+    private boolean isGameRunning(GameClientManager game) throws ReflectionException {
         try {
             logger.enter("isGameRunning");
             boolean isGameRunning = game != null && game.isRunning();
@@ -606,8 +606,8 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private void updateState(GameManager game) throws ReflectionException {
-        //TODO: Need a collection of GameManagers and update current one based off
+    private void updateState(GameClientManager game) throws ReflectionException {
+        //TODO: Need a collection of GameClientManagers and update current one based off
         try {
             logger.enter("updateState");
             if (game != null) {
@@ -621,7 +621,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private void checkIsGameReady(GameManager game) throws ReflectionException {
+    private void checkIsGameReady(GameClientManager game) throws ReflectionException {
         try {
             logger.enter("checkIsGameReady");
             for (int i = 0; i < order.length; i++) {
@@ -641,7 +641,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private void handleGameStart(GameManager game) throws ReflectionException {
+    private void handleGameStart(GameClientManager game) throws ReflectionException {
         try {
             logger.enter("handleGameStart");
             if (gameClock == null) return;
@@ -751,7 +751,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private void handleGameOver(Stage stage, GameManager game) throws ReflectionException {
+    private void handleGameOver(Stage stage, GameClientManager game) throws ReflectionException {
         try {
             logger.enter("handleGameOver");
             if (game != null && stage != null) {
@@ -771,7 +771,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private Actor getGameOverActor(GameManager game) throws ReflectionException {
+    private Actor getGameOverActor(GameClientManager game) throws ReflectionException {
         try {
             logger.enter("getGameOverActor");
             if (game != null) {
@@ -884,12 +884,12 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
     }
 
 
-    private GameManager fetchGameManagerFromServer(float delta) throws InterruptedException, ReflectionException {
+    private GameClientManager fetchGameManagerFromServer(float delta) throws InterruptedException, ReflectionException {
         try {
             logger.enter("fetchGameManagerFromServer");
             //sessionService.asyncGameManagerFromServerRequest();
 
-            GameManager game;
+            GameClientManager game;
 
             if (isUsingServer) {
                 //TODO: Check if received new GameManager, return current simulation if null.
@@ -920,11 +920,11 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
             logger.enter("fetchGameStateFromServer");
             //sessionService.asyncGameManagerFromServerRequest();
 
-            GameManager game = null;
+            GameClientManager game = null;
             YokelGameBoardState state = null;
 
             if (isUsingServer) {
-                //TODO: Check if received new GameManager, return current simulation if null.
+                //TODO: Check if received new GameClientManager, return current simulation if null.
                 game = sessionService.asyncGetGameManagerFromServerRequest();
             } else {
                 game = simulatedGame;

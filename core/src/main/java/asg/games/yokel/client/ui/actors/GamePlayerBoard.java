@@ -8,12 +8,12 @@ import com.badlogic.gdx.utils.Queue;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.objects.YokelBlock;
-import asg.games.yokel.objects.YokelGameBoard;
-import asg.games.yokel.objects.YokelGameBoardState;
-import asg.games.yokel.objects.YokelPiece;
-import asg.games.yokel.objects.YokelPlayer;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.objects.YokelBlock;
+import asg.games.yokel.client.objects.YokelGameBoard;
+import asg.games.yokel.client.objects.YokelGameBoardState;
+import asg.games.yokel.client.objects.YokelPiece;
+import asg.games.yokel.client.objects.YokelPlayer;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 /**
  * Created by eboateng on 3/19/2018.

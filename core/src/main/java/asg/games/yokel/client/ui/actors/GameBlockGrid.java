@@ -13,12 +13,12 @@ import com.badlogic.gdx.utils.Pools;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.objects.YokelBlock;
-import asg.games.yokel.objects.YokelBlockEval;
-import asg.games.yokel.objects.YokelGameBoard;
-import asg.games.yokel.objects.YokelGameBoardState;
-import asg.games.yokel.objects.YokelPiece;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.objects.YokelBlock;
+import asg.games.yokel.client.objects.YokelBlockEval;
+import asg.games.yokel.client.objects.YokelGameBoard;
+import asg.games.yokel.client.objects.YokelGameBoardState;
+import asg.games.yokel.client.objects.YokelPiece;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 public class GameBlockGrid extends Stack {
     private static final String CELL_ATTR = "uiCell";

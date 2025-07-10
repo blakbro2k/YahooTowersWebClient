@@ -11,8 +11,8 @@ import com.github.czyzby.kiwi.log.LoggerService;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.objects.YokelBlock;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.objects.YokelBlock;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 public class GamePowersQueue extends Table implements GameObject {
     private Logger logger = LoggerService.forClass(GamePowersQueue.class);

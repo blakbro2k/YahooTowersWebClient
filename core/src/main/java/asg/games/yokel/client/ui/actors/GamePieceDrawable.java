@@ -6,7 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.objects.YokelPiece;
+import asg.games.yokel.client.objects.YokelPiece;
 
 class GamePieceDrawable extends Actor {
     private final GameBlock[] blocks = new GameBlock[3];

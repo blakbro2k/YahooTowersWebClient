@@ -5,8 +5,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
-import asg.games.yokel.objects.YokelPlayer;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.objects.YokelPlayer;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 public class GameNameLabel extends Table implements GameObject {
     public static final Color YAHOO_ON = new Color(1f, 0f, 0f, 1);

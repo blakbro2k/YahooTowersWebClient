@@ -6,8 +6,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.Array;
 
-import asg.games.yokel.objects.YokelPlayer;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.objects.YokelPlayer;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 public class GamePlayerList extends Table {
     private final static String HEADER_NAME_STR = "Name";

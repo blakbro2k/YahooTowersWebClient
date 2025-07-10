@@ -8,7 +8,7 @@ import com.github.czyzby.lml.parser.tag.LmlTag;
 
 import asg.games.yokel.client.ui.actors.GameBlock;
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.objects.YokelBlock;
+import asg.games.yokel.client.objects.YokelBlock;
 
 public class GameBlockLmlTag extends AbstractNonParentalActorLmlTag {
     public GameBlockLmlTag(LmlParser parser, LmlTag parentTag, StringBuilder rawTagData) {

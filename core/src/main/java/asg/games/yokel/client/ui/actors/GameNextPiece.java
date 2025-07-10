@@ -4,9 +4,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.objects.YokelBlock;
-import asg.games.yokel.objects.YokelPiece;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.objects.YokelBlock;
+import asg.games.yokel.client.objects.YokelPiece;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 public class GameNextPiece extends Table implements GameObject {
     private GameBlock top;

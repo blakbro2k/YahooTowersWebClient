@@ -5,8 +5,8 @@ import com.github.czyzby.lml.parser.tag.LmlAttribute;
 import com.github.czyzby.lml.parser.tag.LmlTag;
 
 import asg.games.yokel.client.ui.actors.GameBlock;
-import asg.games.yokel.objects.YokelBlock;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.objects.YokelBlock;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 public class GameBlockTypeLmlAttribute implements LmlAttribute<GameBlock> {
     public GameBlockTypeLmlAttribute() {

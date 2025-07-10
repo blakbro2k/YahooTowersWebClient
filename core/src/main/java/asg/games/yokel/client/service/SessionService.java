@@ -22,12 +22,11 @@ import asg.games.yokel.client.factories.Log4LibGDXLogger;
 import asg.games.yokel.client.managers.GameClientManager;
 import asg.games.yokel.client.managers.KryoClientManager;
 import asg.games.yokel.client.utils.LogUtil;
-import asg.games.yokel.managers.GameManager;
-import asg.games.yokel.objects.YokelKeyMap;
-import asg.games.yokel.objects.YokelPlayer;
-import asg.games.yokel.objects.YokelTable;
-import asg.games.yokel.utils.PayloadUtil;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.objects.YokelKeyMap;
+import asg.games.yokel.client.objects.YokelPlayer;
+import asg.games.yokel.client.objects.YokelTable;
+import asg.games.yokel.client.utils.PayloadUtil;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 
 /**
@@ -212,7 +211,7 @@ public class SessionService {
         //client.requestGameManager(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
     }
 
-    public GameManager asyncGetGameManagerFromServerRequest() {
+    public GameClientManager asyncGetGameManagerFromServerRequest() {
         //return PayloadUtil.getGameManagerRequest(client.getNextRequest(ServerRequest.REQUEST_TABLE_GAME_MANAGER));new String[]{""}
         return PayloadUtil.getGameManagerRequest(new String[]{""});
     }
@@ -313,7 +312,7 @@ public class SessionService {
         return player;
     }
 
-    public void handlePlayerSimulatedInput(GameManager game){
+    public void handlePlayerSimulatedInput(GameClientManager game){
         logger.enter("handleLocalPlayerInput");
         int currentSeat = getCurrentSeat();
         logger.debug("currentSeat={}", currentSeat);

@@ -9,8 +9,8 @@ import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 
 import asg.games.yokel.client.service.UserInterfaceService;
 import asg.games.yokel.client.ui.actors.GameBlock;
-import asg.games.yokel.objects.YokelBlock;
-import asg.games.yokel.objects.YokelBlockEval;
+import asg.games.yokel.client.objects.YokelBlock;
+import asg.games.yokel.client.objects.YokelBlockEval;
 
 public class YokelObjectFactory implements Disposable {
     private final UserInterfaceService userInterfaceService;

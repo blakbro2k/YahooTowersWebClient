@@ -46,16 +46,16 @@ import asg.games.yokel.client.ui.actors.GamePlayerBoard;
 import asg.games.yokel.client.ui.actors.GamePowersQueue;
 import asg.games.yokel.client.utils.LogUtil;
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.managers.GameManager;
-import asg.games.yokel.objects.YokelBlockEval;
-import asg.games.yokel.objects.YokelBrokenBlock;
-import asg.games.yokel.objects.YokelGameBoard;
-import asg.games.yokel.objects.YokelGameBoardState;
-import asg.games.yokel.objects.YokelKeyMap;
-import asg.games.yokel.objects.YokelPlayer;
-import asg.games.yokel.objects.YokelSeat;
-import asg.games.yokel.objects.YokelTable;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.managers.GameClientManager;
+import asg.games.yokel.client.objects.YokelBlockEval;
+import asg.games.yokel.client.objects.YokelBrokenBlock;
+import asg.games.yokel.client.objects.YokelGameBoard;
+import asg.games.yokel.client.objects.YokelGameBoardState;
+import asg.games.yokel.client.objects.YokelKeyMap;
+import asg.games.yokel.client.objects.YokelPlayer;
+import asg.games.yokel.client.objects.YokelSeat;
+import asg.games.yokel.client.objects.YokelTable;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 @View(id = GlobalConstants.SPRITES_TEST_VIEW, value = GlobalConstants.SPRITES_TEST_VIEW_PATH)
 public class SpritesTestController extends ApplicationAdapter implements ViewRenderer, ViewInitializer, ActionContainer {
@@ -229,7 +229,7 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
     @LmlActor("togglePlayer")
     private VisCheckBox togglePlayer;
 
-    GameManager gameManager;
+    GameClientManager gameClientManager;
 
     long gameOverDialogTimestamp = 0;
     private boolean toggleYahoo, nextGameDialog, attemptGameStart, isGameReady = false;
@@ -379,7 +379,7 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
         try {
             logger.enter("destroy");
             //boardState.dispose();
-            //gameManager.dispose();
+            //gameClientManager.dispose();
             logger.exit("destroy");
         } catch (Exception e) {
             String errorMsg = "Error in destroy()";
@@ -407,10 +407,10 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             table.setSeats(seats);
 
 
-            gameManager = new GameManager(table);
-            gameManager.setSeed(gameSeed);
-            gameManager.resetGameBoards();
-            gameManager.startGame();
+            gameClientManager = new GameClientManager(table);
+            gameClientManager.setSeed(gameSeed);
+            gameClientManager.resetGameBoards();
+            gameClientManager.startGame();
 
             /*
             playerBoardData = new YokelGameBoard(gameSeed);
@@ -551,9 +551,9 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             }
             --breakTimer;
 
-            YokelGameBoardState state1 = gameManager.getBoardState(0);
-            YokelGameBoardState state2 = gameManager.getBoardState(1);
-            YokelGameBoardState state3 = gameManager.getBoardState(2);
+            YokelGameBoardState state1 = gameClientManager.getBoardState(0);
+            YokelGameBoardState state2 = gameClientManager.getBoardState(1);
+            YokelGameBoardState state3 = gameClientManager.getBoardState(2);
 
             // Animate broken blocks if timer triggers
             if (--brokenCheck == 0) {
@@ -575,7 +575,7 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             testGameBoard.renderPlayerBoard(state3);
             powersQueue.updatePowersQueue(queuePowers);
 
-            gameManager.update(delta);
+            gameClientManager.update(delta);
 
             for (YokelBrokenBlock cell : state1.getBrokenCells()) {
                 GameBlock block = UIUtil.getInstance().getGameBlock(cell.getBlock(), playerBoard.isPreview());
@@ -618,7 +618,7 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
         }
     }
 
-    private void handleBrokenBlocks(GameManager game, Stage stage) {
+    private void handleBrokenBlocks(GameClientManager game, Stage stage) {
         if (brokenBlocksQueue1.size > 0) {
             YokelGameBoardState state = game.getBoardState(0);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue1);
