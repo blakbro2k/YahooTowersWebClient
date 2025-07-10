@@ -10,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ObjectMap;
+import com.badlogic.gdx.utils.ObjectSet;
 import com.badlogic.gdx.utils.OrderedSet;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.reflect.ReflectionException;
@@ -21,7 +22,6 @@ import com.github.czyzby.autumn.mvc.component.ui.controller.ViewInitializer;
 import com.github.czyzby.autumn.mvc.component.ui.controller.ViewRenderer;
 import com.github.czyzby.autumn.mvc.stereotype.View;
 import com.github.czyzby.kiwi.log.LoggerService;
-import com.github.czyzby.kiwi.util.gdx.asset.Disposables;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 import com.github.czyzby.lml.annotation.LmlAction;
@@ -30,10 +30,19 @@ import com.github.czyzby.lml.parser.action.ActionContainer;
 
 import java.util.Iterator;
 
+import asg.games.yipee.libgdx.objects.YipeeBrokenBlockGDX;
+import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
+import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
+import asg.games.yipee.libgdx.objects.YipeeSeatGDX;
+import asg.games.yipee.libgdx.objects.YipeeTableGDX;
+import asg.games.yipee.libgdx.tools.LibGDXUtil;
+import asg.games.yipee.libgdx.tools.NetUtil;
+import asg.games.yipee.net.game.GameManager;
 import asg.games.yokel.client.GlobalConstants;
 import asg.games.yokel.client.controller.action.PlaySoundAction;
 import asg.games.yokel.client.controller.dialog.NextGameController;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
+import asg.games.yokel.client.game.ClientGameManager;
 import asg.games.yokel.client.service.SessionService;
 import asg.games.yokel.client.service.SoundFXService;
 import asg.games.yokel.client.service.UserInterfaceService;
@@ -44,13 +53,7 @@ import asg.games.yokel.client.ui.actors.GameClock;
 import asg.games.yokel.client.ui.actors.GamePlayerBoard;
 import asg.games.yokel.client.utils.LogUtil;
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.managers.GameManager;
-import asg.games.yokel.objects.YokelBrokenBlock;
-import asg.games.yokel.objects.YokelGameBoardState;
-import asg.games.yokel.objects.YokelPlayer;
-import asg.games.yokel.objects.YokelSeat;
-import asg.games.yokel.objects.YokelTable;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 @View(id = GlobalConstants.UI_CLIENT_VIEW, value = GlobalConstants.UI_CLIENT_VIEW_PATH)
 public class ClientViewController extends ApplicationAdapter implements ViewRenderer, ViewInitializer, ActionContainer {
@@ -104,7 +107,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
     private boolean isGameReady = false;
     private long nextGame = 0;
     private GamePlayerBoard[] uiAreas;
-    private final YokelSeat[] order = new YokelSeat[8];
+    private final YipeeSeatGDX[] order = new YipeeSeatGDX[8];
     private final boolean[] isYahooPlaying = new boolean[8];
     private final boolean[] isAlive = new boolean[8];
     private GameManager simulatedGame;
@@ -132,12 +135,16 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
 
             if (!isUsingServer) {
                 //UI Configuration manager needs to handle these.
-                YokelPlayer player1 = new YokelPlayer("enboateng");
-                YokelPlayer player2 = new YokelPlayer("lholtham", 1400, 1);
-                YokelPlayer player3 = new YokelPlayer("rmeyers", 1700, 1);
+                YipeePlayerGDX player1 = new YipeePlayerGDX("enboateng");
+                YipeePlayerGDX player2 = new YipeePlayerGDX("lholtham", 1400, 1);
+                YipeePlayerGDX player3 = new YipeePlayerGDX("rmeyers", 1700, 1);
+
+                ObjectMap<String, Object> arguments = GdxMaps.newObjectMap();
+                arguments.put(YipeeTableGDX.ARG_TYPE, YipeeTableGDX.ENUM_VALUE_PRIVATE);
+                arguments.put(YipeeTableGDX.ARG_RATED, true);
 
                 //setTable
-                YokelTable table = new YokelTable("sim:table:1", 1);
+                YipeeTableGDX table = new YipeeTableGDX(1, arguments);
                 //config.setTableNumber(1);
                 int currentSeatNumber = 3;
 
@@ -154,7 +161,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
 
                 setSeat(6, player3, table);
                 setSeat(1, player2, table);
-                simulatedGame = new GameManager(table);
+                simulatedGame = new ClientGameManager();
             } else {
                 //TODO: Fetch table state from server
                 isUsingServer = false;
@@ -172,12 +179,13 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    public void setSeat(int seatNumber, YokelPlayer player, YokelTable table) throws ReflectionException {
+    public void setSeat(int seatNumber, YipeePlayerGDX player, YipeeTableGDX table) throws ReflectionException {
         try {
             logger.enter("setSeat");
             if (table != null) {
-                if (seatNumber < 0 || seatNumber > YokelTable.MAX_SEATS) return;
-                YokelSeat seat = table.getSeat(seatNumber);
+                if (seatNumber < 0 || seatNumber > YipeeTableGDX.MAX_SEATS) return;
+                //YipeeSeatGDX seat = table.getSeat(seatNumber);
+                YipeeSeatGDX seat = null;
                 if (seat != null) {
                     if (player == null) {
                         seat.standUp();
@@ -199,9 +207,9 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         try {
             logger.enter("destroy");
             logger.info("destroying viewID: {}", GlobalConstants.UI_CLIENT_VIEW);
-            Disposables.disposeOf(simulatedGame);
+            //Disposables.disposeOf(simulatedGame);
 
-            for (YokelSeat seat : order) {
+            for (YipeeSeatGDX seat : order) {
                 if (seat != null) {
                     seat.dispose();
                 }
@@ -224,7 +232,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
             System.out.println(game);
 
             //Check if game is ready to start
-            checkIsGameReady(game);
+            //checkIsGameReady(game);
 
             //Check if Count down is starting
             handleGameStart(game);
@@ -265,9 +273,9 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private void addBrokenBlocksToAnimationQueue(GameManager game) {
+    private void addBrokenBlocksToAnimationQueue(GameManager game) throws Exception {
         for (int boardSeat = 0; boardSeat < 8; boardSeat++) {
-            for (YokelBrokenBlock cellBroken : game.getBoardState(boardSeat).getBrokenCells()) {
+            for (YipeeBrokenBlockGDX cellBroken : UIUtil.getYipeeBoardState(game, boardSeat).getBrokenCells()) {
                 GameBlock gameBlock = UIUtil.getInstance().getGameBlock(cellBroken.getBlock(), uiAreas[boardSeat].isPreview());
                 addBrokenBlockActorToQueue(brokenBlocksQueue1, gameBlock, uiAreas[boardSeat].getGrid(), cellBroken.getRow(), cellBroken.getCol());
             }
@@ -295,37 +303,37 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         return verts;
     }
 
-    private void handleBrokenBlocks(GameManager game, Stage stage) {
+    private void handleBrokenBlocks(GameManager game, Stage stage) throws Exception {
         if (brokenBlocksQueue1.size > 0) {
-            YokelGameBoardState state = game.getBoardState(0);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 0);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue1);
         }
         if (brokenBlocksQueue2.size > 0) {
-            YokelGameBoardState state = game.getBoardState(1);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 1);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue2);
         }
         if (brokenBlocksQueue3.size > 0) {
-            YokelGameBoardState state = game.getBoardState(2);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 2);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue3);
         }
         if (brokenBlocksQueue4.size > 0) {
-            YokelGameBoardState state = game.getBoardState(3);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 3);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue4);
         }
         if (brokenBlocksQueue5.size > 0) {
-            YokelGameBoardState state = game.getBoardState(4);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 4);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue5);
         }
         if (brokenBlocksQueue6.size > 0) {
-            YokelGameBoardState state = game.getBoardState(5);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 5);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue6);
         }
         if (brokenBlocksQueue7.size > 0) {
-            YokelGameBoardState state = game.getBoardState(6);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 6);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue7);
         }
         if (brokenBlocksQueue8.size > 0) {
-            YokelGameBoardState state = game.getBoardState(7);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 7);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue8);
         }
         brokenCheck = BREAK_CHECK_INTERVAL;
@@ -355,11 +363,11 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private void setUpDefaultSeats(YokelTable table) throws ReflectionException {
+    private void setUpDefaultSeats(YipeeTableGDX table) throws ReflectionException {
         try {
             logger.enter("setUpDefaultSeats");
             if (table != null) {
-                for (int i = 0; i < YokelTable.MAX_SEATS; i++) {
+                for (int i = 0; i < YipeeTableGDX.MAX_SEATS; i++) {
                     order[i] = table.getSeat(i);
                 }
             }
@@ -375,12 +383,12 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         try {
             logger.enter("updateGameBoardPreStart");
 
-            YokelTable table = sessionService.getCurrentTable();
+            YipeeTableGDX table = sessionService.getCurrentTable();
             int currentPlayerSeat = sessionService.getCurrentSeat();
             int currentPartnerSeat = getPlayerPartnerSeatNum(currentPlayerSeat);
 
             if (table != null) {
-                Array<YokelSeat> seats = table.getSeats();
+                ObjectSet<YipeeSeatGDX> seats = table.getSeats();
                 if (currentPlayerSeat > -1) {
                     int playerOneSeat = currentPlayerSeat % 2;
                     int playerPartnerSeat = currentPartnerSeat % 2;
@@ -389,16 +397,19 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
 
                     //Set up rest of active players+
                     Array<Integer> remaining = GdxArrays.newArray();
-                    for (int i = 2; i < YokelTable.MAX_SEATS; i++) {
+                    for (int i = 2; i < YipeeTableGDX.MAX_SEATS; i++) {
                         remaining.add(i);
                     }
 
                     Iterator<Integer> iterator = YokelUtilities.getArrayIterator(remaining);
 
-                    for (int i = 0; i < YokelTable.MAX_SEATS; i++) {
+                    for (int i = 0; i < YipeeTableGDX.MAX_SEATS; i++) {
                         if (i != currentPlayerSeat && i != currentPartnerSeat) {
                             if (iterator.hasNext()) {
-                                order[iterator.next()] = seats.get(i);
+                                YipeeSeatGDX seat = LibGDXUtil.getIndexOfSet(seats, i);
+                                if (seat != null) {
+                                    order[iterator.next()] = seat;
+                                }
                             }
                         }
                     }
@@ -407,10 +418,10 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
                 }
 
                 for (int i = 0; i < order.length; i++) {
-                    YokelSeat seat = order[i];
+                    YipeeSeatGDX seat = order[i];
                     logger.debug("seat = {}", seat);
                     if (seat != null) {
-                        YokelPlayer player = seat.getSeatedPlayer();
+                        YipeePlayerGDX player = seat.getSeatedPlayer();
                         logger.debug("player = {}", player);
 
                         String playerJsonObj = null;
@@ -419,7 +430,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
                         int seatNumber = seat.getSeatNumber();
 
                         if (player != null) {
-                            playerJsonObj = player.getJsonString();
+                            playerJsonObj = NetUtil.toJsonClient(player);
                             isAlive[seatNumber] = true;
                         } else {
                             isAlive[seatNumber] = false;
@@ -488,7 +499,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
                         isAlive[gameSeat] = false;
                         killPlayer(uiAreas[board]);
                     } else {
-                        updateUiBoard(uiAreas[board], game.getBoardState(gameSeat), gameSeat);
+                        updateUiBoard(uiAreas[board], UIUtil.getYipeeBoardState(game, gameSeat), gameSeat);
                     }
                 }
             }
@@ -501,7 +512,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
 
     }
 
-    private void updateUiBoard(GamePlayerBoard uiArea, YokelGameBoardState gameBoardState, int gameBoardSeat) throws ReflectionException {
+    private void updateUiBoard(GamePlayerBoard uiArea, YipeeGameBoardStateGDX gameBoardState, int gameBoardSeat) throws ReflectionException {
         try {
             if (logger.isDebugOn()) {
                 ObjectMap<String, Object> map = GdxMaps.newObjectMap();
@@ -514,10 +525,10 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
                 int yahooDuration = gameBoardState.getYahooDuration();
 
                 if (isPlayerBoard(gameBoardSeat)) {
-                    if (gameBoardState.getIsPieceSet()) {
+                    if (gameBoardState.isPieceSet()) {
                         soundFXService.playPiecePlacedSound();
                     }
-                    Iterable<YokelBrokenBlock> brokenCells = gameBoardState.getBrokenCells();
+                    Iterable<YipeeBrokenBlockGDX> brokenCells = gameBoardState.getBrokenCells();
                     logger.error("gameboard Name={}: gameboard broken cells={}", gameBoardState.getName(), brokenCells);
                     if (!YokelUtilities.isEmpty(brokenCells)) {
                         //Play broken cell sound
@@ -550,7 +561,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         /*try {
             //logger.enter("setUpDefaultSeats");
             //if(table != null){
-            //    for(int i = 0; i < YokelTable.MAX_SEATS; i++){
+            //    for(int i = 0; i < YipeeTableGDX.MAX_SEATS; i++){
            //         order[i] = table.getSeat(i);
              //   }
            // }
@@ -625,13 +636,13 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         try {
             logger.enter("checkIsGameReady");
             for (int i = 0; i < order.length; i++) {
-                YokelSeat seat = order[i];
-                logger.debug("seat= {}", seat.getJsonString());
+                YipeeSeatGDX seat = order[i];
+                logger.debug("seat= {}", NetUtil.toJsonClient(seat));
                 GamePlayerBoard uiArea = uiAreas[i];
                 uiArea.setGameReady(seat.isSeatReady());
             }
             if (game != null) {
-                isGameReady = game.isGameReady();
+                //isGameReady = game.isGameReady();
             }
             logger.exit("checkIsGameReady");
         } catch (Exception e) {
@@ -726,7 +737,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
             if (!gameClock.isRunning()) {
                 logger.debug("Starting clock now");
                 gameClock.start();
-                simulatedGame.startGame();
+                simulatedGame.startGameLoop();
             }
             logger.exit("startGame");
         } catch (Exception e) {
@@ -755,7 +766,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         try {
             logger.enter("handleGameOver");
             if (game != null && stage != null) {
-                if (game.showGameOver()) {
+                if (game.isRunning()) {
                     soundFXService.playGameOverSound();
                     yahooPlayed = false;
                     soundFXService.stopMenacingSound();
@@ -775,9 +786,9 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         try {
             logger.enter("getGameOverActor");
             if (game != null) {
-                Array<YokelPlayer> winners = game.getWinners();
-                YokelPlayer player1 = getPlayer(winners, 0);
-                YokelPlayer player2 = getPlayer(winners, 1);
+                Array<YipeePlayerGDX> winners = getGameWinners(game);
+                YipeePlayerGDX player1 = getPlayer(winners, 0);
+                YipeePlayerGDX player2 = getPlayer(winners, 1);
                 logger.debug("winners={}", winners);
                 logger.debug("player1={}", player1);
                 logger.debug("player2={}", player2);
@@ -797,7 +808,15 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private YokelPlayer getPlayer(Array<YokelPlayer> players, int index) throws ReflectionException {
+    private Array<YipeePlayerGDX> getGameWinners(GameManager game) {
+        Array<YipeePlayerGDX> winners = GdxArrays.newArray();
+        if (game instanceof ClientGameManager) {
+            winners = ((ClientGameManager) game).getWinners();
+        }
+        return winners;
+    }
+
+    private YipeePlayerGDX getPlayer(Array<YipeePlayerGDX> players, int index) throws ReflectionException {
         try {
             if (logger.isDebugOn()) {
                 ObjectMap<String, Object> map = GdxMaps.newObjectMap();
@@ -806,7 +825,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
                 logger.enter("getPlayer", map);
             }
 
-            YokelPlayer returnedPlayer = null;
+            YipeePlayerGDX returnedPlayer = null;
             if (!YokelUtilities.isEmpty(players) && index != players.size) {
                 logger.debug("player={}", players.get(index));
                 if (index < players.size) {
@@ -852,7 +871,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
                 if (isUsingServer) {
                     sessionService.asyncTableStandRequest(sessionService.getCurrentTableNumber(), sessionService.getCurrentSeat());
                 } else {
-                    YokelTable table = sessionService.getCurrentTable();
+                    YipeeTableGDX table = sessionService.getCurrentTable();
                     table.getSeat(sessionService.getCurrentSeat()).standUp();
                 }
             } catch (InterruptedException e) {
@@ -870,10 +889,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         try {
             logger.enter("handlePlayerInput");
             if (!isGameOver) {
-                sessionService.handlePlayerSimulatedInput(simulatedGame);
-                if (isUsingServer) {
-                    sessionService.handlePlayerInputToServer();
-                }
+                sessionService.handlePlayerInput(simulatedGame);
             }
             logger.exit("handlePlayerInput");
         } catch (Exception e) {
@@ -896,7 +912,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
                 game = sessionService.asyncGetGameManagerFromServerRequest();
             } else {
                 game = simulatedGame;
-                game.setTable(sessionService.getCurrentTable());
+                //game.setTable(sessionService.getCurrentTable());
                 if (isGameRunning(game)) {
                     //TODO: game state will not need to be updated anymore, it will be updated from server
                     game.update(delta);
@@ -915,24 +931,24 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
 
     }
 
-    private YokelGameBoardState fetchGameStateFromServer(float delta) throws InterruptedException, ReflectionException {
+    private YipeeGameBoardStateGDX fetchGameStateFromServer(float delta) throws InterruptedException, ReflectionException {
         try {
             logger.enter("fetchGameStateFromServer");
             //sessionService.asyncGameManagerFromServerRequest();
 
             GameManager game = null;
-            YokelGameBoardState state = null;
+            YipeeGameBoardStateGDX state = null;
 
             if (isUsingServer) {
                 //TODO: Check if received new GameManager, return current simulation if null.
-                game = sessionService.asyncGetGameManagerFromServerRequest();
+                //game = sessionService.asyncGetGameManagerFromServerRequest();
             } else {
                 game = simulatedGame;
             }
 
             //Fetch Game state from Manager
             if (game != null) {
-                state = game.getBoardState(1);
+                //state = game.getBoardState(1);
             }
 
             logger.exit("fetchGameStateFromServer", state);
@@ -975,13 +991,13 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
                 sessionService.asyncTableSitRequest(sessionService.getCurrentTableNumber(), seatNumber);
             }
             //Simulate the sitting process for the viewer
-            YokelPlayer player = sessionService.getCurrentPlayer();
+            YipeePlayerGDX player = sessionService.getCurrentPlayer();
             int currentSeat = sessionService.getCurrentSeat();
-            YokelTable table = sessionService.getCurrentTable();
+            YipeeTableGDX table = sessionService.getCurrentTable();
 
             logger.info("Sitting down at player: {} @Table[{}] @ Seat={}", player, table, seatNumber);
             if (table != null) {
-                Array<YokelSeat> seats = table.getSeats();
+                ObjectSet<YipeeSeatGDX> seats = table.getSeats();
                 logger.debug("seats={}", seats);
                 logger.debug("getCurrentSeat={}", currentSeat);
                 logger.debug("getCurrentPlayer={}", player);
@@ -991,14 +1007,14 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
                         logger.debug("seat={}", table.getSeat(s));
 
                         if (s == seatNumber) {
-                            YokelSeat seat = table.getSeat(s);
+                            YipeeSeatGDX seat = table.getSeat(s);
                             if (seat != null) {
                                 sessionService.setCurrentSeat(s);
                                 seat.sitDown(player);
                             }
                         }
                         if (s == currentSeat) {
-                            YokelSeat seat = table.getSeat(s);
+                            YipeeSeatGDX seat = table.getSeat(s);
                             if (seat != null) {
                                 logger.info("Standing player: {} @Table[{}] @ Seat={}", player, table, seatNumber);
                                 seat.standUp();

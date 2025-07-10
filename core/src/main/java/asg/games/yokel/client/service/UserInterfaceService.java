@@ -23,7 +23,7 @@ import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
 
 import asg.games.yokel.client.controller.LoadingController;
 import asg.games.yokel.client.factories.YokelObjectFactory;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 @Component
 public class UserInterfaceService {

@@ -1,23 +1,11 @@
 package asg.games.yokel.client.utils;
 
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.Animation;
-import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.ui.Cell;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Array.ArrayIterator;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.TimeUtils;
-import com.badlogic.gdx.utils.reflect.ClassReflection;
 import com.github.czyzby.kiwi.util.common.UtilitiesClass;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 
@@ -26,8 +14,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.stream.StreamSupport;
 
-import asg.games.yokel.client.objects.YokelPlayer;
-import asg.games.yokel.client.objects.YokelRoom;
+import asg.games.yipee.libgdx.objects.YipeeRoomGDX;
 
 public class YokelUtilities extends UtilitiesClass {
     /**
@@ -40,37 +27,22 @@ public class YokelUtilities extends UtilitiesClass {
      * @since 2.1
      */
     public static final int INDEX_NOT_FOUND = -1;
-    private static final YokelPlayer BLANK_PLAYER = new YokelPlayer("<NoPlayer_Def>", 1500, 1);
 
     private final static String LEFT_CURLY_BRACET_HTML = "&#123;";
     private final static String RIGHTT_CURLY_BRACET_HTML = "&#125;";
     private final static Json json = new Json();
 
-    public static void setHeightFromDrawable(final Actor actor, final Drawable drawable) {
-        if (actor != null && drawable != null) {
-            actor.setHeight(drawable.getMinHeight());
-        }
-    }
-
-    public static YokelPlayer getBlankPlayer() {
-        return BLANK_PLAYER;
-    }
-
-    public static void setWidthFromDrawable(final Actor actor, final Drawable drawable) {
-        if (actor != null && drawable != null) {
-            actor.setWidth(drawable.getMinWidth());
-        }
-    }
-
-    public static int getNextTableNumber(final YokelRoom yokelRoom) {
+    public static int getNextTableNumber(final YipeeRoomGDX yokelRoom) {
         int tableIndex = -1;
         if (yokelRoom != null) {
-            Array<Integer> tables = yokelRoom.getAllTableIndexes();
+            Iterable<Integer> tables = yokelRoom.getTableIndexes();
             int size = sizeOf(tables);
             if (size > 0) {
                 int[] indices = new int[size];
-                for (int i = 0; i < size; i++) {
-                    indices[i] = tables.get(i);
+                int i = 0;
+                for (int table : tables) {
+                    indices[i] = table;
+                    i++;
                 }
                 Arrays.sort(indices);
                 int max = indices[size - 1];
@@ -151,33 +123,7 @@ public class YokelUtilities extends UtilitiesClass {
         return returnList;
     }
 
-    public static Label createLabel(final Skin skin, final String text, float size) {
-        Label label = new Label("", skin);
-        if (!isEmpty(text)) {
-            label.setText(text);
-        }
-        label.setFontScale(size);
-        return label;
-    }
 
-    /**
-     * @param actor might have an ID attached using name setter.
-     * @return actor's ID or null.
-     */
-    public static String getActorId(final Actor actor) {
-        String id = "";
-        if (actor != null) {
-            id = actor.getName();
-        }
-        return id;
-    }
-
-    public static <T extends Actor> T getActorFromCell(Class<T> klass, final Cell<T> cell) {
-        if (cell != null && klass != null && ClassReflection.isInstance(klass, cell.getActor())) {
-            return cell.getActor();
-        }
-        return null;
-    }
 
     public static float maxFloat(Float... floats) {
         float max = 0;
@@ -187,12 +133,6 @@ public class YokelUtilities extends UtilitiesClass {
             }
         }
         return max;
-    }
-
-    public static void flushIterator(final Iterator<?> iterator) {
-        while (iterator != null && iterator.hasNext()) {
-            iterator.remove();
-        }
     }
 
     public static <Type> ObjectMap.Values<Type> getMapValues(ObjectMap<?, Type> objectMap) {
@@ -405,41 +345,6 @@ public class YokelUtilities extends UtilitiesClass {
         return fileNames;
     }
 
-    public static TextureRegion get2DAnimationFrame(Animation<Object> animation, int keyFrame) throws GdxRuntimeException {
-        if (animation == null) {
-            throw new GdxRuntimeException("Animation cannot be null.");
-        }
-        if (keyFrame < 0) {
-            throw new GdxRuntimeException("keyFrame must be greater than 0.");
-        }
-
-        Object frame = animation.getKeyFrame(keyFrame);
-        if (frame == null) {
-            return null;
-        }
-
-        if (frame instanceof TextureRegion) {
-            return (TextureRegion) frame;
-        }
-        throw new GdxRuntimeException("Frame is not an instance of " + TextureRegion.class + ". frame=" + frame.getClass());
-    }
-
-    public static void drawBackgroundRect(Batch batch, Rectangle rectangle, Color color) {
-        if (batch != null && rectangle != null && color != null) {
-            batch.end();
-
-            ShapeRenderer shapeRenderer = new ShapeRenderer();
-            shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            shapeRenderer.setColor(color);
-            shapeRenderer.rect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
-            shapeRenderer.end();
-            shapeRenderer.dispose();
-
-            batch.begin();
-        }
-    }
-
 
     public static boolean isValidPayload(String[] payload, int size) {
         if (payload != null) {
@@ -461,29 +366,7 @@ public class YokelUtilities extends UtilitiesClass {
         }
     }*/
 
-    public static String printBounds(Actor actor) {
-        if (actor != null) {
-            String name = actor.getClass().getSimpleName() + "@" + Integer.toHexString(actor.hashCode());
-            String cname = actor.getName();
-            if (cname != null) {
-                name = cname;
-            }
-            return name + "(" + actor.getX() + "," + actor.getY() + ")[w:" + actor.getWidth() + " h:" + actor.getHeight() + "]";
-        } else {
-            return "";
-        }
-    }
 
-    public static boolean setDebug(boolean b, Actor... actors) {
-        if (actors != null) {
-            for (Actor actor : actors) {
-                if (actor != null) {
-                    actor.setDebug(b);
-                }
-            }
-        }
-        return b;
-    }
 
     /**
      * <p>Compares two CharSequences, returning {@code true} if they represent

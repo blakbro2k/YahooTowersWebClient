@@ -12,13 +12,13 @@ import com.badlogic.gdx.utils.Pool;
 import com.badlogic.gdx.utils.Pools;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 
+import asg.games.yipee.libgdx.game.YipeeBlockEvalGDX;
+import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
+import asg.games.yipee.libgdx.objects.YipeeBlockGDX;
+import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
+import asg.games.yipee.libgdx.objects.YipeePieceGDX;
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.objects.YokelBlock;
-import asg.games.yokel.objects.YokelBlockEval;
-import asg.games.yokel.objects.YokelGameBoard;
-import asg.games.yokel.objects.YokelGameBoardState;
-import asg.games.yokel.objects.YokelPiece;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 public class GameBlockGrid extends Stack {
     private static final String CELL_ATTR = "uiCell";
@@ -72,8 +72,8 @@ public class GameBlockGrid extends Stack {
 
     private void initializeSize(){
         GameBlock clear = getClearBlock();
-        float width = clear.getWidth() * YokelGameBoard.MAX_COLS;
-        float height = clear.getHeight() * YokelGameBoard.MAX_PLAYABLE_ROWS;
+        float width = clear.getWidth() * YipeeGameBoardGDX.MAX_COLS;
+        float height = clear.getHeight() * YipeeGameBoardGDX.MAX_PLAYABLE_ROWS;
     }
 
     private void initializeBoard(){
@@ -85,20 +85,20 @@ public class GameBlockGrid extends Stack {
     }
 
     public void setDebug (boolean enabled) {
-        super.setDebug(YokelUtilities.setDebug(enabled, grid, bgNumber, bgColor, pieceSprite));
+        super.setDebug(UIUtil.setDebug(enabled, grid, bgNumber, bgColor, pieceSprite));
         for (GameBlock gameBlock : YokelUtilities.getMapValues(uiBlocks)) {
-            YokelUtilities.setDebug(enabled, gameBlock);
+            UIUtil.setDebug(enabled, gameBlock);
         }
     }
 
     private void initializeGrid(){
         this.grid.clearChildren();
         this.grid.setName(GRID_NAME);
-        for(int r = YokelGameBoard.MAX_PLAYABLE_ROWS - 1; r >= 0; r--){
-            for(int c = 0; c < YokelGameBoard.MAX_COLS; c++){
+        for (int r = YipeeGameBoardGDX.MAX_PLAYABLE_ROWS - 1; r >= 0; r--) {
+            for (int c = 0; c < YipeeGameBoardGDX.MAX_COLS; c++) {
                 GameBlock uiBlock = getClearBlock();
                 uiBlocks.put(getCellAttrName(r, c), uiBlock);
-                if(c + 1 == YokelGameBoard.MAX_COLS){
+                if (c + 1 == YipeeGameBoardGDX.MAX_COLS) {
                     grid.add(uiBlock).row();
                 } else {
                     grid.add(uiBlock);
@@ -114,14 +114,14 @@ public class GameBlockGrid extends Stack {
         GameBlock block = getClearBlock();
         float width = block.getWidth();
         float height = block.getHeight();
-        Rectangle bounds = new Rectangle(0, 0, width * YokelGameBoard.MAX_COLS, height * YokelGameBoard.MAX_PLAYABLE_ROWS);
+        Rectangle bounds = new Rectangle(0, 0, width * YipeeGameBoardGDX.MAX_COLS, height * YipeeGameBoardGDX.MAX_PLAYABLE_ROWS);
         grid.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
         this.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
         //grid.setCullingArea(bounds);
     }
 
     private GameBlock getClearBlock(){
-        return UIUtil.getBlock(YokelBlock.CLEAR_BLOCK, isPreview);
+        return UIUtil.getBlock(YipeeBlockGDX.CLEAR_BLOCK, isPreview);
     }
 
     private String getCellAttrName(int r, int c) {
@@ -148,7 +148,7 @@ public class GameBlockGrid extends Stack {
 
         if (uiCell != null) {
             uiCell.setPreview(isPreview);
-            uiCell.setImage(YokelBlockEval.getCellFlag(block));
+            uiCell.setImage(YipeeBlockEvalGDX.getCellFlag(block));
         }
     }
 
@@ -158,12 +158,12 @@ public class GameBlockGrid extends Stack {
 
 
     boolean isDownCellFree(int column, int row) {
-        return row > 0 && row < YokelGameBoard.MAX_PLAYABLE_ROWS + 1 && getPieceValue(column, row - 1) == YokelBlock.CLEAR_BLOCK;
+        return row > 0 && row < YipeeGameBoardGDX.MAX_PLAYABLE_ROWS + 1 && getPieceValue(column, row - 1) == YipeeBlockGDX.CLEAR_BLOCK;
     }
 
     private int getPieceValue(int c, int r) {
         GameBlock uiCell = uiBlocks.get(getCellAttrName(r, c));
-        int ret = YokelBlock.CLEAR_BLOCK;
+        int ret = YipeeBlockGDX.CLEAR_BLOCK;
         if (uiCell != null)
             ret = UIUtil.getInstance().getFactory().getBlockNumber(uiCell.getImage().getName());
         return ret;
@@ -203,7 +203,7 @@ public class GameBlockGrid extends Stack {
     }
 
 
-    private void setPieceSprite(YokelPiece piece, float fallOffset) {
+    private void setPieceSprite(YipeePieceGDX piece, float fallOffset) {
         if (piece != null) {
             pieceSprite.setBlocks(piece);
             pieceSprite.setParent(this);
@@ -218,8 +218,8 @@ public class GameBlockGrid extends Stack {
         Pool<Image> spritePool = Pools.get(Image.class);
         Image imageSprite = spritePool.obtain();
         if (image != null) {
-            YokelUtilities.setHeightFromDrawable(imageSprite, image.getDrawable());
-            YokelUtilities.setWidthFromDrawable(imageSprite, image.getDrawable());
+            UIUtil.setHeightFromDrawable(imageSprite, image.getDrawable());
+            UIUtil.setWidthFromDrawable(imageSprite, image.getDrawable());
             Vector2 pos = grid.localToActorCoordinates(imageSprite, new Vector2(0, 0));
             float offSetX = image.getWidth() * col;
             float offSetY = image.getHeight() * row;
@@ -228,22 +228,22 @@ public class GameBlockGrid extends Stack {
         return imageSprite;
     }
 
-    public void renderBoard(YokelGameBoard gameBoard) {
+    public void renderBoard(YipeeGameBoardGDX gameBoard) {
         if (gameBoard != null) {
-            for (int r = 0; r < YokelGameBoard.MAX_PLAYABLE_ROWS; r++) {
-                for (int c = 0; c < YokelGameBoard.MAX_COLS; c++) {
+            for (int r = 0; r < YipeeGameBoardGDX.MAX_PLAYABLE_ROWS; r++) {
+                for (int c = 0; c < YipeeGameBoardGDX.MAX_COLS; c++) {
                     setBlock(getBlockValueFromGameBoard(gameBoard, r, c), r, c);
                 }
             }
         }
     }
 
-    public void renderBoard(YokelGameBoardState state) {
+    public void renderBoard(YipeeGameBoardStateGDX state) {
         if (state != null) {
             //Render cells
             int[][] cells = state.getPlayerCells();
-            for (int r = 0; r < YokelGameBoard.MAX_PLAYABLE_ROWS; r++) {
-                for (int c = 0; c < YokelGameBoard.MAX_COLS; c++) {
+            for (int r = 0; r < YipeeGameBoardGDX.MAX_PLAYABLE_ROWS; r++) {
+                for (int c = 0; c < YipeeGameBoardGDX.MAX_COLS; c++) {
                     setBlock(cells[r][c], r, c);
                 }
             }
@@ -253,8 +253,8 @@ public class GameBlockGrid extends Stack {
         }
     }
 
-    private int getBlockValueFromGameBoard(YokelGameBoard board, int r, int c) {
-        int block = YokelBlock.CLEAR_BLOCK;
+    private int getBlockValueFromGameBoard(YipeeGameBoardGDX board, int r, int c) {
+        int block = YipeeBlockGDX.CLEAR_BLOCK;
         if (board != null) {
             block = board.getBlockValueAt(c, r);
         }

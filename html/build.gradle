@@ -55,12 +55,10 @@ dependencies {
     api "com.kotcrab.vis:vis-ui:$visUiVersion:sources"
     api "com.rafaskoberg.gdx:typing-label:$typingLabelVersion:sources"
 
-
-    api files("U:\\yokel-towers\\core\\build\\libs\\yokel-towers-" + yokelVersion + ".jar")
-    api files("U:\\yokel-towers\\core\\build\\libs\\yokel-towers-" + yokelVersion + "-sources.jar")
-    api files("U:\\YahooTowersWebClient\\assets\\lib\\gwt-servlet-jakarta.jar")
-    api files("U:\\YahooTowersWebClient\\assets\\lib\\gwt-servlet-jakarta-sources.jar")
-
+    api files('U:/Yipee/yipee-parent/yipee-libgdx/target/yipee-libgdx-1.11.5.jar')
+    api files('U:/Yipee/yipee-parent/yipee-libgdx/target/yipee-libgdx-1.11.5-sources.jar')
+    api files('U:/Yipee/yipee-parent/yipee-net/target/yipee-net-1.11.5.jar')
+    api files('U:/Yipee/yipee-parent/yipee-net/target/yipee-net-1.11.5-sources.jar')
     implementation project(':core')
 
 //// You can use the lines below instead of the "com.badlogicgames.gdx:gdx-backend-gwt" dependencies.

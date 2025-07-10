@@ -10,9 +10,9 @@ import com.github.czyzby.kiwi.log.Logger;
 import com.github.czyzby.kiwi.log.LoggerService;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 
+import asg.games.yipee.libgdx.objects.YipeeBlockGDX;
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.objects.YokelBlock;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 public class GamePowersQueue extends Table implements GameObject {
     private Logger logger = LoggerService.forClass(GamePowersQueue.class);
@@ -120,11 +120,11 @@ public class GamePowersQueue extends Table implements GameObject {
     }
 
     public float getPrefWidth() {
-        return UIUtil.getBlock(YokelBlock.CLEAR_BLOCK).getPrefWidth();
+        return UIUtil.getBlock(YipeeBlockGDX.CLEAR_BLOCK).getPrefWidth();
     }
 
     public float getPrefHeight() {
-        return UIUtil.getBlock(YokelBlock.CLEAR_BLOCK).getPrefHeight() * MAX_VIEWABLE_BLOCKS;
+        return UIUtil.getBlock(YipeeBlockGDX.CLEAR_BLOCK).getPrefHeight() * MAX_VIEWABLE_BLOCKS;
     }
 
     @Override

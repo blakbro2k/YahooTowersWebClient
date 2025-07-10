@@ -1,5 +1,8 @@
 buildscript {
 	repositories {
+        flatDir {
+            dirs 'lib'
+        }
 		mavenCentral()
 		mavenLocal()
 		maven { url 'https://s01.oss.sonatype.org' }
@@ -52,7 +55,6 @@ configure(subprojects) {
 			}
 		}
 	}
-
 }
 
 subprojects {

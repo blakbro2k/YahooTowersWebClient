@@ -22,7 +22,6 @@ dependencies {
     api "com.crashinvaders.lml:gdx-lml:$lmlVersion"
     api "com.crashinvaders.lml:gdx-websocket:$lmlVersion"
     api "com.crashinvaders.lml:gdx-websocket-serialization:$lmlVersion"
-    api 'com.esotericsoftware:kryonet:2.22.0-RC1'
 
     api 'org.apache.logging.log4j:log4j-api:2.14.1'
     api 'org.apache.logging.log4j:log4j-core:2.14.1'
@@ -32,22 +31,10 @@ dependencies {
     api "com.rafaskoberg.gdx:typing-label:$typingLabelVersion"
     api "org.projectlombok:lombok:$lombokVersion"
     api 'org.testng:testng:6.9.6'
-    api 'org.reflections:reflections:0.10.2'
-    api files("U:\\YipeeWebServer\\src\\main\\resources\\lib\\yipee-" + yipeeVersion + ".jar")
+    api "org.reflections:reflections:$reflectionsVersion"
 
-    // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.16'
+    api 'ch.qos.logback:logback-classic:1.2.11'
 
-    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.18.2'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.18.2'
-    implementation "org.reflections:reflections:$reflectionsVersion"
-    implementation 'ch.qos.logback:logback-classic:1.2.11'
-
-    // https://mvnrepository.com/artifact/org.aspectj/aspectjweaver
-    runtimeOnly group: 'org.aspectj', name: 'aspectjweaver', version: '1.9.22.1'
-
-    //annotationProcessor "org.projectlombok:lombok:$lombokVersion"
-    //api files("U:\\YahooTowersWebClient\\assets\\lib\\yokel-towers-" + yokelVersion + ".jar")
-    api files("U:\\yokel-towers\\core\\build\\libs\\yokel-towers-" + yokelVersion + ".jar")
+    api files('U:/Yipee/yipee-parent/yipee-net/target/yipee-net-1.11.5.jar')
+    api files('U:/Yipee/yipee-parent/yipee-libgdx/target/yipee-libgdx-1.11.5.jar')
 }

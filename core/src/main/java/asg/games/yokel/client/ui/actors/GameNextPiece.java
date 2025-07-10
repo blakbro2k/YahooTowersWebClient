@@ -3,10 +3,10 @@ package asg.games.yokel.client.ui.actors;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
+import asg.games.yipee.libgdx.objects.YipeeBlockGDX;
+import asg.games.yipee.libgdx.objects.YipeePieceGDX;
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.objects.YokelBlock;
-import asg.games.yokel.objects.YokelPiece;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 public class GameNextPiece extends Table implements GameObject {
     private GameBlock top;
@@ -14,7 +14,7 @@ public class GameNextPiece extends Table implements GameObject {
     private GameBlock bot;
 
     public GameNextPiece(Skin skin) {
-        this(skin, YokelBlock.CLEAR_BLOCK, YokelBlock.CLEAR_BLOCK, YokelBlock.CLEAR_BLOCK);
+        this(skin, YipeeBlockGDX.CLEAR_BLOCK, YipeeBlockGDX.CLEAR_BLOCK, YipeeBlockGDX.CLEAR_BLOCK);
     }
 
     private GameNextPiece(Skin skin, GameBlock top, GameBlock mid, GameBlock bottom) {
@@ -52,24 +52,24 @@ public class GameNextPiece extends Table implements GameObject {
     }
 
     public void setDebug(boolean enabled) {
-        super.setDebug(YokelUtilities.setDebug(enabled, top, mid, bot));
+        super.setDebug(UIUtil.setDebug(enabled, top, mid, bot));
     }
 
     public void setAsMedusa() {
-        setBlockImage(top, YokelBlock.MEDUSA);
-        setBlockImage(mid, YokelBlock.MEDUSA);
-        setBlockImage(bot, YokelBlock.MEDUSA);
+        setBlockImage(top, YipeeBlockGDX.MEDUSA);
+        setBlockImage(mid, YipeeBlockGDX.MEDUSA);
+        setBlockImage(bot, YipeeBlockGDX.MEDUSA);
     }
 
     public void setAsMidas() {
-        setBlockImage(top, YokelBlock.TOP_MIDAS);
-        setBlockImage(mid, YokelBlock.MID_MIDAS);
-        setBlockImage(bot, YokelBlock.BOT_MIDAS);
+        setBlockImage(top, YipeeBlockGDX.TOP_MIDAS);
+        setBlockImage(mid, YipeeBlockGDX.MID_MIDAS);
+        setBlockImage(bot, YipeeBlockGDX.BOT_MIDAS);
     }
 
     @Override
     public void updateYokelData(String data) {
-        YokelPiece piece = YokelUtilities.getObjectFromJsonString(YokelPiece.class, data);
+        YipeePieceGDX piece = YokelUtilities.getObjectFromJsonString(YipeePieceGDX.class, data);
         if (piece != null) {
             setBlockImage(top, piece.getBlock3());
             setBlockImage(mid, piece.getBlock2());

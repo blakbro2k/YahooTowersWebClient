@@ -23,17 +23,21 @@ eclipse.project.name = appName + '-lwjgl3'
 sourceCompatibility = 1.8
 
 dependencies {
-	implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
-	implementation 'com.badlogicgames.gdx:gdx-tools:1.5.4'
-	implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
-	implementation "com.crashinvaders.lml:gdx-autumn-fcs:$lmlVersion"
-	implementation "com.github.MrStahlfelge.gdx-websockets:common:$websocketVersion"
+    api "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    api 'com.badlogicgames.gdx:gdx-tools:1.5.4'
+    api "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    api "com.crashinvaders.lml:gdx-autumn-fcs:$lmlVersion"
+    api "com.github.MrStahlfelge.gdx-websockets:common:$websocketVersion"
+
+    api files('U:/Yipee/yipee-parent/yipee-net/target/yipee-net-1.11.5.jar')
+    api files('U:/Yipee/yipee-parent/yipee-libgdx/target/yipee-libgdx-1.11.5.jar')
+
     // SLF4J API
-    implementation 'org.slf4j:slf4j-api:1.7.36'
+    api 'org.slf4j:slf4j-api:1.7.36'
 
     // Logback Classic (as the backend for SLF4J)
-    implementation 'ch.qos.logback:logback-classic:1.2.6'
-    implementation 'org.slf4j:slf4j-simple:1.7.36'
+    api 'ch.qos.logback:logback-classic:1.2.6'
+    api 'org.slf4j:slf4j-simple:1.7.36'
 
 	implementation project(':core')
 }

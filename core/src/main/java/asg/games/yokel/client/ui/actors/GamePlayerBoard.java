@@ -7,13 +7,14 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Queue;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 
+import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
+import asg.games.yipee.libgdx.objects.YipeeBlockGDX;
+import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
+import asg.games.yipee.libgdx.objects.YipeePieceGDX;
+import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
+import asg.games.yipee.libgdx.tools.NetUtil;
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.objects.YokelBlock;
-import asg.games.yokel.objects.YokelGameBoard;
-import asg.games.yokel.objects.YokelGameBoardState;
-import asg.games.yokel.objects.YokelPiece;
-import asg.games.yokel.objects.YokelPlayer;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 /**
  * Created by eboateng on 3/19/2018.
@@ -41,8 +42,8 @@ public class GamePlayerBoard extends Table implements GameObject {
     public GamePlayerBoard(Skin skin) {
         super(skin);
         initialize(skin);
-        GameBlock block = UIUtil.getBlock(YokelBlock.CLEAR_BLOCK);
-        GameBlock previewBlock = UIUtil.getBlock(YokelBlock.CLEAR_BLOCK, area.isPreview());
+        GameBlock block = UIUtil.getBlock(YipeeBlockGDX.CLEAR_BLOCK);
+        GameBlock previewBlock = UIUtil.getBlock(YipeeBlockGDX.CLEAR_BLOCK, area.isPreview());
 
         blockWidth = block.getWidth();
         blockPrevWidth = previewBlock.getWidth();
@@ -90,7 +91,7 @@ public class GamePlayerBoard extends Table implements GameObject {
 
     @Override
     public void setDebug(boolean debug){
-        super.setDebug(YokelUtilities.setDebug(debug, nameLabel, next, powers, area));
+        super.setDebug(UIUtil.setDebug(debug, nameLabel, next, powers, area));
     }
 
     public void setPreview(boolean preview){
@@ -106,7 +107,7 @@ public class GamePlayerBoard extends Table implements GameObject {
         return area.isPreview();
     }
 
-    /*public void update(YokelGameBoard board){
+    /*public void update(YipeeGameBoardGDX board){
         if(board != null){
             area.renderBoard(board);
             powers.updateQueue(blockToGameBlocks(board.getPowers()));
@@ -114,16 +115,16 @@ public class GamePlayerBoard extends Table implements GameObject {
         }
     }*/
 
-    public void renderPlayerBoard(YokelGameBoardState boardState) {
+    public void renderPlayerBoard(YipeeGameBoardStateGDX boardState) {
         if (boardState != null) {
             area.renderBoard(boardState);
-            powers.updatePowersQueue(boardState.getPowersQueue());
+            powers.updatePowersQueue(boardState.getPowers());
             setUpNext(boardState);
         }
     }
 
-    private void setUpNext(YokelGameBoardState boardState) {
-        YokelPiece piece = boardState.getNextPiecePreview();
+    private void setUpNext(YipeeGameBoardStateGDX boardState) {
+        YipeePieceGDX piece = boardState.getNextPiece();
         if (piece != null) {
             Queue<Integer> pieces = boardState.getSpecialPieces();
             if (YokelUtilities.sizeOf(pieces) > 0) {
@@ -134,7 +135,7 @@ public class GamePlayerBoard extends Table implements GameObject {
                     next.setAsMidas();
                 }
             } else {
-                next.updateYokelData(piece.getJsonString());
+                next.updateYokelData(NetUtil.toJsonClient(piece));
             }
         }
     }
@@ -142,7 +143,7 @@ public class GamePlayerBoard extends Table implements GameObject {
     @Override
     public void updateYokelData(String data) {
         if (!YokelUtilities.isEmpty(data)) {
-            YokelPlayer player = YokelUtilities.getObjectFromJsonString(YokelPlayer.class, data);
+            YipeePlayerGDX player = YokelUtilities.getObjectFromJsonString(YipeePlayerGDX.class, data);
             if (player != null) {
                 sitPlayerDown(player);
             } else {
@@ -153,10 +154,10 @@ public class GamePlayerBoard extends Table implements GameObject {
         }
     }
 
-    public void sitPlayerDown(YokelPlayer player){
+    public void sitPlayerDown(YipeePlayerGDX player) {
         if(player != null){
             //area.sitPlayerDown(player);
-            setPlayerLabel(player.getJsonString());
+            setPlayerLabel(NetUtil.toJsonClient(player));
         }
         setUpBoard();
     }
@@ -181,18 +182,18 @@ public class GamePlayerBoard extends Table implements GameObject {
     @Override
     public float getPrefHeight() {
         if(area.isPreview()){
-            return blockPrevHeight * YokelGameBoard.MAX_PLAYABLE_ROWS + nameLabel.getPrefHeight();
+            return blockPrevHeight * YipeeGameBoardGDX.MAX_PLAYABLE_ROWS + nameLabel.getPrefHeight();
         } else {
-            return blockHeight * YokelGameBoard.MAX_PLAYABLE_ROWS + nameLabel.getPrefHeight();
+            return blockHeight * YipeeGameBoardGDX.MAX_PLAYABLE_ROWS + nameLabel.getPrefHeight();
         }
     }
 
     @Override
     public float getPrefWidth() {
         if(area.isPreview()){
-            return blockPrevWidth * YokelGameBoard.MAX_COLS + nameLabel.getPrefWidth();
+            return blockPrevWidth * YipeeGameBoardGDX.MAX_COLS + nameLabel.getPrefWidth();
         } else {
-            return blockWidth * YokelGameBoard.MAX_COLS + blockWidth * 2;
+            return blockWidth * YipeeGameBoardGDX.MAX_COLS + blockWidth * 2;
         }
     }
 
@@ -204,7 +205,7 @@ public class GamePlayerBoard extends Table implements GameObject {
         return area.getBoardNumber();
     }
 
-    public YokelGameBoard getYokelGameBoard() {
+    public YipeeGameBoardGDX getYipeeGameBoardGDX() {
         return null;//area.getBoard();
     }
 

@@ -30,10 +30,18 @@ import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.rafaskoberg.gdx.typinglabel.TypingLabel;
 
+import asg.games.yipee.libgdx.game.YipeeBlockEvalGDX;
+import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
+import asg.games.yipee.libgdx.objects.YipeeBrokenBlockGDX;
+import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
+import asg.games.yipee.libgdx.objects.YipeeKeyMapGDX;
+import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
+import asg.games.yipee.libgdx.objects.YipeeTableGDX;
 import asg.games.yokel.client.GlobalConstants;
 import asg.games.yokel.client.controller.dialog.GameOverDialogController;
 import asg.games.yokel.client.controller.dialog.NextGameController;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
+import asg.games.yokel.client.game.ClientGameManager;
 import asg.games.yokel.client.service.SessionService;
 import asg.games.yokel.client.service.UserInterfaceService;
 import asg.games.yokel.client.ui.actors.GameBlock;
@@ -46,16 +54,7 @@ import asg.games.yokel.client.ui.actors.GamePlayerBoard;
 import asg.games.yokel.client.ui.actors.GamePowersQueue;
 import asg.games.yokel.client.utils.LogUtil;
 import asg.games.yokel.client.utils.UIUtil;
-import asg.games.yokel.managers.GameManager;
-import asg.games.yokel.objects.YokelBlockEval;
-import asg.games.yokel.objects.YokelBrokenBlock;
-import asg.games.yokel.objects.YokelGameBoard;
-import asg.games.yokel.objects.YokelGameBoardState;
-import asg.games.yokel.objects.YokelKeyMap;
-import asg.games.yokel.objects.YokelPlayer;
-import asg.games.yokel.objects.YokelSeat;
-import asg.games.yokel.objects.YokelTable;
-import asg.games.yokel.utils.YokelUtilities;
+import asg.games.yokel.client.utils.YokelUtilities;
 
 @View(id = GlobalConstants.SPRITES_TEST_VIEW, value = GlobalConstants.SPRITES_TEST_VIEW_PATH)
 public class SpritesTestController extends ApplicationAdapter implements ViewRenderer, ViewInitializer, ActionContainer {
@@ -229,17 +228,17 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
     @LmlActor("togglePlayer")
     private VisCheckBox togglePlayer;
 
-    GameManager gameManager;
+    ClientGameManager gameManager;
 
     long gameOverDialogTimestamp = 0;
     private boolean toggleYahoo, nextGameDialog, attemptGameStart, isGameReady = false;
     private long nextGame = 0;
     float brokenCheck = BREAK_CHECK_INTERVAL;
-    private YokelGameBoard playerBoardData;
-    private YokelGameBoard playerBoard2Data;
-    private YokelGameBoard testBoardData;
+    private YipeeGameBoardGDX playerBoardData;
+    private YipeeGameBoardGDX playerBoard2Data;
+    private YipeeGameBoardGDX testBoardData;
     private boolean downKeyPressed = false;
-    private final YokelKeyMap keyMap = new YokelKeyMap();
+    private final YipeeKeyMapGDX keyMap = new YipeeKeyMapGDX();
     private int breakTimer = -1;
     private int y;
     private int a;
@@ -393,29 +392,32 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             logger.enter("initiate");
             initiateActors();
 
-            YokelPlayer player1 = new YokelPlayer("player1");
-            YokelPlayer player2 = new YokelPlayer("player2");
-            YokelPlayer player3 = new YokelPlayer("player3");
-            YokelTable table = new YokelTable("table1", 1);
-            Array<YokelSeat> seats = table.getSeats();
-            seats.get(0).sitDown(player1);
-            seats.get(0).setSeatReady(true);
-            seats.get(1).sitDown(player2);
-            seats.get(1).setSeatReady(true);
-            seats.get(2).sitDown(player3);
-            seats.get(2).setSeatReady(true);
-            table.setSeats(seats);
+            YipeePlayerGDX player1 = new YipeePlayerGDX("player1");
+            YipeePlayerGDX player2 = new YipeePlayerGDX("player2");
+            YipeePlayerGDX player3 = new YipeePlayerGDX("player3");
+            ObjectMap<String, Object> arguments = GdxMaps.newObjectMap();
+            arguments.put(YipeeTableGDX.ARG_TYPE, YipeeTableGDX.ENUM_VALUE_PRIVATE);
+            arguments.put(YipeeTableGDX.ARG_RATED, true);
+            YipeeTableGDX table = new YipeeTableGDX(1, arguments);
+
+            table.getSeat(0).sitDown(player1);
+            table.getSeat(0).setSeatReady(true);
+            table.getSeat(1).sitDown(player2);
+            table.getSeat(1).setSeatReady(true);
+            table.getSeat(2).sitDown(player3);
+            table.getSeat(2).setSeatReady(true);
+            //table.setSeats(seats);
 
 
-            gameManager = new GameManager(table);
-            gameManager.setSeed(gameSeed);
+            gameManager = new ClientGameManager();
+            gameManager.initialize(gameSeed, 2);
             gameManager.resetGameBoards();
-            gameManager.startGame();
+            gameManager.startGameLoop();
 
             /*
-            playerBoardData = new YokelGameBoard(gameSeed);
-            playerBoard2Data = new YokelGameBoard(gameSeed);
-            testBoardData = new YokelGameBoard(gameSeed);
+            playerBoardData = new YipeeGameBoardGDX(gameSeed);
+            playerBoard2Data = new YipeeGameBoardGDX(gameSeed);
+            testBoardData = new YipeeGameBoardGDX(gameSeed);
             playerBoardData.begin();
             playerBoard2Data.begin();
 
@@ -551,15 +553,35 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             }
             --breakTimer;
 
-            YokelGameBoardState state1 = gameManager.getBoardState(0);
-            YokelGameBoardState state2 = gameManager.getBoardState(1);
-            YokelGameBoardState state3 = gameManager.getBoardState(2);
+            YipeeGameBoardStateGDX state1 = UIUtil.getYipeeBoardState(gameManager, 0);
+            if (state1 != null) {
+                for (YipeeBrokenBlockGDX cell : state1.getBrokenCells()) {
+                    GameBlock block = UIUtil.getInstance().getGameBlock(cell.getBlock(), playerBoard.isPreview());
+                    addBrokenBlockActorToQueue(brokenBlocksQueue1, block, playerBoard, cell.getRow(), cell.getCol());
+                }
+            }
+            YipeeGameBoardStateGDX state2 = UIUtil.getYipeeBoardState(gameManager, 1);
+            if (state2 != null) {
+                for (YipeeBrokenBlockGDX cell : state2.getBrokenCells()) {
+                    GameBlock block = UIUtil.getInstance().getGameBlock(cell.getBlock(), previewBoard.isPreview());
+                    addBrokenBlockActorToQueue(brokenBlocksQueue2, block, previewBoard, cell.getRow(), cell.getCol());
+                }
+            }
+            YipeeGameBoardStateGDX state3 = UIUtil.getYipeeBoardState(gameManager, 2);
+            boolean localYahoo = false;
+            if (state3 != null) {
+                localYahoo = state3.getYahooDuration() > 0;
+                for (YipeeBrokenBlockGDX cell : state3.getBrokenCells()) {
+                    GameBlock block = UIUtil.getInstance().getGameBlock(cell.getBlock(), testGameBoard.isPreview());
+                    addBrokenBlockActorToQueue(brokenBlocksQueue3, block, testGameBoard.getGrid(), cell.getRow(), cell.getCol());
+                }
+            }
 
             // Animate broken blocks if timer triggers
             if (--brokenCheck == 0) {
                 animateBrokenBlocks(stage, brokenBlocksQueue1, toggleYahoo);
                 animateBrokenBlocks(stage, brokenBlocksQueue2, toggleYahoo);
-                animateBrokenBlocks(stage, brokenBlocksQueue3, state3.getYahooDuration() > 0);
+                animateBrokenBlocks(stage, brokenBlocksQueue3, localYahoo);
                 animateBrokenBlocks(stage, brokenBlocksQueue4, toggleYahoo);
                 animateBrokenBlocks(stage, brokenBlocksQueue5, toggleYahoo);
                 animateBrokenBlocks(stage, brokenBlocksQueue6, toggleYahoo);
@@ -577,20 +599,6 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
 
             gameManager.update(delta);
 
-            for (YokelBrokenBlock cell : state1.getBrokenCells()) {
-                GameBlock block = UIUtil.getInstance().getGameBlock(cell.getBlock(), playerBoard.isPreview());
-                addBrokenBlockActorToQueue(brokenBlocksQueue1, block, playerBoard, cell.getRow(), cell.getCol());
-            }
-
-            for (YokelBrokenBlock cell : state2.getBrokenCells()) {
-                GameBlock block = UIUtil.getInstance().getGameBlock(cell.getBlock(), previewBoard.isPreview());
-                addBrokenBlockActorToQueue(brokenBlocksQueue2, block, previewBoard, cell.getRow(), cell.getCol());
-            }
-
-            for (YokelBrokenBlock cell : state3.getBrokenCells()) {
-                GameBlock block = UIUtil.getInstance().getGameBlock(cell.getBlock(), testGameBoard.isPreview());
-                addBrokenBlockActorToQueue(brokenBlocksQueue3, block, testGameBoard.getGrid(), cell.getRow(), cell.getCol());
-            }
 
             stage.act(delta);
             stage.draw();
@@ -618,37 +626,37 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
         }
     }
 
-    private void handleBrokenBlocks(GameManager game, Stage stage) {
+    private void handleBrokenBlocks(ClientGameManager game, Stage stage) throws Exception {
         if (brokenBlocksQueue1.size > 0) {
-            YokelGameBoardState state = game.getBoardState(0);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 0);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue1);
         }
         if (brokenBlocksQueue2.size > 0) {
-            YokelGameBoardState state = game.getBoardState(1);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 1);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue2);
         }
         if (brokenBlocksQueue3.size > 0) {
-            YokelGameBoardState state = game.getBoardState(2);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 2);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue3);
         }
         if (brokenBlocksQueue4.size > 0) {
-            YokelGameBoardState state = game.getBoardState(3);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 3);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue4);
         }
         if (brokenBlocksQueue5.size > 0) {
-            YokelGameBoardState state = game.getBoardState(4);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 4);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue5);
         }
         if (brokenBlocksQueue6.size > 0) {
-            YokelGameBoardState state = game.getBoardState(5);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 5);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue6);
         }
         if (brokenBlocksQueue7.size > 0) {
-            YokelGameBoardState state = game.getBoardState(6);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 6);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue7);
         }
         if (brokenBlocksQueue8.size > 0) {
-            YokelGameBoardState state = game.getBoardState(7);
+            YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 7);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue8);
         }
         brokenCheck = BREAK_CHECK_INTERVAL;
@@ -669,7 +677,7 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
         }
     }
 
-    public void handlePlayerSimulatedInput(YokelGameBoard game) throws ReflectionException {
+    public void handlePlayerSimulatedInput(YipeeGameBoardGDX game) throws ReflectionException {
         try {
             //logger.enter("handleLocalPlayerInput");
 
@@ -750,7 +758,7 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
         }*/
             //logger.exit("handleLocalPlayerInput");
         } catch (Exception e) {
-            String errorMsg = "Error in handlePlayerSimulatedInput()";
+            String errorMsg = "Error in handlePlayerInput()";
             logger.error(errorMsg, e);
             throw new ReflectionException(errorMsg, e);
         }
@@ -1015,13 +1023,13 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             int block = 0;
 
             if (toggleOffensive) {
-                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 3));
+                block = YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(block, 3));
             } else {
-                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 4));
+                block = YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(block, 4));
             }
             queuePowers.addLast(block);
             //powersQueue.setPowers(queuePowers);
-            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
+            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YipeeBlockEvalGDX.addBrokenFlag(block));
             //playerBoard2Data.handlePower(block);
             //System.out.println(playerBoard2Data);
             logger.exit("addYAttack");
@@ -1039,13 +1047,13 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             int block = 1;
 
             if (toggleOffensive) {
-                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 3));
+                block = YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(block, 3));
             } else {
-                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 4));
+                block = YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(block, 4));
             }
             queuePowers.addLast(block);
             //powersQueue.setPowers(queuePowers);
-            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
+            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YipeeBlockEvalGDX.addBrokenFlag(block));
             //playerBoard2Data.handlePower(block);
             //System.out.println(playerBoard2Data);
             logger.exit("addYAttack");
@@ -1063,13 +1071,13 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             int block = 2;
 
             if (toggleOffensive) {
-                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 3));
+                block = YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(block, 3));
             } else {
-                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 4));
+                block = YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(block, 4));
             }
             queuePowers.addLast(block);
             //powersQueue.setPowers(queuePowers);
-            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
+            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YipeeBlockEvalGDX.addBrokenFlag(block));
             //playerBoard2Data.handlePower(block);
             //System.out.println(playerBoard2Data);
             logger.exit("addYAttack");
@@ -1087,13 +1095,13 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             int block = 3;
 
             if (toggleOffensive) {
-                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 3));
+                block = YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(block, 3));
             } else {
-                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 4));
+                block = YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(block, 4));
             }
             queuePowers.addLast(block);
             //powersQueue.setPowers(queuePowers);
-            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
+            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YipeeBlockEvalGDX.addBrokenFlag(block));
             //playerBoard2Data.handlePower(block);
             //System.out.println(playerBoard2Data);
             logger.exit("addYAttack");
@@ -1111,13 +1119,13 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             int block = 4;
 
             if (toggleOffensive) {
-                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 3));
+                block = YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(block, 3));
             } else {
-                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 4));
+                block = YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(block, 4));
             }
             queuePowers.addLast(block);
             //powersQueue.setPowers(queuePowers);
-            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
+            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YipeeBlockEvalGDX.addBrokenFlag(block));
             //playerBoard2Data.handlePower(block);
             //System.out.println(playerBoard2Data);
             logger.exit("addYAttack");
@@ -1135,13 +1143,13 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             int block = 5;
 
             if (toggleOffensive) {
-                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 3));
+                block = YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(block, 3));
             } else {
-                block = YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(block, 4));
+                block = YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(block, 4));
             }
             queuePowers.addLast(block);
             //powersQueue.setPowers(queuePowers);
-            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YokelBlockEval.addBrokenFlag(block));
+            //String brokenBlockString = UIUtil.getInstance().factory.getBlockImageName(YipeeBlockEvalGDX.addBrokenFlag(block));
             //playerBoard2Data.handlePower(block);
             //System.out.println(playerBoard2Data);
             logger.exit("addYAttack");

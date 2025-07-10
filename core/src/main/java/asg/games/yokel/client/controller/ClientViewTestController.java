@@ -16,12 +16,13 @@ import com.github.czyzby.autumn.mvc.stereotype.View;
 import com.github.czyzby.lml.annotation.LmlAction;
 import com.github.czyzby.lml.annotation.LmlActor;
 
+import asg.games.yipee.libgdx.game.YipeeBlockEvalGDX;
+import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
+import asg.games.yipee.libgdx.objects.YipeeBlockGDX;
+import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
+import asg.games.yipee.libgdx.tools.NetUtil;
 import asg.games.yokel.client.service.UserInterfaceService;
 import asg.games.yokel.client.ui.actors.GamePlayerBoard;
-import asg.games.yokel.objects.YokelBlock;
-import asg.games.yokel.objects.YokelBlockEval;
-import asg.games.yokel.objects.YokelGameBoard;
-import asg.games.yokel.objects.YokelPlayer;
 
 @View(id = "clientViewTest", value = "ui/templates/clientViewTest.lml")
 public class ClientViewTestController extends ClientViewController {
@@ -44,10 +45,10 @@ public class ClientViewTestController extends ClientViewController {
     @LmlActor("4:area")
     private GamePlayerBoard area4;
 
-    private YokelGameBoard player1Board;
-    private YokelGameBoard player2Board;
-    private YokelGameBoard player3Board;
-    private YokelGameBoard player4Board;
+    private YipeeGameBoardGDX player1Board;
+    private YipeeGameBoardGDX player2Board;
+    private YipeeGameBoardGDX player3Board;
+    private YipeeGameBoardGDX player4Board;
     private boolean nextGameDialog;
     private boolean attemptGameStart;
     private final boolean isGameReady = false;
@@ -72,23 +73,23 @@ public class ClientViewTestController extends ClientViewController {
     }
 
     private void initiate() throws ReflectionException {
-        YokelPlayer player = ClassReflection.newInstance(YokelPlayer.class);
+        YipeePlayerGDX player = ClassReflection.newInstance(YipeePlayerGDX.class);
         player.setName("test");
         player.setRating(2000);
         player.setIcon(6);
 
         player1Board = getTestBoard();
-        //boardState = new YokelGameBoard(1L);
+        //boardState = new YipeeGameBoard(1L);
         area1.hideJoinButton();
-        area1.updateYokelData(player.getJsonString());
+        area1.updateYokelData(NetUtil.toJsonClient(player));
         //area1.update(boardState);
         System.out.println(player1Board);
 
         //area = new GamePlayerBoard(uiService.getSkin());
-        YokelPlayer player2 = new YokelPlayer("Test Player One",2000, 5);
+        YipeePlayerGDX player2 = new YipeePlayerGDX("Test Player One", 2000, 5);
         //area2.setBoardNumber(2);
         area2.hideJoinButton();
-        area2.updateYokelData(player2.getJsonString());
+        area2.updateYokelData(NetUtil.toJsonClient(player2));
         //area2.update(getTestBoard());
 
         area3.hideJoinButton();
@@ -109,38 +110,38 @@ public class ClientViewTestController extends ClientViewController {
 
     private GameOverText getGameOverActor(){
         if(gameOverText == null){
-            gameOverText = new GameOverText(false, new YokelPlayer("ReadyPlayerOne"), new YokelPlayer("Player2"), uiService.getSkin());
+            gameOverText = new GameOverText(false, new YipeePlayerGDX("ReadyPlayerOne"), new YipeePlayerGDX("Player2"), uiService.getSkin());
         }
         return gameOverText;
     }*/
 
     @LmlAction("getTestBoard")
-    private YokelGameBoard getTestBoard(){
-        YokelGameBoard board = new YokelGameBoard(1L);
+    private YipeeGameBoardGDX getTestBoard() {
+        YipeeGameBoardGDX board = new YipeeGameBoardGDX(1L);
 
-        board.setCell(0,0, YokelBlock.Y_BLOCK);
-        board.setCell(0,1, YokelBlock.A_BLOCK);
-        board.setCell(0,2, YokelBlock.H_BLOCK);
-        board.setCell(0,3, YokelBlock.Op_BLOCK);
-        board.setCell(0,4, YokelBlock.Oy_BLOCK);
-        board.setCell(0,5, YokelBlock.EX_BLOCK);
+        board.setCell(0, 0, YipeeBlockGDX.Y_BLOCK);
+        board.setCell(0, 1, YipeeBlockGDX.A_BLOCK);
+        board.setCell(0, 2, YipeeBlockGDX.H_BLOCK);
+        board.setCell(0, 3, YipeeBlockGDX.Op_BLOCK);
+        board.setCell(0, 4, YipeeBlockGDX.Oy_BLOCK);
+        board.setCell(0, 5, YipeeBlockGDX.EX_BLOCK);
 
 
-        board.setCell(1,0, YokelBlock.DEFENSIVE_Y_BLOCK_MINOR);
-        board.setCell(1,1, YokelBlock.DEFENSIVE_O_BLOCK_REGULAR);
-        board.setCell(1,2, YokelBlock.DEFENSIVE_K_BLOCK_MEGA);
-        board.setCell(1,3, YokelBlock.DEFENSIVE_E_BLOCK_MINOR);
-        board.setCell(1,4, YokelBlock.DEFENSIVE_L_BLOCK_MINOR);
-        board.setCell(1,5, YokelBlock.DEFENSIVE_BASH_BLOCK_REGULAR);
+        board.setCell(1, 0, YipeeBlockGDX.DEFENSIVE_Y_BLOCK_MINOR);
+        board.setCell(1, 1, YipeeBlockGDX.DEFENSIVE_O_BLOCK_REGULAR);
+        board.setCell(1, 2, YipeeBlockGDX.DEFENSIVE_K_BLOCK_MEGA);
+        board.setCell(1, 3, YipeeBlockGDX.DEFENSIVE_E_BLOCK_MINOR);
+        board.setCell(1, 4, YipeeBlockGDX.DEFENSIVE_L_BLOCK_MINOR);
+        board.setCell(1, 5, YipeeBlockGDX.DEFENSIVE_BASH_BLOCK_REGULAR);
 
-        board.setCell(2,0, YokelBlock.OFFENSIVE_Y_BLOCK_MEGA);
-        board.setCell(2,1, YokelBlock.OFFENSIVE_O_BLOCK_MEGA);
-        board.setCell(2,2, YokelBlock.OFFENSIVE_K_BLOCK_MEGA);
-        board.setCell(2,3, YokelBlock.OFFENSIVE_E_BLOCK_REGULAR);
-        board.setCell(2,4, YokelBlock.OFFENSIVE_L_BLOCK_REGULAR);
-        board.setCell(2,5, YokelBlock.OFFENSIVE_BASH_BLOCK_MINOR);
+        board.setCell(2, 0, YipeeBlockGDX.OFFENSIVE_Y_BLOCK_MEGA);
+        board.setCell(2, 1, YipeeBlockGDX.OFFENSIVE_O_BLOCK_MEGA);
+        board.setCell(2, 2, YipeeBlockGDX.OFFENSIVE_K_BLOCK_MEGA);
+        board.setCell(2, 3, YipeeBlockGDX.OFFENSIVE_E_BLOCK_REGULAR);
+        board.setCell(2, 4, YipeeBlockGDX.OFFENSIVE_L_BLOCK_REGULAR);
+        board.setCell(2, 5, YipeeBlockGDX.OFFENSIVE_BASH_BLOCK_MINOR);
 
-        board.setCell(3,0, YokelBlock.STONE);
+        board.setCell(3, 0, YipeeBlockGDX.STONE);
         board.setCell(3,1, getRandomBlockId());
         board.setCell(3,2, getRandomBlockId());
         board.setCell(3,3, getRandomBlockId());
@@ -162,7 +163,7 @@ public class ClientViewTestController extends ClientViewController {
         board.setCell(5, 5, getRandomBlockId());
 
         board.setCell(6, 0, getRandomBlockId());
-        board.setCell(6, 1, YokelBlock.STONE);
+        board.setCell(6, 1, YipeeBlockGDX.STONE);
         board.setCell(6, 2, getRandomBlockId());
         board.setCell(6, 3, getRandomBlockId());
         board.setCell(6, 4, getRandomBlockId());
@@ -185,7 +186,7 @@ public class ClientViewTestController extends ClientViewController {
         board.setCell(9, 0, getRandomBlockId());
         board.setCell(9, 1, getRandomBlockId());
         board.setCell(9, 2, getRandomBlockId());
-        board.setCell(9, 3, YokelBlock.STONE);
+        board.setCell(9, 3, YipeeBlockGDX.STONE);
         board.setCell(9, 4, getRandomBlockId());
         board.setCell(9, 5, getRandomBlockId());
 
@@ -207,7 +208,7 @@ public class ClientViewTestController extends ClientViewController {
         board.setCell(12, 1, getRandomBlockId());
         board.setCell(12, 2, getRandomBlockId());
         board.setCell(12, 3, getRandomBlockId());
-        board.setCell(12, 4, YokelBlock.STONE);
+        board.setCell(12, 4, YipeeBlockGDX.STONE);
         board.setCell(12, 5, getRandomBlockId());
 
         board.setCell(13, 0, getRandomBlockId());
@@ -235,54 +236,54 @@ public class ClientViewTestController extends ClientViewController {
     }
 
     private int getRandomBlockId(){
-        return MathUtils.random(YokelBlock.EX_BLOCK);
+        return MathUtils.random(YipeeBlockGDX.EX_BLOCK);
     }
 
     public void checkInput(){
         //if(area1 == null) return;
         if (Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
-            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.Y_BLOCK, 3)));
+            player1Board.handlePower(YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(YipeeBlockGDX.Y_BLOCK, 3)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.A)) {
-            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.Y_BLOCK, 2)));
+            player1Board.handlePower(YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(YipeeBlockGDX.Y_BLOCK, 2)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.W)) {
-            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.A_BLOCK, 3)));
+            player1Board.handlePower(YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(YipeeBlockGDX.A_BLOCK, 3)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.S)) {
-            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.A_BLOCK, 2)));
+            player1Board.handlePower(YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(YipeeBlockGDX.A_BLOCK, 2)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
-            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.H_BLOCK, 5)));
+            player1Board.handlePower(YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(YipeeBlockGDX.H_BLOCK, 5)));
             System.out.println(player1Board);
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.D)) {
-            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.H_BLOCK, 2)));
+            player1Board.handlePower(YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(YipeeBlockGDX.H_BLOCK, 2)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
-            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.Op_BLOCK, 3)));
+            player1Board.handlePower(YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(YipeeBlockGDX.Op_BLOCK, 3)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.F)) {
-            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.Op_BLOCK, 2)));
+            player1Board.handlePower(YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(YipeeBlockGDX.Op_BLOCK, 2)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.T)) {
-            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.EX_BLOCK, 3)));
+            player1Board.handlePower(YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(YipeeBlockGDX.EX_BLOCK, 3)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.G)) {
-            player1Board.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.EX_BLOCK, 2)));
+            player1Board.handlePower(YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(YipeeBlockGDX.EX_BLOCK, 2)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
-            //boardState.handlePower(YokelBlockEval.addPowerBlockFlag(YokelBlockEval.setPowerFlag(YokelBlock.EX_BLOCK, 2)));
+            //boardState.handlePower(YipeeBlockEvalGDX.addPowerBlockFlag(YipeeBlockEvalGDX.setPowerFlag(YipeeBlockGDX.EX_BLOCK, 2)));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
             System.out.println(12292);
-            System.out.println(YokelBlockEval.getID(12292));
-            System.out.println(YokelBlockEval.getIDFlag(YokelBlockEval.getID(12292), 12292));
+            System.out.println(YipeeBlockEvalGDX.getID(12292));
+            System.out.println(YipeeBlockEvalGDX.getIDFlag(YipeeBlockEvalGDX.getID(12292), 12292));
 
             System.out.println(32820);
-            System.out.println(YokelBlockEval.hasAddedByYahooFlag(32820));
-            System.out.println(YokelBlockEval.getID(32820));
-            System.out.println(YokelBlockEval.getIDFlag(YokelBlockEval.getID(32820), 32820));
+            System.out.println(YipeeBlockEvalGDX.hasAddedByYahooFlag(32820));
+            System.out.println(YipeeBlockEvalGDX.getID(32820));
+            System.out.println(YipeeBlockEvalGDX.getIDFlag(YipeeBlockEvalGDX.getID(32820), 32820));
         }
     }
 

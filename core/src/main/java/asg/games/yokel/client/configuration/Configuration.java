@@ -1,7 +1,7 @@
 package asg.games.yokel.client.configuration;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Preferences;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.github.czyzby.autumn.annotation.Component;
@@ -102,7 +102,6 @@ public class Configuration {
     /**
      * These are game flags for setting up functionality
      */
-    public static final String DEBUG_KEY = "debugMode";
     public static final String JWT_KEY = "jwtToken";
 
     /**
@@ -138,9 +137,12 @@ public class Configuration {
         skinService.addSkin("font-small", VisUI.getSkin());
         // Thanks to this setting, only methods annotated with @LmlAction will be available in views, significantly
         // speeding up method look-up:
-        Lml.EXTRACT_UNANNOTATED_METHODS = false;
 
-        initializeRuntimePrefs();
+        Gdx.input.setCatchKey(Input.Keys.SPACE, true);
+        Gdx.input.setCatchKey(Input.Keys.DOWN, true);
+        Gdx.input.setCatchKey(Input.Keys.UP, true);
+
+        Lml.EXTRACT_UNANNOTATED_METHODS = false;
     }
 
     private void addCustomLmlTags() {
@@ -165,50 +167,4 @@ public class Configuration {
         syntax.addAttributeProcessor(new GamePieceOrientationLmlAttribute(), "left");
         syntax.addAttributeProcessor(new GameGameNameLabelIconNumberLmlAttribute(), "icon");
     }
-
-    private void initializeRuntimePrefs() {
-        Preferences prefs = Gdx.app.getPreferences(PREFERENCES);
-
-        // --- DESKTOP fallback from System Properties ---
-        String debugSysProp = System.getProperty(DEBUG_KEY);
-        if ("true".equalsIgnoreCase(debugSysProp)) {
-            prefs.putBoolean(DEBUG_KEY, true);
-        }
-
-        String jwtSysProp = System.getProperty(JWT_KEY);
-        if (jwtSysProp != null && !jwtSysProp.isEmpty()) {
-            prefs.putString(JWT_KEY, jwtSysProp);
-        }
-
-        /* --- GWT Query String (only if running in GWT) ---
-        try {
-            String query = com.google.gwt.user.client.Window.Location.getQueryString();
-            if (query != null) {
-                if (query.contains("debug=true")) {
-                    prefs.putBoolean(DEBUG_KEY, true);
-                }
-                if (query.contains("jwt=")) {
-                    String jwt = extractQueryParam("jwt", query);
-                    prefs.putString(JWT_KEY, jwt);
-                }
-            }
-
-        } catch (Throwable ignored) {
-            // Not GWT or GWT-only classes not available
-        }*/
-
-        prefs.flush();
-    }
-/*
-    private String extractQueryParam(String key, String query) {
-        if (query == null || query.length() < 2) return null;
-        String[] params = query.substring(1).split("&");
-        for (String param : params) {
-            String[] pair = param.split("=");
-            if (pair.length == 2 && key.equals(pair[0])) {
-                return com.google.gwt.http.client.URL.decodeQueryString(pair[1]);
-            }
-        }
-        return null;
-    }*/
 }

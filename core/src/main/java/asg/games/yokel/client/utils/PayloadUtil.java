@@ -2,8 +2,8 @@ package asg.games.yokel.client.utils;
 
 import com.badlogic.gdx.utils.Array;
 
-import asg.games.yokel.client.objects.YokelPlayer;
-import asg.games.yokel.client.objects.YokelTable;
+import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
+
 
 public class PayloadUtil {
     private static final String[] EMPTY_ARRAY = {""};
@@ -23,7 +23,7 @@ public class PayloadUtil {
     }
 
     //Create Payload
-    public static String[] createPlayerRegisterRequest(String clientId, YokelPlayer player) {
+    public static String[] createPlayerRegisterRequest(String clientId, YipeePlayerGDX player) {
         if (validatedInputs(player)) {
             return new String[]{clientId, player.toString()};
         }
@@ -37,21 +37,21 @@ public class PayloadUtil {
         return EMPTY_ARRAY;
     }
 
-    public static String[] createJoinLeaveRoomRequest(YokelPlayer player, String loungeName, String roomName) {
+    public static String[] createJoinLeaveRoomRequest(YipeePlayerGDX player, String loungeName, String roomName) {
         if (validatedInputs(player, loungeName, roomName)) {
             return new String[]{player.getId(), loungeName, roomName};
         }
         return EMPTY_ARRAY;
     }
 
-    public static String[] createNewGameRequest(String loungeName, String roomName, YokelTable.ACCESS_TYPE type, boolean isRated) {
+    /*public static String[] createNewGameRequest(String loungeName, String roomName, YipeePlayerGDX.ACCESS_TYPE type, boolean isRated) {
         if (validatedInputs(loungeName, roomName)) {
             return new String[]{loungeName, roomName, YokelUtilities.otos(type), YokelUtilities.otos(isRated)};
         }
         return EMPTY_ARRAY;
-    }
+    }*/
 
-    public static String[] createTableJoinRequest(YokelPlayer player, String loungeName, String roomName, String tableId, int seatNumber) {
+    public static String[] createTableJoinRequest(YipeePlayerGDX player, String loungeName, String roomName, String tableId, int seatNumber) {
         if (validatedInputs(player, loungeName, roomName)) {
             return new String[]{player.getId(), loungeName, roomName, YokelUtilities.otos(tableId), YokelUtilities.otos(seatNumber)};
         }
@@ -72,7 +72,7 @@ public class PayloadUtil {
         return EMPTY_ARRAY;
     }
 
-    public static String[] createTableSitRequest(YokelPlayer player, String loungeName, String roomName, String tableId, int seatNumber) {
+    public static String[] createTableSitRequest(YipeePlayerGDX player, String loungeName, String roomName, String tableId, int seatNumber) {
         if (validatedInputs(loungeName, roomName)) {
             return new String[]{player.getId(), loungeName, roomName, YokelUtilities.otos(tableId), YokelUtilities.otos(seatNumber)};
         }
@@ -115,9 +115,9 @@ public class PayloadUtil {
     }
 
     //From payload
-    public static YokelPlayer getRegisterPlayerFromPayload(String[] clientPayload) {
+    public static YipeePlayerGDX getRegisterPlayerFromPayload(String[] clientPayload) {
         if (YokelUtilities.isValidPayload(clientPayload, 2)) {
-            return YokelUtilities.getObjectFromJsonString(YokelPlayer.class, clientPayload[1]);
+            return YokelUtilities.getObjectFromJsonString(YipeePlayerGDX.class, clientPayload[1]);
         }
         return null;
     }
@@ -129,26 +129,26 @@ public class PayloadUtil {
         return null;
     }
 
-    public static Array<YokelPlayer> getAllRegisteredPlayersRequest(String[] clientPayload) {
+    public static Array<YipeePlayerGDX> getAllRegisteredPlayersRequest(String[] clientPayload) {
         //Logger.trace("Enter getAllRegisteredPlayersRequest()");
 
-        Array<YokelPlayer> ret = new Array<>();
+        Array<YipeePlayerGDX> ret = new Array<>();
         if (validatedInputs((Object[]) clientPayload)) {
             for (String payload : clientPayload) {
-                ret.add(YokelUtilities.getObjectFromJsonString(YokelPlayer.class, payload));
+                ret.add(YokelUtilities.getObjectFromJsonString(YipeePlayerGDX.class, payload));
             }
         }
         //Logger.trace("Exit getAllRegisteredPlayersRequest()");
         return ret;
     }
 
-    public static Array<YokelTable> getAllTablesRequest(String[] clientPayload) {
+    public static Array<YipeePlayerGDX> getAllTablesRequest(String[] clientPayload) {
         //Logger.trace("Enter getAllTablesRequest()");
 
-        Array<YokelTable> ret = new Array<>();
+        Array<YipeePlayerGDX> ret = new Array<>();
         if (validatedInputs((Object[]) clientPayload)) {
             for (String payload : clientPayload) {
-                ret.add(YokelUtilities.getObjectFromJsonString(YokelTable.class, payload));
+                ret.add(YokelUtilities.getObjectFromJsonString(YipeePlayerGDX.class, payload));
             }
         }
         //Logger.trace("Exit getAllTablesRequest()");
