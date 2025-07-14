@@ -29,8 +29,9 @@ dependencies {
     api "com.crashinvaders.lml:gdx-autumn-fcs:$lmlVersion"
     api "com.github.MrStahlfelge.gdx-websockets:common:$websocketVersion"
 
-    api files('U:/Yipee/yipee-parent/yipee-net/target/yipee-net-1.11.5.jar')
-    api files('U:/Yipee/yipee-parent/yipee-libgdx/target/yipee-libgdx-1.11.5.jar')
+    api files("U:/Yipee/yipee-parent/yipee-core/target/yipee-core-$yipeeVersion" + ".jar")
+    api files("U:/Yipee/yipee-parent/yipee-net/target/yipee-net-$yipeeVersion" + ".jar")
+    api files("U:/Yipee/yipee-parent/yipee-common/target/yipee-common-$yipeeVersion" + ".jar")
 
     // SLF4J API
     api 'org.slf4j:slf4j-api:1.7.36'

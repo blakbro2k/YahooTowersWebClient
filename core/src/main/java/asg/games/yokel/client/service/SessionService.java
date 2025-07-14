@@ -16,11 +16,11 @@ import com.github.czyzby.kiwi.util.gdx.asset.Disposables;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 
+import asg.games.yipee.common.packets.PlayerAction;
 import asg.games.yipee.libgdx.objects.YipeeKeyMapGDX;
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
 import asg.games.yipee.libgdx.objects.YipeeTableGDX;
 import asg.games.yipee.net.game.GameManager;
-import asg.games.yipee.net.packets.PlayerAction;
 import asg.games.yokel.client.controller.dialog.ErrorController;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
 import asg.games.yokel.client.managers.GameNetFactory;

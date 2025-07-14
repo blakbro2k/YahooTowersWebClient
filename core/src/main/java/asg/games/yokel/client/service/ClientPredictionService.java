@@ -1,37 +1,77 @@
 package asg.games.yokel.client.service;
 
-import asg.games.yipee.net.packets.PlayerAction;
+import com.badlogic.gdx.utils.Array;
+import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
+
+import asg.games.yipee.common.packets.PlayerAction;
+import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
+import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
 @Getter
+@Setter
 public class ClientPredictionService {
 
-    //private YipeeGameBoard localBoard;
-    // private final Array<YipeeGameBoardState> predictedStates = new Array<>();
-    private int currentTick = 0;
+    private YipeeGameBoardGDX authoritativeBoard;
+    private YipeeGameBoardGDX predictedBoard;
+
+    private int lastAuthoritativeTick = 0;
+    private final Array<PlayerAction> pendingActions = GdxArrays.newArray();
 
     public void initialize(long seed) {
-        // this.localBoard = new YipeeGameBoard(seed);
-        // this.predictedStates.clear();
-        this.currentTick = 0;
+        this.authoritativeBoard = new YipeeGameBoardGDX(seed);
+        this.predictedBoard = new YipeeGameBoardGDX(seed);
+        this.pendingActions.clear();
     }
 
-    public void applyAction(PlayerAction action) {
-        //localBoard.applyAction(action); // mutate board locally
-        //localBoard.update(1 / 60f);     // simulate a tick (or however your loop runs)
-        //predictedStates.add(localBoard.getCurrentState());
-        currentTick++;
+    /**
+     * Called when the server confirms an authoritative state
+     */
+    public void setAuthoritativeState(YipeeGameBoardStateGDX state, float delta) {
+        authoritativeBoard.updateStateAndAll(state, delta);
+        resimulatePrediction(delta);
     }
 
-    //public YipeeGameBoardState getLatestState() {
-    //    return predictedStates.size > 0 ? predictedStates.peek() : null;
-    // }
+    /**
+     * Client adds a new local input
+     */
+    public void queueLocalAction(PlayerAction action, float delta) {
+        pendingActions.add(action);
+        predictedBoard.applyPlayerAction(action);
+        predictedBoard.update(delta);
+    }
 
+    /**
+     * Re-apply all local inputs to fresh authoritative state
+     */
+    private void resimulatePrediction(float delta) {
+        predictedBoard.updateStateAndAll(authoritativeBoard.exportGameState().deepCopy(), delta);
+
+        for (PlayerAction action : pendingActions) {
+            predictedBoard.applyPlayerAction(action);
+            predictedBoard.update(delta);
+        }
+    }
+
+    /**
+     * Get predicted state for rendering
+     */
+    public YipeeGameBoardStateGDX getPredictedState() {
+        return predictedBoard.exportGameState();
+    }
+
+    /**
+     * For test harness: step prediction manually
+     */
+    public void stepPrediction(PlayerAction action, float delta) {
+        queueLocalAction(action, delta);
+    }
+
+    /** Reset everything (e.g. on reconnect) */
     public void reset() {
-        //localBoard = null;
-        //predictedStates.clear();
-        currentTick = 0;
+        this.authoritativeBoard = null;
+        this.predictedBoard = null;
+        this.pendingActions.clear();
     }
 }

@@ -32,10 +32,10 @@ import com.badlogic.gdx.utils.reflect.ClassReflection;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
 
+import asg.games.yipee.common.game.GameBoardState;
 import asg.games.yipee.libgdx.game.YipeeBlockEvalGDX;
 import asg.games.yipee.libgdx.objects.YipeeBlockGDX;
 import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
-import asg.games.yipee.net.game.GameBoardState;
 import asg.games.yipee.net.game.GameManager;
 import asg.games.yokel.client.factories.YokelObjectFactory;
 import asg.games.yokel.client.ui.actors.GameBlock;

@@ -1,69 +1,107 @@
 # YahooTowersClient
+
 ## Welcome to my personal project to remake Yahoo! Towers from scratch
-This project has been a labor of love, and I do mean LABOR.  Yahoo towers was a wonderful love letter to tetris and columns back in the day.
-Once Yahoo! games shutdown, this gem went with it.  I am trying to correct that, but it has been challenging.
 
-This game combines the hardest concept of a game.
-Server/Client networking, no single play here.
-8 players to sync.
-powers that can affect others.
+This project has been a **labor of love**—and I do mean LABOR. Yahoo! Towers was a fantastic twist
+on Tetris and Columns back in the day.
 
-Here is what I have so far:
+When Yahoo! Games shut down, this gem disappeared with it. I'm trying to bring it back, but it's
+been quite a journey.
 
-I have the core game code pretty much complete. I decided to separate it out in case others might
-want to port it one day, and it also made the Server/Client code MUCH easier. The core game code can
-do the following:
-Sets up a board for a player AND their partner Game loop handles moving the tri-piece down checks
-the grid for broken blocks handles yahoo!
-handles all powers
+This game has one of the hardest challenges in game design:
 
-Next I am working on the web client:
-So far I have most of the main components down of the client. what is left is:
-the blocks on a grid have to break when they fall down. Test the animation of all powers finish the
-Powers Queue component Build game client for 8 players Skin the client
+- Real-time server/client networking (no single-player here)
+- Synchronizing 8 players
+- Supporting powers that affect other players
 
-Lastly... the server This was the most challenging part. I have the skeleton, but it needs more. the
-persistence layer is not complete, this is how games will be stored and tracked on the database side
-The website to launch a game needs to be completed Converting websocket communication to KryoNet.  (
-From research that seems to be the best approach for a smooth network game)
-The Server is using Spring Boot, which I have never used before an therefore another challenge.
+---
 
-A [libGDX](https://libgdx.com/) project generated
-with [gdx-liftoff](https://github.com/tommyettinger/gdx-liftoff).
+## ⚡ What this repo is
 
-Project template included launchers
-with [Autumn](https://github.com/crashinvaders/gdx-lml/tree/master/autumn) class scanners and a
-basic [Autumn MVC](https://github.com/czyzby/gdx-lml/tree/master/mvc) application.
+This is the **client** for YahooTowers.
 
-Here is a demo of the client
-Yahoo! Towers alpha (https://blakbro2k.itch.io/yahoo-towers-dev)
+✅ Built in **LibGDX** (supports HTML, desktop, Android)  
+✅ Written to be modular and maintainable  
+✅ Communicates with the YahooTowers server over the network
+
+---
+
+## ✅ New Architecture Overview
+
+### Core separation (Yipee project)
+
+To keep things clean and reusable, I've split out **all game logic** into its own separate project:
+
+> [Yipee](https://github.com/blakbro2k/Yipee) (the core library)
+
+✅ The **client** depends on Yipee as a Maven/Gradle dependency.  
+✅ All gameplay logic (board state, falling pieces, match detection, power handling) lives there.  
+✅ Makes it easy to keep server and client *in sync*, since they both use the same core logic.  
+✅ Anyone can port the core separately if they want.
+
+This design **massively** simplified the networking and made the server/client code much easier to
+write.
+
+---
+
+### The Client
+
+✅ Renders the game using **LibGDX**  
+✅ Uses **Autumn MVC** for UI templating and control flow  
+✅ Handles user input and converts it to **PlayerAction** packets  
+✅ Maintains local prediction of board state to reduce latency  
+✅ Receives server authoritative updates and corrects state
+
+**How it works:**
+
+- Talks to the server over **KryoNet** (binary TCP/UDP)
+- Serializes game state updates and player actions using shared packet classes
+- Displays two boards at once (player and partner)
+- Animates blocks breaking, falling, powers, and Yahoo drops
+
+---
+
+## ✅ Current Status
+
+✅ Core game logic is complete and lives in the [Yipee project](https://github.com/blakbro2k/Yipee)  
+✅ Server skeleton is functional and runs games in headless mode  
+✅ Client is rendering boards and syncing with server  
+✅ Animations and UI are being refined
+
+---
+
+## ✅ What's Left to Do
+
+**Client:**
+
+- Finalize power animation sequences
+- Finish ClientSide prediction
+- Complete all UI overlays and feedback
+- Gather all Sounds for YahooTowers!
+
+**Networking:**
+
+- Finalize and test Packets sent to the Server. e.g. Powers/UserInput
+- Optimize for low latency with better prediction/rollback
+- Harden against bad connections and desync
+
+---
+
+## 💻 Demo of the Client
+
+[Yahoo! Towers Alpha](https://blakbro2k.itch.io/yahoo-towers-dev?debug=true)  
 ![image](https://github.com/blakbro2k/YahooTowersWebClient/assets/3727243/0fe49548-8e94-480f-adce-945559b2d72d)
 
-### Wish to contribute? Great to hear! below are acouple of commands you can use when you clone the project.
-## Gradle
+---
 
-This project uses [Gradle](http://gradle.org/) to manage dependencies.
-The Gradle wrapper was included, so you can run Gradle tasks using `gradlew.bat` or `./gradlew` commands.
-Useful Gradle tasks and flags:
+## ❤️ Want to Contribute?
 
-- `--continue`: when using this flag, errors will not stop the tasks from running.
-- `--daemon`: thanks to this flag, Gradle daemon will be used to run chosen tasks.
-- `--offline`: when using this flag, cached dependency archives will be used.
-- `--refresh-dependencies`: this flag forces validation of all dependencies. Useful for snapshot versions.
-- `build`: builds sources and archives of every project.
-- `cleanEclipse`: removes Eclipse project data.
-- `cleanIdea`: removes IntelliJ project data.
-- `clean`: removes `build` folders, which store compiled classes and built archives.
-- `eclipse`: generates Eclipse project data.
-- `html:dist`: compiles GWT sources. The compiled application can be found at `html/build/dist`: you can use any HTTP server to deploy it.
-- `html:superDev`: compiles GWT sources and runs the application in SuperDev mode. It will be available at [localhost:8080/html](http://localhost:8080/html). Use only during development.
-- `idea`: generates IntelliJ project data.
-- `lwjgl3:jar`: builds application's runnable jar, which can be found at `lwjgl3/build/libs`.
-- `lwjgl3:run`: starts the application.
-- `test`: runs unit tests (if any).
+Awesome! Here are a couple of Gradle commands you can use after cloning:
 
-Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should be replaced with the ID of a specific project.
-For example, `core:clean` removes `build` folder only from the `core` project.
+```bash
+./gradlew html:dist (produces a war that you need  web server to run)
+./gradlew desktop:run
+./gradlew html:superDev (sets up a local webserver that you can use to test)
 
 
 <a href="https://www.paypal.com/donate/?hosted_button_id=Q3B297GYMH6DQ"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" height="40"></a>  
