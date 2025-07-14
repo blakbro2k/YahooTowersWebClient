@@ -15,7 +15,7 @@
     <inherits name="com.rafaskoberg.gdx.typinglabel.typinglabel" />
     <inherits name="regexodus" />
     <inherits name="asg.games.yokel.client.YahooTowersClient" />
-    <inherits name="org.hibernate.validator.HibernateValidator" />
+    <!-- <inherits name="org.hibernate.validator.HibernateValidator" /> -->
     <entry-point class="asg.games.yokel.client.gwt.GwtLauncher" />
     <set-configuration-property name="gdx.assetpath" value="../assets" />
     <set-configuration-property name="xsiframe.failIfScriptTag" value="FALSE" />

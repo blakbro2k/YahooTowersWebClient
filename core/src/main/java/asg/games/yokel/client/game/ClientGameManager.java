@@ -8,12 +8,12 @@ import com.badlogic.gdx.utils.TimeUtils;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 
+import asg.games.yipee.common.game.GameBoardState;
+import asg.games.yipee.common.packets.PlayerAction;
+import asg.games.yipee.common.packets.YipeeSerializable;
 import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
-import asg.games.yipee.net.game.GameBoardState;
 import asg.games.yipee.net.game.GameManager;
-import asg.games.yipee.net.packets.PlayerAction;
-import asg.games.yipee.net.packets.YipeeSerializable;
 import lombok.Getter;
 import lombok.Setter;
 
