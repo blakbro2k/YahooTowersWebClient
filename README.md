@@ -97,6 +97,8 @@ write.
 ## ❤️ Want to Contribute?
 
 Awesome! Here are a couple of Gradle commands you can use after cloning:
+<a href="https://www.paypal.com/donate/?hosted_button_id=Q3B297GYMH6DQ"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" height="40"></a>  
+If you enjoyed this project — or just feeling generous, consider buying me a beer. Cheers! :beers:
 
 ```bash
 ./gradlew html:dist (produces a war that you need  web server to run)
@@ -104,5 +106,3 @@ Awesome! Here are a couple of Gradle commands you can use after cloning:
 ./gradlew html:superDev (sets up a local webserver that you can use to test)
 
 
-<a href="https://www.paypal.com/donate/?hosted_button_id=Q3B297GYMH6DQ"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" height="40"></a>  
-If you enjoyed this project — or just feeling generous, consider buying me a beer. Cheers! :beers:
