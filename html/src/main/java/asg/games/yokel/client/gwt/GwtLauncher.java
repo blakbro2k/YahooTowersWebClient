@@ -17,6 +17,7 @@ import asg.games.yokel.client.managers.GameNetFactory;
 import asg.games.yokel.client.utils.SoundUtil;
 import asg.games.yokel.client.utils.UIUtil;
 
+
 /** Launches the GWT application. */
 public class GwtLauncher extends GwtApplication {
     @Override
@@ -47,16 +48,30 @@ public class GwtLauncher extends GwtApplication {
         String debugParam = Window.Location.getParameter("debug");
         String jwtParam = Window.Location.getParameter("jwt");
 
-        boolean debug = "true".equalsIgnoreCase(debugParam);
-        BootstrapConfig.setDebugMode(debug);
+		boolean setDebug = false;
+		boolean isDebugParamSet = "true".equalsIgnoreCase(debugParam);
 
-        if (jwtParam != null && !jwtParam.trim().isEmpty()) {
+		if (isDebugMode() || isDebugParamSet) {
+			Gdx.app.log("DEBUG", "Debug mode enabled via URL");
+			BootstrapConfig.setDebugMode(true);
+		}
+
+		if (jwtParam != null && !jwtParam.trim().isEmpty()) {
             BootstrapConfig.setJwtToken(jwtParam);
         }
 
         // Log it if you want
         //Gdx.app.log("BootstrapConfig", "Parsed from URL - debug: " + debug + ", jwt: " + jwtParam);
     }
+
+	public static native boolean isDebugMode() /*-{
+		try {
+			var url = window.parent.location.href; // Access the parent iframe URL
+			return url.indexOf("debug=true") !== -1;
+		} catch (e) {
+			return false;
+		}
+	}-*/;
 
 	private static class GwtSoundUtil extends SoundUtil {
 		@Override

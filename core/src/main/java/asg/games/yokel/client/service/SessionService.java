@@ -23,6 +23,7 @@ import asg.games.yipee.libgdx.objects.YipeeTableGDX;
 import asg.games.yipee.net.game.GameManager;
 import asg.games.yokel.client.controller.dialog.ErrorController;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
+import asg.games.yokel.client.game.ClientGameManager;
 import asg.games.yokel.client.managers.GameNetFactory;
 import asg.games.yokel.client.managers.GameNetworkManager;
 import asg.games.yokel.client.utils.LogUtil;
@@ -213,7 +214,7 @@ public class SessionService {
         //client.requestGameManager(currentLoungeName, currentRoomName, getCurrentTableNumber(), currentSeat);
     }
 
-    public GameManager asyncGetGameManagerFromServerRequest() {
+    public ClientGameManager asyncGetGameManagerFromServerRequest() {
         //return PayloadUtil.getGameManagerRequest(client.getNextRequest(ServerRequest.REQUEST_TABLE_GAME_MANAGER));new String[]{""}
         // return PayloadUtil.getGameManagerRequest(new String[]{""});
         return null;

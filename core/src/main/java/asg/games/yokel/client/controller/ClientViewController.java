@@ -110,7 +110,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
     private final YipeeSeatGDX[] order = new YipeeSeatGDX[8];
     private final boolean[] isYahooPlaying = new boolean[8];
     private final boolean[] isAlive = new boolean[8];
-    private GameManager simulatedGame;
+    private ClientGameManager simulatedGame;
     private boolean yahooPlayed;
     private boolean isBrokenPlaying;
     private float yahTimer, brokenCellTimer;
@@ -133,6 +133,9 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
 
             //UIManager.UIManagerUserConfiguration config = new UIManager.UIManagerUserConfiguration();
 
+            long gameSeed = 3;
+            int tickRate = 30;
+
             if (!isUsingServer) {
                 //UI Configuration manager needs to handle these.
                 YipeePlayerGDX player1 = new YipeePlayerGDX("enboateng");
@@ -152,7 +155,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
                 sessionService.setCurrentPlayer(player1);
                 sessionService.setCurrentLoungeName("Social");
                 sessionService.setCurrentRoomName("Eiffel Tower");
-                sessionService.setCurrentSeat(-1);
+                sessionService.setCurrentSeat(currentSeatNumber);
                 sessionService.setCurrentTable(table);
                 //config.updateConfig(sessionService);
                 //config.setSeat(5, player2);
@@ -161,7 +164,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
 
                 setSeat(6, player3, table);
                 setSeat(1, player2, table);
-                simulatedGame = new ClientGameManager();
+                simulatedGame = new ClientGameManager(gameSeed, tickRate, table, currentSeatNumber);
             } else {
                 //TODO: Fetch table state from server
                 isUsingServer = false;
@@ -900,12 +903,12 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
     }
 
 
-    private GameManager fetchGameManagerFromServer(float delta) throws InterruptedException, ReflectionException {
+    private ClientGameManager fetchGameManagerFromServer(float delta) throws InterruptedException, ReflectionException {
         try {
             logger.enter("fetchGameManagerFromServer");
             //sessionService.asyncGameManagerFromServerRequest();
 
-            GameManager game;
+            ClientGameManager game;
 
             if (isUsingServer) {
                 //TODO: Check if received new GameManager, return current simulation if null.
