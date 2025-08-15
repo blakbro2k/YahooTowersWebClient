@@ -54,7 +54,7 @@ write.
 
 **How it works:**
 
-- Talks to the server over **KryoNet** (binary TCP/UDP)
+- Talks to the server over **WebSockets**
 - Serializes game state updates and player actions using shared packet classes
 - Displays two boards at once (player and partner)
 - Animates blocks breaking, falling, powers, and Yahoo drops
