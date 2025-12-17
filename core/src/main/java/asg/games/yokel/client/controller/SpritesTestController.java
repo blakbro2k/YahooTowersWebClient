@@ -28,8 +28,10 @@ import com.github.czyzby.lml.parser.action.ActionContainer;
 import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
-import com.rafaskoberg.gdx.typinglabel.TypingLabel;
 
+import asg.games.yipee.common.enums.Constants;
+import asg.games.yipee.common.game.GameBoardState;
+import asg.games.yipee.common.game.PlayerAction;
 import asg.games.yipee.libgdx.game.YipeeBlockEvalGDX;
 import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
 import asg.games.yipee.libgdx.objects.YipeeBrokenBlockGDX;
@@ -42,6 +44,7 @@ import asg.games.yokel.client.controller.dialog.GameOverDialogController;
 import asg.games.yokel.client.controller.dialog.NextGameController;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
 import asg.games.yokel.client.game.ClientGameManager;
+import asg.games.yokel.client.service.ClientPredictionService;
 import asg.games.yokel.client.service.SessionService;
 import asg.games.yokel.client.service.UserInterfaceService;
 import asg.games.yokel.client.ui.actors.GameBlock;
@@ -74,7 +77,8 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
     private SessionService sessionService;
     @Inject
     private InterfaceService interfaceService;
-
+    @Inject
+    private ClientPredictionService clientPredictionService;
     @LmlActor("Y_block")
     private Image yBlockImage;
     @LmlActor("O_block")
@@ -237,6 +241,8 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
     private YipeeGameBoardGDX playerBoardData;
     private YipeeGameBoardGDX playerBoard2Data;
     private YipeeGameBoardGDX testBoardData;
+    private YipeeGameBoardGDX clientPredictData;
+
     private boolean downKeyPressed = false;
     private final YipeeKeyMapGDX keyMap = new YipeeKeyMapGDX();
     private int breakTimer = -1;
@@ -259,6 +265,21 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
     private boolean toggleOffensive, togglePlayerBool = true;
     Queue<Integer> queuePowers = new Queue<>();
     private final long gameSeed = 5;
+    private final int playerSeat = 4;
+
+    int actionIndex = 0;
+    float actionTimer = 0f;
+    final float ACTION_INTERVAL = 0.5f;
+
+    int tickRate = 30;
+    private float FIXED_STEP = 1f / tickRate; // simulate server tick rate: 30 times/sec
+    private float tickAccumulator = 0f;
+    private ClientGameManager clientGameManager;
+    private int player1SeatNum = 1;
+    private int player2SeatNum = 2;
+    private int testBoardSeatNum = 4;
+
+    private int currentTick = 0;
 
     @Override
     public void initialize(Stage stage, ObjectMap<String, Actor> actorMappedByIds) {
@@ -346,7 +367,6 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             togglePlayerBool = togglePlayer.isChecked();
             playerBoard.setActive(togglePlayerBool);
 
-            //initializeGameOverLabels(stage);
             logger.exit("initialize");
 
         } catch (Exception e) {
@@ -354,23 +374,6 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             logger.error(errorMsg, e);
             sessionService.handleException(logger, e);
         }
-    }
-
-    private void triggerGameOverLabels(Stage stage, String winner1, String winner2) {
-        TypingLabel gameOverLabel = new TypingLabel("{SLOW}{EASE=-500;30.1;0}Game Over", interfaceService.getSkin());
-        TypingLabel youWinLabel = new TypingLabel("{SLOW}{EASE=-500;30.1;0}You Win!", interfaceService.getSkin());
-        TypingLabel youLoseLabel = new TypingLabel("{SLOW}{EASE=-500;30.1;0}You Lose!", interfaceService.getSkin());
-        TypingLabel congratulationsLabel = new TypingLabel("{SLOW}{EASE=-500;30.1;0}Congratulations", interfaceService.getSkin());
-        gameOverLabel.setX(stage.getWidth() / 2);
-        gameOverLabel.setY(stage.getHeight() / 2);
-        youWinLabel.setX(stage.getWidth() / 2);
-        youWinLabel.setY(stage.getHeight() / 2 - youWinLabel.getHeight());
-        congratulationsLabel.setX(stage.getWidth() / 2);
-        congratulationsLabel.setY(stage.getHeight() / 2 - youWinLabel.getHeight() - congratulationsLabel.getHeight());
-
-        stage.addActor(gameOverLabel);
-        stage.addActor(youWinLabel);
-        stage.addActor(congratulationsLabel);
     }
 
     @Override
@@ -395,8 +398,9 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             YipeePlayerGDX player1 = new YipeePlayerGDX("player1");
             YipeePlayerGDX player2 = new YipeePlayerGDX("player2");
             YipeePlayerGDX player3 = new YipeePlayerGDX("player3");
+            YipeePlayerGDX player4 = new YipeePlayerGDX("blakbro2k");
             ObjectMap<String, Object> arguments = GdxMaps.newObjectMap();
-            arguments.put(YipeeTableGDX.ARG_TYPE, YipeeTableGDX.ENUM_VALUE_PRIVATE);
+            arguments.put(YipeeTableGDX.ARG_TYPE, Constants.ENUM_VALUE_PRIVATE);
             arguments.put(YipeeTableGDX.ARG_RATED, true);
             YipeeTableGDX table = new YipeeTableGDX(1, arguments);
 
@@ -406,25 +410,25 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             table.getSeat(1).setSeatReady(true);
             table.getSeat(2).sitDown(player3);
             table.getSeat(2).setSeatReady(true);
+            table.getSeat(4).sitDown(player4);
+            table.getSeat(4).setSeatReady(true);
             //table.setSeats(seats);
 
+            clientGameManager = new ClientGameManager(gameSeed, tickRate, table, playerSeat, loggerService, clientPredictionService);
 
-            gameManager = new ClientGameManager();
-            gameManager.initialize(gameSeed, 2);
-            gameManager.resetGameBoards();
-            gameManager.startGameLoop();
-
-            /*
             playerBoardData = new YipeeGameBoardGDX(gameSeed);
             playerBoard2Data = new YipeeGameBoardGDX(gameSeed);
             testBoardData = new YipeeGameBoardGDX(gameSeed);
+
             playerBoardData.begin();
             playerBoard2Data.begin();
+            testBoardData.begin();
 
-            playerBoardData.setPartnerBoard(playerBoard2Data, true);
-            playerBoard2Data.setPartnerBoard(playerBoardData, false);
-            testBoardData.setPartnerBoard(playerBoardData, false);
-            */
+
+            //playerBoardData.setPartnerBoard(playerBoard2Data, true);
+            //playerBoard2Data.setPartnerBoard(playerBoardData, false);
+            //testBoardData.setPartnerBoard(playerBoardData, false);
+
 
             //playerB.setNextPiece();
             playerBoard.setPreview(false);
@@ -441,6 +445,7 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             testGameBoard.setPreview(false);
             testGameBoard.setActive(true);
             testGameBoard.setPlayerView(true);
+
             //playerBoard.setName("2");
             //previewBoard.setName("5");
             joinReady.setIsGameReady(true);
@@ -520,11 +525,12 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             if (interpolationSelectBox != null) {
                 ObjectMap.Keys<String> keys = interpolationMap.keys();
                 Array<String> itemsArray = keys.toArray();
-                //interpolationSelectBox.
+
                 String[] items = YokelUtilities.toStringArray(itemsArray);
-                interpolationSelectBox.setItems((Object[]) items);
+                interpolationSelectBox.setItems(items);
                 interpolationSelectBox.setSelected("sineIn");
             }
+
             logger.exit("initiateActors");
         } catch (Exception e) {
             String errorMsg = "Error in initiateActors()";
@@ -553,56 +559,24 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             }
             --breakTimer;
 
-            YipeeGameBoardStateGDX state1 = UIUtil.getYipeeBoardState(gameManager, 0);
-            if (state1 != null) {
-                for (YipeeBrokenBlockGDX cell : state1.getBrokenCells()) {
-                    GameBlock block = UIUtil.getInstance().getGameBlock(cell.getBlock(), playerBoard.isPreview());
-                    addBrokenBlockActorToQueue(brokenBlocksQueue1, block, playerBoard, cell.getRow(), cell.getCol());
-                }
-            }
-            YipeeGameBoardStateGDX state2 = UIUtil.getYipeeBoardState(gameManager, 1);
-            if (state2 != null) {
-                for (YipeeBrokenBlockGDX cell : state2.getBrokenCells()) {
-                    GameBlock block = UIUtil.getInstance().getGameBlock(cell.getBlock(), previewBoard.isPreview());
-                    addBrokenBlockActorToQueue(brokenBlocksQueue2, block, previewBoard, cell.getRow(), cell.getCol());
-                }
-            }
-            YipeeGameBoardStateGDX state3 = UIUtil.getYipeeBoardState(gameManager, 2);
-            boolean localYahoo = false;
-            if (state3 != null) {
-                localYahoo = state3.getYahooDuration() > 0;
-                for (YipeeBrokenBlockGDX cell : state3.getBrokenCells()) {
-                    GameBlock block = UIUtil.getInstance().getGameBlock(cell.getBlock(), testGameBoard.isPreview());
-                    addBrokenBlockActorToQueue(brokenBlocksQueue3, block, testGameBoard.getGrid(), cell.getRow(), cell.getCol());
-                }
-            }
 
-            // Animate broken blocks if timer triggers
-            if (--brokenCheck == 0) {
-                animateBrokenBlocks(stage, brokenBlocksQueue1, toggleYahoo);
-                animateBrokenBlocks(stage, brokenBlocksQueue2, toggleYahoo);
-                animateBrokenBlocks(stage, brokenBlocksQueue3, localYahoo);
-                animateBrokenBlocks(stage, brokenBlocksQueue4, toggleYahoo);
-                animateBrokenBlocks(stage, brokenBlocksQueue5, toggleYahoo);
-                animateBrokenBlocks(stage, brokenBlocksQueue6, toggleYahoo);
-                animateBrokenBlocks(stage, brokenBlocksQueue7, toggleYahoo);
-                animateBrokenBlocks(stage, brokenBlocksQueue8, toggleYahoo);
-                brokenCheck = BREAK_CHECK_INTERVAL;
-            }
+            actionTimer += delta;
 
+            // Handle User input
+            handlePlayerSimulatedInput(clientGameManager, delta);
+
+            //Update Client Manager
+            clientGameManager.update(delta); // Apply input, prediction, logic
+
+            //Check if the Game is ready to start
             checkGameStart();
 
-            playerBoard.renderBoard(state1);
-            previewBoard.renderBoard(state2);
-            testGameBoard.renderPlayerBoard(state3);
-            powersQueue.updatePowersQueue(queuePowers);
+            // take current game state and prepare animations
+            renderPrep(clientGameManager, stage, delta);
 
-            gameManager.update(delta);
-
-
+            //render
             stage.act(delta);
             stage.draw();
-
         } catch (Exception e) {
             String errorMsg = "Error in render()";
             logger.error(errorMsg, e);
@@ -610,9 +584,62 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
         }
     }
 
+    private void renderPrep(ClientGameManager clientGameManager, Stage stage, float delta) {
+        YipeeGameBoardStateGDX player1BoardState = getYipeeGameBoardState(clientGameManager.getBoardState(player1SeatNum));
+        YipeeGameBoardStateGDX player2BoardState = getYipeeGameBoardState(clientGameManager.getBoardState(player2SeatNum));
+        YipeeGameBoardStateGDX testBoardState = getYipeeGameBoardState(clientGameManager.getBoardState(testBoardSeatNum));
+
+        playerBoardData.updateGameState(delta, player1BoardState, player2BoardState);
+        playerBoard2Data.updateGameState(delta, player2BoardState, player1BoardState);
+        testBoardData.updateGameState(delta, testBoardState, null);
+
+        playerBoard.renderBoard(player1BoardState);
+        previewBoard.renderBoard(player2BoardState);
+        testGameBoard.renderPlayerBoard(testBoardState);
+        powersQueue.updatePowersQueue(queuePowers);
+
+        updateBrokenBlockQueue(YokelUtilities.getYipeeGDXGameState(playerBoardData.exportGameState()), brokenBlocksQueue1, playerBoard);
+
+        updateBrokenBlockQueue(YokelUtilities.getYipeeGDXGameState(playerBoard2Data.exportGameState()), brokenBlocksQueue2, previewBoard);
+
+        boolean localYahoo = updateBrokenBlockQueue(YokelUtilities.getYipeeGDXGameState(testBoardData.exportGameState()), brokenBlocksQueue3, testGameBoard.getGrid());
+
+        // Animate broken blocks if timer triggers
+        if (--brokenCheck == 0) {
+            animateBrokenBlocks(stage, brokenBlocksQueue1, toggleYahoo);
+            animateBrokenBlocks(stage, brokenBlocksQueue2, toggleYahoo);
+            animateBrokenBlocks(stage, brokenBlocksQueue3, localYahoo);
+            animateBrokenBlocks(stage, brokenBlocksQueue4, toggleYahoo);
+            animateBrokenBlocks(stage, brokenBlocksQueue5, toggleYahoo);
+            animateBrokenBlocks(stage, brokenBlocksQueue6, toggleYahoo);
+            animateBrokenBlocks(stage, brokenBlocksQueue7, toggleYahoo);
+            animateBrokenBlocks(stage, brokenBlocksQueue8, toggleYahoo);
+            brokenCheck = BREAK_CHECK_INTERVAL;
+        }
+    }
+
+    private YipeeGameBoardStateGDX getYipeeGameBoardState(GameBoardState boardState) {
+        if (boardState instanceof YipeeGameBoardStateGDX) {
+            return (YipeeGameBoardStateGDX) boardState;
+        }
+        return null;
+    }
+
     @LmlAction("showGameOver")
     public void showGameOver() {
         interfaceService.showDialog(GameOverDialogController.class);
+    }
+
+    private boolean updateBrokenBlockQueue(YipeeGameBoardStateGDX state, OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue, GameBlockGrid gameBoardGrid) {
+        boolean localYahoo = false;
+        if (state != null && gameBoardGrid != null && brokenBlocksQueue != null) {
+            localYahoo = state.getYahooDuration() > 0;
+            for (YipeeBrokenBlockGDX cell : state.getBrokenCells()) {
+                GameBlock block = UIUtil.getInstance().getGameBlock(cell.getBlock(), gameBoardGrid.isPreview());
+                addBrokenBlockActorToQueue(brokenBlocksQueue, block, gameBoardGrid, cell.getRow(), cell.getCol());
+            }
+        }
+        return localYahoo;
     }
 
     private void animateBrokenBlocks(Stage stage, OrderedSet<GameBrokenBlockSpriteContainer> queue, boolean isYahoo) {
@@ -621,12 +648,11 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
         if (isYahoo) {
             UIUtil.animateYahooBlockBreak(stage, queue, 1.26f);
         } else {
-            //UIUtil.animateStandardBlockBreak(stage, queue);
             UIUtil.animateStandardBlockBreak(stage, queue, interpolationMap.get(YokelUtilities.otos(interpolationSelectBox.getSelected())));
         }
     }
 
-    private void handleBrokenBlocks(ClientGameManager game, Stage stage) throws Exception {
+    /*private void handleBrokenBlocks(ClientGameManager game, Stage stage) throws Exception {
         if (brokenBlocksQueue1.size > 0) {
             YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 0);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue1);
@@ -660,7 +686,7 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue8);
         }
         brokenCheck = BREAK_CHECK_INTERVAL;
-    }
+    }*/
 
     private void addBrokenBlockActorToStage(Stage stage, OrderedSet<GameBrokenBlockSpriteContainer> brokenBlocksQueue) {
         if (stage != null && brokenBlocksQueue != null) {
@@ -677,86 +703,111 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
         }
     }
 
-    public void handlePlayerSimulatedInput(YipeeGameBoardGDX game) throws ReflectionException {
+    public void handlePlayerSimulatedInput(ClientGameManager clientGameManager, float delta) throws ReflectionException {
+        logger.enter("handlePlayerSimulatedInput");
         try {
-            //logger.enter("handleLocalPlayerInput");
+            PlayerAction localAction = null;
+            int clientTick = 1;
+            int playerBoardNumber = 1;
 
             //TODO: Remove, moves test player's key to the right
             if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
                 // logger.debug("Handling Z: ", Input.Keys.Z);
                 // logger.debug("Adding Midas");
-                game.addSpecialPiece(2);
+                //game.addSpecialPiece(2);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.O_MIDAS, 1, null);
             }
             if (Gdx.input.isKeyJustPressed(Input.Keys.X)) {
                 // logger.debug("Handling X: ", Input.Keys.Z);
                 // logger.debug("Adding Medusa");
-                game.addSpecialPiece(1);
+                //game.addSpecialPiece(1);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.O_MEDUSA, 1, null);
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getRightKey())) {
                 // logger.debug("Player input key: ", keyMap.getRightKey());
                 // logger.debug("Moving right");
-                game.movePieceRight();
+                //game.movePieceRight();
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_RIGHT, 1, null);
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getLeftKey())) {
                 // logger.debug("Player input key: ", keyMap.getLeftKey());
                 // logger.debug("Moving Left");
-                game.movePieceLeft();
-            }
-            if (Gdx.input.isKeyJustPressed(keyMap.getCycleDownKey())) {
-                // logger.debug("Player input key: ", keyMap.getCycleDownKey());
-                // logger.debug("Cycle down");
-                game.cycleDown();
+                //game.movePieceLeft();
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_LEFT, 1, null);
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getCycleUpKey())) {
+                //logger.debug("Player input key: ", keyMap.getCycleUpKey());
+                //logger.debug("Cycle down");
+                //game.getCycleUpKey();
+                localAction = new PlayerAction(1, PlayerAction.ActionType.P_CYCLE_UP, 1, null);
+            }/*
+            if (Gdx.input.isKeyJustPressed(keyMap.getCycleDownKey())) {
                 // logger.debug("Player input key: ", keyMap.getCycleUpKey());
                 // logger.debug("Cycle Up");
-                game.cycleUp();
-            }
+                //game.cycleUp();
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_CYCLE_DOWN, 1,  null);
+            }*/
             if (Gdx.input.isKeyPressed(keyMap.getDownKey())) {
                 if (!downKeyPressed) {
                     downKeyPressed = true;
                 }
                 // logger.debug("Player input key: ", keyMap.getDownKey());
                 // logger.debug("Moving Down");
-                game.startMoveDown();
+                //game.startMoveDown();
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_START, 1, null);
             }
             if (!Gdx.input.isKeyPressed(keyMap.getDownKey())) {
                 downKeyPressed = false;
                 // logger.debug("Player input key: ", keyMap.getRightKey());
                 // logger.debug("Stop Moving Down");
-                game.stopMoveDown();
+                //game.stopMoveDown();
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 1, null);
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getRandomAttackKey())) {
                 //game.handleRandomAttack(currentSeat);
                 // logger.debug("Player input key: ", keyMap.getRightKey());
                 //logger.debug("Adding Midas");
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 1, null);
             }
-        /*
-        if (Gdx.input.isKeyJustPressed(keyMap.getTarget1())) {
-            game.handleTargetAttack(currentSeat,1);
-        }
-        if (Gdx.input.isKeyJustPressed(keyMap.getTarget2())) {
-            game.handleTargetAttack(currentSeat,2);
-        }
-        if (Gdx.input.isKeyJustPressed(keyMap.getTarget3())) {
-            game.handleTargetAttack(currentSeat,3);
-        }
-        if (Gdx.input.isKeyJustPressed(keyMap.getTarget4())) {
-            game.handleTargetAttack(currentSeat,4);
-        }
-        if (Gdx.input.isKeyJustPressed(keyMap.getTarget5())) {
-            game.handleTargetAttack(currentSeat,5);
-        }
-        if (Gdx.input.isKeyJustPressed(keyMap.getTarget6())) {
-            game.handleTargetAttack(currentSeat,6);
-        }
-        if (Gdx.input.isKeyJustPressed(keyMap.getTarget7())) {
-            game.handleTargetAttack(currentSeat,7);
-        }
-        if (Gdx.input.isKeyJustPressed(keyMap.getTarget8())) {
-            game.handleTargetAttack(currentSeat,8);
-        }*/
-            //logger.exit("handleLocalPlayerInput");
+
+            if (Gdx.input.isKeyJustPressed(keyMap.getTarget1())) {
+                //game.handleTargetAttack(currentSeat,1);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 1, null);
+            }
+            if (Gdx.input.isKeyJustPressed(keyMap.getTarget2())) {
+                //game.handleTargetAttack(currentSeat,2);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 2, null);
+            }
+            if (Gdx.input.isKeyJustPressed(keyMap.getTarget3())) {
+                //game.handleTargetAttack(currentSeat,3);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 3, null);
+            }
+            if (Gdx.input.isKeyJustPressed(keyMap.getTarget4())) {
+                //game.handleTargetAttack(currentSeat,4);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 4, null);
+            }
+            if (Gdx.input.isKeyJustPressed(keyMap.getTarget5())) {
+                //game.handleTargetAttack(currentSeat,5);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 5, null);
+            }
+            if (Gdx.input.isKeyJustPressed(keyMap.getTarget6())) {
+                //game.handleTargetAttack(currentSeat,6);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 6, null);
+            }
+            if (Gdx.input.isKeyJustPressed(keyMap.getTarget7())) {
+                //game.handleTargetAttack(currentSeat,7);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 7, null);
+            }
+            if (Gdx.input.isKeyJustPressed(keyMap.getTarget8())) {
+                //game.handleTargetAttack(currentSeat,8);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 8, null);
+            }
+
+            //store predicted board
+            //clientPredictionService.queueLocalAction(localAction, delta);
+            clientGameManager.addPlayerAction(localAction);
+
+            logger.exit("handleLocalPlayerInput");
         } catch (Exception e) {
             String errorMsg = "Error in handlePlayerInput()";
             logger.error(errorMsg, e);
@@ -782,8 +833,6 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
                     startGame();
                 }
             }
-
-
             //logger.exit("checkGameStart");
         } catch (Exception e) {
             String errorMsg = "Error in checkGameStart()";

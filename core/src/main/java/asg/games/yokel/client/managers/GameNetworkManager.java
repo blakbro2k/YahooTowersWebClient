@@ -1,5 +1,7 @@
 package asg.games.yokel.client.managers;
 
+import asg.games.yipee.common.dto.NetYipeePlayer;
+
 public interface GameNetworkManager {
 
     /**
@@ -18,7 +20,6 @@ public interface GameNetworkManager {
     /**
      * Closes the connection.
      *
-     * @return
      */
     boolean disconnect();
 
@@ -48,4 +49,8 @@ public interface GameNetworkManager {
      * @return next received packet or null
      */
     Object pollMessage();
+
+    void registerUser(String authToken, NetYipeePlayer player, String clientId, String sessionKey);
+
+    void registerPackets();
 }

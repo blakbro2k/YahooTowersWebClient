@@ -124,7 +124,7 @@ public class GamePlayerBoard extends Table implements GameObject {
     }
 
     private void setUpNext(YipeeGameBoardStateGDX boardState) {
-        YipeePieceGDX piece = boardState.getNextPiece();
+        YipeePieceGDX piece = NetUtil.fromJsonClient(boardState.getNextPiece(), YipeePieceGDX.class);
         if (piece != null) {
             Queue<Integer> pieces = boardState.getSpecialPieces();
             if (YokelUtilities.sizeOf(pieces) > 0) {

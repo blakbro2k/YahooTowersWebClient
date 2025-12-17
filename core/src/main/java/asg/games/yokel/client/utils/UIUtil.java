@@ -36,8 +36,8 @@ import asg.games.yipee.common.game.GameBoardState;
 import asg.games.yipee.libgdx.game.YipeeBlockEvalGDX;
 import asg.games.yipee.libgdx.objects.YipeeBlockGDX;
 import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
-import asg.games.yipee.net.game.GameManager;
 import asg.games.yokel.client.factories.YokelObjectFactory;
+import asg.games.yokel.client.game.ClientGameManager;
 import asg.games.yokel.client.ui.actors.GameBlock;
 import asg.games.yokel.client.ui.actors.GameBlockGrid;
 import asg.games.yokel.client.ui.actors.GameBrokenBlockSpriteContainer;
@@ -677,7 +677,7 @@ public class UIUtil {
         }
     }
 
-    public static YipeeGameBoardStateGDX getYipeeBoardState(GameManager gameManager, int seatNumber) throws Exception {
+    public static YipeeGameBoardStateGDX getYipeeBoardState(ClientGameManager gameManager, int seatNumber) throws Exception {
         if (gameManager == null) {
             throw new IllegalArgumentException("Game Manager is null.");
         }

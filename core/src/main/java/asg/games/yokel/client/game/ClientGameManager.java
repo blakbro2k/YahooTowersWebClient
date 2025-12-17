@@ -4,16 +4,19 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Queue;
-import com.badlogic.gdx.utils.TimeUtils;
+import com.github.czyzby.kiwi.log.LoggerService;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 
 import asg.games.yipee.common.game.GameBoardState;
-import asg.games.yipee.common.packets.PlayerAction;
-import asg.games.yipee.common.packets.YipeeSerializable;
+import asg.games.yipee.common.game.PlayerAction;
 import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
-import asg.games.yipee.net.game.GameManager;
+import asg.games.yipee.libgdx.objects.YipeeTableGDX;
+import asg.games.yokel.client.factories.Log4LibGDXLogger;
+import asg.games.yokel.client.service.ClientPredictionService;
+import asg.games.yokel.client.utils.LogUtil;
+import asg.games.yokel.client.utils.YokelUtilities;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -34,214 +37,98 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class ClientGameManager implements GameManager, Disposable {
-    //@Inject
-    //private LoggerService loggerService;
-
-    //private Log4LibGDXLogger logger;
+public class ClientGameManager implements Disposable {
+    private LoggerService loggerService;
+    private ClientPredictionService clientPredictionService;
+    private Log4LibGDXLogger logger;
 
     private static final String CONST_TITLE = "Yipee! Game Manager";
     private final Queue<PlayerAction> playersActionQueue = new Queue<>(); // Stores pending player actions
+    private final ObjectMap<Integer, Array<GameSeatActionPair>> tickToActions = GdxMaps.newObjectMap();
     private final ObjectMap<Integer, GamePlayerBoard> gameBoardMap = GdxMaps.newObjectMap(); // Maps seat IDs to game boards
-    private long gameSeed;
-    private int tickRate;
+    private long gameSeed = 0;
+    private int tickRate = 0;
+    private float accumulatedTime = 0;
+    private int currentTick = 0;
+    private boolean isRunning;
 
-    @Override
+    /**
+     * Constructor initializes game boards, executors, and logging for game session setup.
+     */
+    public ClientGameManager(long seed, int tickRate, YipeeTableGDX table, int playerSeat, LoggerService loggerService, ClientPredictionService clientPredictionService) {
+        this.loggerService = loggerService;
+        this.clientPredictionService = clientPredictionService;
+        logger = LogUtil.getLogger(loggerService, this.getClass());
+        logger.enter("ClientGameManager");
+        initialize(seed, tickRate);
+
+        initializePrediction(playerSeat, seed, table);
+        logger.exit("ClientGameManager");
+    }
+
     public void initialize(long gameSeed, int tickRate) {
-        //logger = LogUtil.getLogger(loggerService, this.getClass());
+        logger.enter("initialize");
+        System.out.println("initialize");
+
         this.gameSeed = gameSeed;
         this.tickRate = tickRate;
+
+        logger.debug("gameSeed={}", gameSeed);
+        logger.debug("tickRate={}", tickRate);
+        //Set up 8 actions array and 8 board snapshot arrays
+        for (int index = 0; index < 8; index++) {
+            gameBoardMap.put(index, new GamePlayerBoard(gameSeed));
+        }
+        logger.debug("gameBoardMap={}", gameBoardMap);
+        logger.exit("initialize");
     }
 
-    @Override
+    public void initializePrediction(int playerSeat, long seed, YipeeTableGDX table) {
+        logger.enter("initializePrediction");
+        clientPredictionService = new ClientPredictionService();
+        clientPredictionService.initialize(seed, table, playerSeat);
+        setGameSeed(seed);
+        logger.exit("initializePrediction");
+    }
+
     public void update(float delta) {
-        gameLoopTick(delta);
-    }
+        accumulatedTime += delta;
+        float tickInterval = 1f / tickRate;
 
-    @Override
-    public void applyLocalPlayerAction(YipeeSerializable yipeeSerializable) {
-        if (yipeeSerializable instanceof PlayerAction) {
-            addPlayerAction((PlayerAction) yipeeSerializable);
-        } else {
-            // logger.error("Unsupported action type: {}", yipeeSerializable.getClass().getSimpleName());
+        while (accumulatedTime >= tickInterval) {
+            currentTick++;
+            applyActionsForTick(currentTick);
+            accumulatedTime -= tickInterval;
         }
     }
 
-    @Override
-    public void receiveServerState(int seatId, GameBoardState gameBoardState) {
-        if (seatId < 0 || seatId >= 8 || gameBoardState == null) {
-            // logger.error("Invalid server state received for seat {}", seatId);
-            return;
+    private void applyActionsForTick(int tick) {
+        Array<GameSeatActionPair> actions = tickToActions.remove(tick); // consume once
+        if (actions == null) return;
+
+        for (GameSeatActionPair pair : actions) {
+            processPlayerAction(pair.getAction(), 0f);
         }
-        //logger.debug("Received server state for seat {}", seatId);
-        addState(seatId, gameBoardState);
     }
 
-    @Override
-    public GameBoardState getBoardState(int seatId) {
-        return getLatestGameBoardState(seatId);
-    }
-
-    @Override
-    public Iterable<? extends GameBoardState> getBoardStates(int seatId) {
-        return getGameBoardStates(seatId);
-    }
-
-    @Override
-    public void reset(long gameSeed) {
-        setGameSeed(gameSeed);
-        resetGameBoards();
-    }
-
-    @Override
-    public boolean isPlayerDead(int gameSeat) {
-        GamePlayerBoard gameBoard = gameBoardMap.get(gameSeat);
-        if (gameBoard == null) {
-            return true;
-        }
-        return gameBoard.isBoardDead();
+    public void addAction(GameSeatActionPair actionPair) {
+        Array<GameSeatActionPair> gameActions = tickToActions.get(actionPair.getTick());
+        gameActions.add(actionPair);
     }
 
     @Override
     public void dispose() {
         playersActionQueue.clear();
         gameBoardMap.clear();
+        tickToActions.clear();
     }
 
     public Array<YipeePlayerGDX> getWinners() {
         return GdxArrays.newArray();
     }
 
-    /**
-     * Helper class that represents one seat with information on the game states and the player seated
-     */
-    @Getter
-    @Setter
-    public static class GamePlayerBoard {
-        private YipeePlayerGDX player;
-        private YipeeGameBoardGDX board;
-        private final Queue<GameBoardState> gameBoardStates = new Queue<>(); // Tracks states by seat ID
-
-        public boolean addState(GameBoardState state) {
-            gameBoardStates.addFirst(state);
-            return true;
-        }
-
-        public boolean removeState(GameBoardState state) {
-            return gameBoardStates.removeValue(state, false);
-        }
-
-        public GamePlayerBoard() {
-            this(-1);
-        }
-
-        public GamePlayerBoard(long seed) {
-            board = new YipeeGameBoardGDX(seed);
-        }
-
-        /**
-         * Resets the board with a default seed of -1
-         */
-        public void reset() {
-            reset(-1);
-        }
-
-        /**
-         * Resets the board with the given seed
-         *
-         * @param seed Game seed
-         */
-        public void reset(long seed) {
-            setBoardSeed(seed);
-            setPlayer(null);
-            gameBoardStates.clear();
-        }
-
-        public void setBoardSeed(long seed) {
-            board.reset(seed);
-        }
-
-        public void startBoard() {
-            board.begin();
-        }
-
-        public void stopBoard() {
-            board.end();
-        }
-
-        public GameBoardState getLatestGameState() {
-            return gameBoardStates.first();
-        }
-
-        public boolean isBoardDead() {
-            if (board == null) {
-                return true;
-            }
-            return board.hasPlayerDied();
-        }
-    }
-
-    /**
-     * Constructor initializes game boards, executors, and logging for game session setup.
-     */
-    public ClientGameManager() {
-        // logger.info("{} Build {}", CONST_TITLE, Version.printVersion());
-        // logger.info("Initializing Gamestates...");
-        // logger.info("Initializing Game loop...");
-        // logger.info("Initializing Actions...");
-        setGameSeed(TimeUtils.millis());
-
-        //logger.info("Initializing Seats...");
-        // Initialize 8 game boards (1 for each seat)
-        for (int seatId = 0; seatId < 8; seatId++) {
-            // logger.debug("Initializing seat[{}]", seatId);
-            gameBoardMap.put(seatId, new GamePlayerBoard(gameSeed));
-        }
-    }
-
-    /**
-     * Starts the game loop and initializes the game boards with a common seed.
-     */
-    public void startGameLoop() {
-        resetGameBoards();
-
-        // Set same seeded game for 8 game boards (1 for each seat)
-        long seed = TimeUtils.millis();
-        //logger.info("Starting game with seed={}", seed);
-        for (int seatId = 0; seatId < 8; seatId++) {
-            GamePlayerBoard board = gameBoardMap.get(seatId);
-            if (!isPlayerEmpty(seatId)) {
-                board.setBoardSeed(seed);
-                board.startBoard();
-                addState(seatId, board.getLatestGameState());
-            }
-        }
-    }
-
-    @Override
-    public void endGameLoop() {
-
-    }
-
-    @Override
-    public boolean checkGameEndConditions() {
-        return false;
-    }
-
-    @Override
-    public boolean isRunning() {
-        return false;
-    }
-
-    /**
-     * Checks if the board has a player set.  This means a player has sat down.
-     *
-     * @param seatId the seat ID
-     * @return true if {@link YipeePlayerGDX} player is not null
-     */
-    private boolean isPlayerEmpty(int seatId) {
-        validateSeat(seatId);
-        return getGameBoardPlayer(seatId) == null;
+    public GameBoardState getBoardState(int seatNumber) {
+        return gameBoardMap.get(seatNumber).getBoard().exportGameState();
     }
 
     /**
@@ -272,6 +159,12 @@ public class ClientGameManager implements GameManager, Disposable {
             board = gameBoardObj.getBoard();
         }
         return board;
+    }
+
+    public YipeeGameBoardGDX getPartnerGameBoard(int seatId) {
+        validateSeat(seatId);
+        int partnerSeat = (seatId % 2 == 0) ? seatId + 1 : seatId - 1;
+        return getGameBoard(partnerSeat);
     }
 
     /**
@@ -320,24 +213,6 @@ public class ClientGameManager implements GameManager, Disposable {
         }
     }
 
-    /**
-     * @param seatId
-     * @param gameState
-     */
-    public void addState(int seatId, GameBoardState gameState) {
-        if (seatId < 0) {
-            // logger.debug("Invalid value for seat[{}], skipping adding to stack.", seatId);
-            return;
-        }
-        if (gameState != null) {
-            GamePlayerBoard gamePlayerBoard = gameBoardMap.get(seatId);
-            if (!gamePlayerBoard.addState(gameState)) {
-                // logger.debug("There was an exception adding state for seat[{}]", seatId);
-            }
-        } else {
-            //logger.error("GameState for seat[{}], skipping adding to stack.", seatId);
-        }
-    }
 
     /**
      * Resets all game boards and clears associated states.
@@ -361,28 +236,6 @@ public class ClientGameManager implements GameManager, Disposable {
     }
 
     /**
-     * Processes player actions in the queue and updates game boards.
-     *
-     * @param delta the time step for the game loop
-     */
-    public void gameLoopTick(float delta) {
-        if (!playersActionQueue.isEmpty()) {
-            // Process Player Actions
-            PlayerAction action;
-            while ((action = playersActionQueue.removeFirst()) != null) {
-                processPlayerAction(action, delta);
-            }
-            // 3. Check Win/Loss Conditions
-            //logger.debug("Checking Game End conditions");
-            //checkGameEndConditions();
-
-            // 4. Prepare Outgoing State Updates
-            //logger.debug("Broadcasting GameState");
-            //broadcastGameState();
-        }
-    }
-
-    /**
      * Processes a single player action and updates the target game board.
      *
      * @param action the player action to process
@@ -391,6 +244,7 @@ public class ClientGameManager implements GameManager, Disposable {
     public void processPlayerAction(PlayerAction action, float delta) {
         int targetSeatId = action.getTargetBoardId();
         YipeeGameBoardGDX board = getGameBoard(targetSeatId);
+        YipeeGameBoardGDX partnerBoard = getPartnerGameBoard(targetSeatId);
 
         // logger.info("BoardSeat: {} is taking action: {} on target boardSeat: {}.",
         // action.getInitiatingBoardId(), action.getActionType(), action.getTargetBoardId());
@@ -402,9 +256,9 @@ public class ClientGameManager implements GameManager, Disposable {
 
         //  logger.debug("Processing action [{}] for seat [{}]", action.getActionType(), targetSeatId);
 
-        board.update(delta);
+        board.updateGameState(delta, YokelUtilities.getYipeeGDXGameState(board.exportGameState()), YokelUtilities.getYipeeGDXGameState(partnerBoard.exportGameState()));
         board.applyPlayerAction(action);
-        addState(targetSeatId, board.exportGameState());
+        //addGameState(targetSeatId, board.exportGameState());
     }
 
 
@@ -499,5 +353,86 @@ public class ClientGameManager implements GameManager, Disposable {
             enemyBoards.put(entry.key, entry.value.getBoard());
         }
         return enemyBoards;
+    }
+
+    public boolean isRunning() {
+        return isRunning;
+    }
+
+    public boolean isPlayerDead(int gameSeat) {
+        GamePlayerBoard gameBoard = gameBoardMap.get(gameSeat);
+        if (gameBoard != null) {
+            return gameBoard.isBoardDead();
+        }
+        return true;
+    }
+
+    /**
+     * Helper class that represents one seat with information on the game states and the player seated
+     */
+    @Getter
+    @Setter
+    public static class GamePlayerBoard {
+        private YipeePlayerGDX player;
+        private YipeeGameBoardGDX board;
+        private final Queue<GameBoardState> gameBoardStates = new Queue<>(); // Tracks states by seat ID
+
+        public boolean addState(GameBoardState state) {
+            gameBoardStates.addFirst(state);
+            return true;
+        }
+
+        public boolean removeState(GameBoardState state) {
+            return gameBoardStates.removeValue(state, false);
+        }
+
+        public GamePlayerBoard() {
+            this(-1);
+        }
+
+        public GamePlayerBoard(long seed) {
+            board = new YipeeGameBoardGDX(seed);
+        }
+
+        /**
+         * Resets the board with a default seed of -1
+         */
+        public void reset() {
+            reset(-1);
+        }
+
+        /**
+         * Resets the board with the given seed
+         *
+         * @param seed Game seed
+         */
+        public void reset(long seed) {
+            setBoardSeed(seed);
+            setPlayer(null);
+            gameBoardStates.clear();
+        }
+
+        public void setBoardSeed(long seed) {
+            board.reset(seed);
+        }
+
+        public void startBoard() {
+            board.begin();
+        }
+
+        public void stopBoard() {
+            board.end();
+        }
+
+        public GameBoardState getLatestGameState() {
+            return gameBoardStates.first();
+        }
+
+        public boolean isBoardDead() {
+            if (board == null) {
+                return true;
+            }
+            return board.hasPlayerDied();
+        }
     }
 }

@@ -2,11 +2,14 @@ package asg.games.yokel.client.gwt;
 
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.Queue;
+import com.badlogic.gdx.utils.TimeUtils;
 import com.github.czyzby.websocket.WebSocket;
 import com.github.czyzby.websocket.WebSocketListener;
 import com.github.czyzby.websocket.WebSockets;
 import com.github.czyzby.websocket.data.WebSocketCloseCode;
 
+import asg.games.yipee.common.dto.NetYipeePlayer;
+import asg.games.yipee.net.packets.ClientHandshakeRequest;
 import asg.games.yokel.client.managers.GameNetworkManager;
 
 public class WebSocketNetworkManager implements GameNetworkManager {
@@ -26,58 +29,53 @@ public class WebSocketNetworkManager implements GameNetworkManager {
 
     @Override
     public boolean connect() {
-        if (connected) return false;
+        if (connected) return true;
         try {
             String url = WebSockets.toWebSocketUrl(host, port);
             socket = WebSockets.newSocket(url);
-
             socket.setSendGracefully(true);
+
             socket.addListener(new WebSocketListener() {
                 @Override
                 public boolean onOpen(WebSocket webSocket) {
                     connected = true;
-                    System.out.println("WebSocket connected!");
                     return true;
                 }
 
                 @Override
                 public boolean onClose(WebSocket webSocket, WebSocketCloseCode code, String reason) {
-                    return false;
+                    connected = false;
+                    return true;
                 }
-
 
                 @Override
                 public boolean onError(WebSocket webSocket, Throwable error) {
                     connected = false;
-                    error.printStackTrace();
                     return true;
                 }
 
                 @Override
                 public boolean onMessage(WebSocket webSocket, String message) {
-                    // Deserialize JSON string to generic Object.
-                    try {
-                        Object obj = json.fromJson(Object.class, message);
-                        messageQueue.addLast(obj);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    messageQueue.addLast(message);
                     return true;
                 }
 
                 @Override
                 public boolean onMessage(WebSocket webSocket, byte[] packet) {
+                    // Not used — JSON protocol is text-only
                     return false;
                 }
             });
 
             socket.connect();
-
+            return true; // "connection initiated"
         } catch (Exception e) {
+            connected = false;
             e.printStackTrace();
+            return false;
         }
-        return false;
     }
+
 
     @Override
     public boolean isConnected() {
@@ -122,5 +120,22 @@ public class WebSocketNetworkManager implements GameNetworkManager {
     @Override
     public Object pollMessage() {
         return messageQueue.notEmpty() ? messageQueue.removeFirst() : null;
+    }
+
+    @Override
+    public void registerUser(String authToken, NetYipeePlayer player, String clientId, String sessionKey) {
+        ClientHandshakeRequest requestPacket = new ClientHandshakeRequest();
+        requestPacket.setAuthToken(authToken);
+        requestPacket.setPlayerId(player.getId());
+        requestPacket.setClientId(clientId);
+        //requestPacket.setSessionKey(sessionKey);
+        requestPacket.setClientTick(-1);
+        requestPacket.setTimestamp(TimeUtils.millis());
+        send(requestPacket);
+    }
+
+    @Override
+    public void registerPackets() {
+
     }
 }

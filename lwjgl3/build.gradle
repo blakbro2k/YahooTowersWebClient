@@ -28,10 +28,12 @@ dependencies {
     api "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
     api "com.crashinvaders.lml:gdx-autumn-fcs:$lmlVersion"
     api "com.github.MrStahlfelge.gdx-websockets:common:$websocketVersion"
+    api 'com.esotericsoftware:kryonet:2.22.0-RC1'
 
-    api files("U:/Yipee/yipee-parent/yipee-core/target/yipee-core-$yipeeVersion" + ".jar")
-    api files("U:/Yipee/yipee-parent/yipee-net/target/yipee-net-$yipeeVersion" + ".jar")
-    api files("U:/Yipee/yipee-parent/yipee-common/target/yipee-common-$yipeeVersion" + ".jar")
+    api files("C:\\Users\\Blakbro2k\\.m2\\repository\\asg\\games\\yipee-libgdx\\$yipeeVersion\\yipee-libgdx-$yipeeVersion" + ".jar")
+    api files("C:\\Users\\Blakbro2k\\.m2\\repository\\asg\\games\\yipee-net\\$yipeeVersion\\yipee-net-$yipeeVersion" + ".jar")
+    api files("C:\\Users\\Blakbro2k\\.m2\\repository\\asg\\games\\yipee-common\\$yipeeVersion\\yipee-common-$yipeeVersion" + ".jar")
+    //api files("C:\\Users\\Blakbro2k\\.m2\\repository\\asg\\games\\yipee-core\\$yipeeVersion\\yipee-core-$yipeeVersion" + ".jar")
 
     // SLF4J API
     api 'org.slf4j:slf4j-api:1.7.36'

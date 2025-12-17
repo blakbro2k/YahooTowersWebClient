@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.stream.StreamSupport;
 
+import asg.games.yipee.common.game.GameBoardState;
+import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
 import asg.games.yipee.libgdx.objects.YipeeRoomGDX;
 
 public class YokelUtilities extends UtilitiesClass {
@@ -163,6 +165,13 @@ public class YokelUtilities extends UtilitiesClass {
         if (array != null) {
             array.clear();
         }
+    }
+
+    public static YipeeGameBoardStateGDX getYipeeGDXGameState(GameBoardState gameBoardState) {
+        if (gameBoardState instanceof YipeeGameBoardStateGDX) {
+            return (YipeeGameBoardStateGDX) gameBoardState;
+        }
+        return null;
     }
 
     public static class IDGenerator {
