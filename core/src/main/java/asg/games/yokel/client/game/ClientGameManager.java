@@ -4,20 +4,19 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Queue;
-import com.github.czyzby.autumn.annotation.Component;
-import com.github.czyzby.autumn.annotation.Inject;
 import com.github.czyzby.kiwi.log.LoggerService;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 
 import asg.games.yipee.common.game.GameBoardState;
-import asg.games.yipee.common.packets.PlayerAction;
+import asg.games.yipee.common.game.PlayerAction;
 import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
 import asg.games.yipee.libgdx.objects.YipeeTableGDX;
-import asg.games.yipee.net.game.GameSeatActionPair;
-import asg.games.yipee.net.game.GameStatePair;
+import asg.games.yokel.client.factories.Log4LibGDXLogger;
 import asg.games.yokel.client.service.ClientPredictionService;
+import asg.games.yokel.client.utils.LogUtil;
+import asg.games.yokel.client.utils.YokelUtilities;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -38,14 +37,10 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-@Component
 public class ClientGameManager implements Disposable {
-    @Inject
     private LoggerService loggerService;
-
-    @Inject
     private ClientPredictionService clientPredictionService;
-    //private Log4LibGDXLogger logger;
+    private Log4LibGDXLogger logger;
 
     private static final String CONST_TITLE = "Yipee! Game Manager";
     private final Queue<PlayerAction> playersActionQueue = new Queue<>(); // Stores pending player actions
@@ -55,35 +50,45 @@ public class ClientGameManager implements Disposable {
     private int tickRate = 0;
     private float accumulatedTime = 0;
     private int currentTick = 0;
+    private boolean isRunning;
 
     /**
      * Constructor initializes game boards, executors, and logging for game session setup.
      */
-    public ClientGameManager(long seed, int tickRate, YipeeTableGDX table, int playerSeat) {
-        // logger.info("{} Build {}", CONST_TITLE, Version.printVersion());
-        // logger.info("Initializing Gamestates...");
-        // logger.info("Initializing Game loop...");
-        // logger.info("Initializing Actions...");
+    public ClientGameManager(long seed, int tickRate, YipeeTableGDX table, int playerSeat, LoggerService loggerService, ClientPredictionService clientPredictionService) {
+        this.loggerService = loggerService;
+        this.clientPredictionService = clientPredictionService;
+        logger = LogUtil.getLogger(loggerService, this.getClass());
+        logger.enter("ClientGameManager");
         initialize(seed, tickRate);
 
         initializePrediction(playerSeat, seed, table);
+        logger.exit("ClientGameManager");
     }
 
     public void initialize(long gameSeed, int tickRate) {
-        //logger = LogUtil.getLogger(loggerService, this.getClass());
+        logger.enter("initialize");
+        System.out.println("initialize");
+
         this.gameSeed = gameSeed;
         this.tickRate = tickRate;
 
+        logger.debug("gameSeed={}", gameSeed);
+        logger.debug("tickRate={}", tickRate);
         //Set up 8 actions array and 8 board snapshot arrays
         for (int index = 0; index < 8; index++) {
             gameBoardMap.put(index, new GamePlayerBoard(gameSeed));
         }
+        logger.debug("gameBoardMap={}", gameBoardMap);
+        logger.exit("initialize");
     }
 
     public void initializePrediction(int playerSeat, long seed, YipeeTableGDX table) {
+        logger.enter("initializePrediction");
         clientPredictionService = new ClientPredictionService();
         clientPredictionService.initialize(seed, table, playerSeat);
         setGameSeed(seed);
+        logger.exit("initializePrediction");
     }
 
     public void update(float delta) {
@@ -109,13 +114,6 @@ public class ClientGameManager implements Disposable {
     public void addAction(GameSeatActionPair actionPair) {
         Array<GameSeatActionPair> gameActions = tickToActions.get(actionPair.getTick());
         gameActions.add(actionPair);
-    }
-
-    public void addGameState(GameStatePair statePair) {
-        GamePlayerBoard gameBoard = gameBoardMap.get(statePair.getSeat());
-        if (gameBoard != null) {
-            gameBoard.addState(statePair.getState());
-        }
     }
 
     @Override
@@ -258,7 +256,7 @@ public class ClientGameManager implements Disposable {
 
         //  logger.debug("Processing action [{}] for seat [{}]", action.getActionType(), targetSeatId);
 
-        board.updateGameState(delta, board.exportGameState(), partnerBoard.exportGameState());
+        board.updateGameState(delta, YokelUtilities.getYipeeGDXGameState(board.exportGameState()), YokelUtilities.getYipeeGDXGameState(partnerBoard.exportGameState()));
         board.applyPlayerAction(action);
         //addGameState(targetSeatId, board.exportGameState());
     }
@@ -355,6 +353,18 @@ public class ClientGameManager implements Disposable {
             enemyBoards.put(entry.key, entry.value.getBoard());
         }
         return enemyBoards;
+    }
+
+    public boolean isRunning() {
+        return isRunning;
+    }
+
+    public boolean isPlayerDead(int gameSeat) {
+        GamePlayerBoard gameBoard = gameBoardMap.get(gameSeat);
+        if (gameBoard != null) {
+            return gameBoard.isBoardDead();
+        }
+        return true;
     }
 
     /**

@@ -30,6 +30,7 @@ import com.github.czyzby.lml.parser.action.ActionContainer;
 
 import java.util.Iterator;
 
+import asg.games.yipee.common.enums.Constants;
 import asg.games.yipee.libgdx.objects.YipeeBrokenBlockGDX;
 import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
@@ -43,6 +44,7 @@ import asg.games.yokel.client.controller.action.PlaySoundAction;
 import asg.games.yokel.client.controller.dialog.NextGameController;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
 import asg.games.yokel.client.game.ClientGameManager;
+import asg.games.yokel.client.service.ClientPredictionService;
 import asg.games.yokel.client.service.SessionService;
 import asg.games.yokel.client.service.SoundFXService;
 import asg.games.yokel.client.service.UserInterfaceService;
@@ -77,7 +79,8 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
     private MusicService musicService;
     @Inject
     private LoadingController assetLoader;
-
+    @Inject
+    private ClientPredictionService clientPredictionService;
     @LmlActor("gameClock")
     private GameClock gameClock;
     @LmlActor("1:area")
@@ -143,7 +146,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
                 YipeePlayerGDX player3 = new YipeePlayerGDX("rmeyers", 1700, 1);
 
                 ObjectMap<String, Object> arguments = GdxMaps.newObjectMap();
-                arguments.put(YipeeTableGDX.ARG_TYPE, YipeeTableGDX.ENUM_VALUE_PRIVATE);
+                arguments.put(YipeeTableGDX.ARG_TYPE, Constants.ENUM_VALUE_PRIVATE);
                 arguments.put(YipeeTableGDX.ARG_RATED, true);
 
                 //setTable
@@ -164,7 +167,8 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
 
                 setSeat(6, player3, table);
                 setSeat(1, player2, table);
-                simulatedGame = new ClientGameManager(gameSeed, tickRate, table, currentSeatNumber);
+                simulatedGame = new ClientGameManager(gameSeed, tickRate, table, currentSeatNumber, loggerService, clientPredictionService);
+
             } else {
                 //TODO: Fetch table state from server
                 isUsingServer = false;
@@ -231,7 +235,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
             logger.enter("render");
             //Fetch GameManager from Server
             //fetch game state from server
-            GameManager game = fetchGameManagerFromServer(delta);
+            ClientGameManager game = fetchGameManagerFromServer(delta);
             System.out.println(game);
 
             //Check if game is ready to start
@@ -276,7 +280,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private void addBrokenBlocksToAnimationQueue(GameManager game) throws Exception {
+    private void addBrokenBlocksToAnimationQueue(ClientGameManager game) throws Exception {
         for (int boardSeat = 0; boardSeat < 8; boardSeat++) {
             for (YipeeBrokenBlockGDX cellBroken : UIUtil.getYipeeBoardState(game, boardSeat).getBrokenCells()) {
                 GameBlock gameBlock = UIUtil.getInstance().getGameBlock(cellBroken.getBlock(), uiAreas[boardSeat].isPreview());
@@ -306,7 +310,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         return verts;
     }
 
-    private void handleBrokenBlocks(GameManager game, Stage stage) throws Exception {
+    private void handleBrokenBlocks(ClientGameManager game, Stage stage) throws Exception {
         if (brokenBlocksQueue1.size > 0) {
             YipeeGameBoardStateGDX state = UIUtil.getYipeeBoardState(game, 0);
             UIUtil.addBrokenBlockActorToStage(stage, state.getYahooDuration() > 0, brokenBlocksQueue1);
@@ -477,7 +481,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
     }
 
     //Needs to update the simulated game with the server state.
-    private void updateGameState(GameManager game, float delta, Stage stage) throws ReflectionException {
+    private void updateGameState(ClientGameManager game, float delta, Stage stage) throws ReflectionException {
         try {
             logger.enter("setUpDefaultSeats");
             if (logger.isDebugOn()) {
@@ -607,7 +611,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private boolean isGameRunning(GameManager game) throws ReflectionException {
+    private boolean isGameRunning(ClientGameManager game) throws ReflectionException {
         try {
             logger.enter("isGameRunning");
             boolean isGameRunning = game != null && game.isRunning();
@@ -655,7 +659,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private void handleGameStart(GameManager game) throws ReflectionException {
+    private void handleGameStart(ClientGameManager game) throws ReflectionException {
         try {
             logger.enter("handleGameStart");
             if (gameClock == null) return;
@@ -740,7 +744,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
             if (!gameClock.isRunning()) {
                 logger.debug("Starting clock now");
                 gameClock.start();
-                simulatedGame.startGameLoop();
+                //simulatedGame.startGameLoop();
             }
             logger.exit("startGame");
         } catch (Exception e) {
@@ -765,7 +769,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private void handleGameOver(Stage stage, GameManager game) throws ReflectionException {
+    private void handleGameOver(Stage stage, ClientGameManager game) throws ReflectionException {
         try {
             logger.enter("handleGameOver");
             if (game != null && stage != null) {
@@ -785,7 +789,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private Actor getGameOverActor(GameManager game) throws ReflectionException {
+    private Actor getGameOverActor(ClientGameManager game) throws ReflectionException {
         try {
             logger.enter("getGameOverActor");
             if (game != null) {
@@ -811,10 +815,10 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
         }
     }
 
-    private Array<YipeePlayerGDX> getGameWinners(GameManager game) {
+    private Array<YipeePlayerGDX> getGameWinners(ClientGameManager game) {
         Array<YipeePlayerGDX> winners = GdxArrays.newArray();
-        if (game instanceof ClientGameManager) {
-            winners = ((ClientGameManager) game).getWinners();
+        if (game != null) {
+            winners = game.getWinners();
         }
         return winners;
     }
@@ -946,7 +950,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
                 //TODO: Check if received new GameManager, return current simulation if null.
                 //game = sessionService.asyncGetGameManagerFromServerRequest();
             } else {
-                game = simulatedGame;
+                //game = simulatedGame;
             }
 
             //Fetch Game state from Manager

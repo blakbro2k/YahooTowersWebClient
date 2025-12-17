@@ -17,6 +17,7 @@ import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
 import asg.games.yipee.libgdx.objects.YipeeBlockGDX;
 import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
 import asg.games.yipee.libgdx.objects.YipeePieceGDX;
+import asg.games.yipee.libgdx.tools.NetUtil;
 import asg.games.yokel.client.utils.UIUtil;
 import asg.games.yokel.client.utils.YokelUtilities;
 
@@ -249,7 +250,7 @@ public class GameBlockGrid extends Stack {
             }
 
             //Render Piece
-            setPieceSprite(state.getPiece(), state.getPieceFallTimer());
+            setPieceSprite(NetUtil.fromJsonClient(state.getPiece(), YipeePieceGDX.class), state.getPieceFallTimer());
         }
     }
 

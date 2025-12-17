@@ -29,8 +29,9 @@ import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 
+import asg.games.yipee.common.enums.Constants;
 import asg.games.yipee.common.game.GameBoardState;
-import asg.games.yipee.common.packets.PlayerAction;
+import asg.games.yipee.common.game.PlayerAction;
 import asg.games.yipee.libgdx.game.YipeeBlockEvalGDX;
 import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
 import asg.games.yipee.libgdx.objects.YipeeBrokenBlockGDX;
@@ -399,7 +400,7 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             YipeePlayerGDX player3 = new YipeePlayerGDX("player3");
             YipeePlayerGDX player4 = new YipeePlayerGDX("blakbro2k");
             ObjectMap<String, Object> arguments = GdxMaps.newObjectMap();
-            arguments.put(YipeeTableGDX.ARG_TYPE, YipeeTableGDX.ENUM_VALUE_PRIVATE);
+            arguments.put(YipeeTableGDX.ARG_TYPE, Constants.ENUM_VALUE_PRIVATE);
             arguments.put(YipeeTableGDX.ARG_RATED, true);
             YipeeTableGDX table = new YipeeTableGDX(1, arguments);
 
@@ -413,7 +414,7 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
             table.getSeat(4).setSeatReady(true);
             //table.setSeats(seats);
 
-            clientGameManager = new ClientGameManager(gameSeed, tickRate, table, playerSeat);
+            clientGameManager = new ClientGameManager(gameSeed, tickRate, table, playerSeat, loggerService, clientPredictionService);
 
             playerBoardData = new YipeeGameBoardGDX(gameSeed);
             playerBoard2Data = new YipeeGameBoardGDX(gameSeed);
@@ -597,11 +598,11 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
         testGameBoard.renderPlayerBoard(testBoardState);
         powersQueue.updatePowersQueue(queuePowers);
 
-        updateBrokenBlockQueue(playerBoardData.exportGameState(), brokenBlocksQueue1, playerBoard);
+        updateBrokenBlockQueue(YokelUtilities.getYipeeGDXGameState(playerBoardData.exportGameState()), brokenBlocksQueue1, playerBoard);
 
-        updateBrokenBlockQueue(playerBoard2Data.exportGameState(), brokenBlocksQueue2, previewBoard);
+        updateBrokenBlockQueue(YokelUtilities.getYipeeGDXGameState(playerBoard2Data.exportGameState()), brokenBlocksQueue2, previewBoard);
 
-        boolean localYahoo = updateBrokenBlockQueue(testBoardData.exportGameState(), brokenBlocksQueue3, testGameBoard.getGrid());
+        boolean localYahoo = updateBrokenBlockQueue(YokelUtilities.getYipeeGDXGameState(testBoardData.exportGameState()), brokenBlocksQueue3, testGameBoard.getGrid());
 
         // Animate broken blocks if timer triggers
         if (--brokenCheck == 0) {
@@ -703,8 +704,8 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
     }
 
     public void handlePlayerSimulatedInput(ClientGameManager clientGameManager, float delta) throws ReflectionException {
+        logger.enter("handlePlayerSimulatedInput");
         try {
-            //logger.enter("handleLocalPlayerInput");
             PlayerAction localAction = null;
             int clientTick = 1;
             int playerBoardNumber = 1;
@@ -714,38 +715,38 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
                 // logger.debug("Handling Z: ", Input.Keys.Z);
                 // logger.debug("Adding Midas");
                 //game.addSpecialPiece(2);
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.O_MIDAS, 1, clientTick, null);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.O_MIDAS, 1, null);
             }
             if (Gdx.input.isKeyJustPressed(Input.Keys.X)) {
                 // logger.debug("Handling X: ", Input.Keys.Z);
                 // logger.debug("Adding Medusa");
                 //game.addSpecialPiece(1);
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.O_MEDUSA, 1, clientTick, null);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.O_MEDUSA, 1, null);
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getRightKey())) {
                 // logger.debug("Player input key: ", keyMap.getRightKey());
                 // logger.debug("Moving right");
                 //game.movePieceRight();
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_RIGHT, 1, clientTick, null);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_RIGHT, 1, null);
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getLeftKey())) {
                 // logger.debug("Player input key: ", keyMap.getLeftKey());
                 // logger.debug("Moving Left");
                 //game.movePieceLeft();
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_LEFT, 1, clientTick, null);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_LEFT, 1, null);
             }
-            /*if (Gdx.input.isKeyJustPressed(keyMap.getCycleUpKey())) {
-                logger.debug("Player input key: ", keyMap.getCycleUpKey());
-                logger.debug("Cycle down");
-                game.getCycleUpKey();
-                localAction = new PlayerAction(1, PlayerAction.ActionType.P_CYCLE_UP, 1, 1, null);
-            }*/
+            if (Gdx.input.isKeyJustPressed(keyMap.getCycleUpKey())) {
+                //logger.debug("Player input key: ", keyMap.getCycleUpKey());
+                //logger.debug("Cycle down");
+                //game.getCycleUpKey();
+                localAction = new PlayerAction(1, PlayerAction.ActionType.P_CYCLE_UP, 1, null);
+            }/*
             if (Gdx.input.isKeyJustPressed(keyMap.getCycleDownKey())) {
                 // logger.debug("Player input key: ", keyMap.getCycleUpKey());
                 // logger.debug("Cycle Up");
                 //game.cycleUp();
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_CYCLE_DOWN, 1, clientTick, null);
-            }
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_CYCLE_DOWN, 1,  null);
+            }*/
             if (Gdx.input.isKeyPressed(keyMap.getDownKey())) {
                 if (!downKeyPressed) {
                     downKeyPressed = true;
@@ -753,60 +754,60 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
                 // logger.debug("Player input key: ", keyMap.getDownKey());
                 // logger.debug("Moving Down");
                 //game.startMoveDown();
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_START, 1, clientTick, null);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_START, 1, null);
             }
             if (!Gdx.input.isKeyPressed(keyMap.getDownKey())) {
                 downKeyPressed = false;
                 // logger.debug("Player input key: ", keyMap.getRightKey());
                 // logger.debug("Stop Moving Down");
                 //game.stopMoveDown();
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 1, clientTick, null);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 1, null);
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getRandomAttackKey())) {
                 //game.handleRandomAttack(currentSeat);
                 // logger.debug("Player input key: ", keyMap.getRightKey());
                 //logger.debug("Adding Midas");
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 1, clientTick, null);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 1, null);
             }
 
             if (Gdx.input.isKeyJustPressed(keyMap.getTarget1())) {
                 //game.handleTargetAttack(currentSeat,1);
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 1, clientTick, null);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 1, null);
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getTarget2())) {
                 //game.handleTargetAttack(currentSeat,2);
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 2, clientTick, null);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 2, null);
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getTarget3())) {
                 //game.handleTargetAttack(currentSeat,3);
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 3, clientTick, null);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 3, null);
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getTarget4())) {
                 //game.handleTargetAttack(currentSeat,4);
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 4, clientTick, null);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 4, null);
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getTarget5())) {
                 //game.handleTargetAttack(currentSeat,5);
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 5, clientTick, null);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 5, null);
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getTarget6())) {
                 //game.handleTargetAttack(currentSeat,6);
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 6, clientTick, null);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 6, null);
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getTarget7())) {
                 //game.handleTargetAttack(currentSeat,7);
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 7, clientTick, null);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 7, null);
             }
             if (Gdx.input.isKeyJustPressed(keyMap.getTarget8())) {
                 //game.handleTargetAttack(currentSeat,8);
-                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 8, clientTick, null);
+                localAction = new PlayerAction(playerBoardNumber, PlayerAction.ActionType.P_MOVE_DOWN_END, 8, null);
             }
 
             //store predicted board
             //clientPredictionService.queueLocalAction(localAction, delta);
             clientGameManager.addPlayerAction(localAction);
 
-            //logger.exit("handleLocalPlayerInput");
+            logger.exit("handleLocalPlayerInput");
         } catch (Exception e) {
             String errorMsg = "Error in handlePlayerInput()";
             logger.error(errorMsg, e);

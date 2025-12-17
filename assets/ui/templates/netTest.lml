@@ -1,23 +1,21 @@
 <table defaultPad="2" fillParent="true" defaultFillX="true" debug="true">
-    <table colspan="2" row="true">
+    <table row="true">
         <table row="true">
             <label id="isConnectedLabel">Not Connected</label>
         </table>
-        <table>
-            <playericon id="icon3">0</playericon>
-            <textField message="Username" id="username" />
+        <table row="true">
+            <playericon id="icon3" row="true">0</playericon>
+            <textField message="Username" id="username" row="true" />
             <textField message="Rating" id="rating" row="true" />
         </table>
-    </table>
-    <table>
-
-        <textButton onClick="netConnect" row="true">Connect...</textButton>
-        <textButton onClick="netDisconnect" row="true">Disconnect...</textButton>
-        <textButton onClick="isConnectionAlive" row="true">Is Alive</textButton>
-    </table>
-    <table>
-        <textButton onClick="goto:uiblocktest" row="true">@debugGameSprites</textButton>
-        <textButton onClick="goto:networkTest" row="true">Networking Test</textButton>
-        <textButton onChange="goto:menu" row="true">@back</textButton>
+        <table row="true">
+            <textButton onClick="netConnect" row="true">Connect...</textButton>
+            <textButton onClick="netDisconnect" row="true">Disconnect...</textButton>
+            <textButton onClick="isConnectionAlive" row="true">Is Alive</textButton>
+        </table>
+        <table row="true">
+            <textButton onClick="goto:spritesTest" row="true">@debugGameSprites</textButton>
+            <textButton onChange="goto:debug" row="true">@back</textButton>
+        </table>
     </table>
 </table>

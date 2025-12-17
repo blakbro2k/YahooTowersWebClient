@@ -59,7 +59,8 @@ public class Lwjgl3Launcher {
 
 	private static Lwjgl3Application createApplication() {
 		SoundUtil lwjgl3SoundUtil = new Lwjgl3SoundUtil();
-        GameNetFactory.registerClientManager(new KryoNetworkManager(5000, "localhost", 8081, 55000));
+		GameNetFactory.registerClientManager(new KryoNetworkManager(5000, "localhost", 8080, 28080));
+		GameNetFactory.registerWebClientManager(new Lwjgl3WebSocketNetworkManager("localhost"));
 		UIUtil.getInstance().setSoundUtil(lwjgl3SoundUtil);
 		CommonWebSockets.initiate();
 		return new Lwjgl3Application(new AutumnApplication(new DesktopClassScanner(), YahooTowersClient.class),

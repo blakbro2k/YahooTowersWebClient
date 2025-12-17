@@ -2,12 +2,14 @@ package asg.games.yokel.client.service;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.github.czyzby.autumn.annotation.Component;
 import com.github.czyzby.autumn.annotation.Destroy;
 import com.github.czyzby.autumn.annotation.Initiate;
 import com.github.czyzby.autumn.annotation.Inject;
+import com.github.czyzby.autumn.mvc.component.preferences.PreferencesService;
 import com.github.czyzby.autumn.mvc.component.ui.InterfaceService;
 import com.github.czyzby.autumn.mvc.component.ui.controller.ViewController;
 import com.github.czyzby.kiwi.log.Logger;
@@ -16,19 +18,23 @@ import com.github.czyzby.kiwi.util.gdx.asset.Disposables;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 
-import asg.games.yipee.common.packets.PlayerAction;
+import asg.games.yipee.common.enums.ACCESS_TYPE;
+import asg.games.yipee.common.game.PlayerAction;
 import asg.games.yipee.libgdx.objects.YipeeKeyMapGDX;
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
 import asg.games.yipee.libgdx.objects.YipeeTableGDX;
-import asg.games.yipee.net.game.GameManager;
+import asg.games.yokel.client.configuration.Configuration;
 import asg.games.yokel.client.controller.dialog.ErrorController;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
 import asg.games.yokel.client.game.ClientGameManager;
+import asg.games.yokel.client.game.GameSeatActionPair;
 import asg.games.yokel.client.managers.GameNetFactory;
 import asg.games.yokel.client.managers.GameNetworkManager;
 import asg.games.yokel.client.utils.LogUtil;
 import asg.games.yokel.client.utils.PayloadUtil;
 import asg.games.yokel.client.utils.YokelUtilities;
+import lombok.Getter;
+import lombok.Setter;
 
 
 /**
@@ -51,10 +57,12 @@ public class SessionService {
     private SoundFXService soundFXService;
     @Inject
     private LoggerService loggerService;
+    @Inject
+    private PreferencesService preferencesService;
     Log4LibGDXLogger logger;
 
     private final String CONNECT_MSG = "Connecting...";
-    private GameNetworkManager client;
+    private GameNetworkManager networkManager;
     private String currentLoungeName;
     private String currentRoomName;
     private YipeeTableGDX currentTable;
@@ -66,13 +74,41 @@ public class SessionService {
     private String currentErrorMessage;
     private boolean isWinner;
     private boolean isPartnered;
+    private boolean connected;
+    private boolean initialized;
+
+    @Setter
+    @Getter
+    private String clientId = null;   // UUIDv4 string
+
+    @Setter
+    @Getter
+    private String sessionKey = null; // Base64URL
+
+    @Setter
+    @Getter
+    private String authToken = null;  // server-signed JWT or dev token
+
+    @Setter
+    @Getter
+    private String playerId = null;
+
+    @Setter
+    @Getter
+    private String rating = null;
+
+    @Setter
+    @Getter
+    private String icon = null;
+
+    private static final String PREF_CLIENT_ID = "clientId";
 
     @Initiate
     public void initialize() throws InterruptedException {
         logger = LogUtil.getLogger(loggerService, this.getClass());
         logger.setDebug();
         logger.enter("initialize");
-        client = GameNetFactory.getClientManager();
+        networkManager = GameNetFactory.getClientManager();
 
         //connectToServer();
         //TODO: Create PHPSESSION token6
@@ -90,23 +126,51 @@ public class SessionService {
         logger.exit("destroy");
     }
 
+    private String ensureClientId() {
+        Preferences prefs = preferencesService.getPreferences(Configuration.PREFERENCES);
+        if (prefs != null) {
+            clientId = prefs.getString(PREF_CLIENT_ID);
+        }
+
+        if (clientId == null || clientId.isEmpty()) {
+            clientId = java.util.UUID.randomUUID().toString();
+            if (prefs != null) {
+                prefs.putString(PREF_CLIENT_ID, clientId);
+                prefs.flush();
+            }
+        }
+
+        return clientId;
+    }
     public void closeClient() {
-        client.dispose();
+        networkManager.dispose();
     }
 
     public boolean connectToServer() throws InterruptedException {
         logger.enter("connectToServer");
-        return client.connect();
+        if (!initialized) {
+            networkManager.registerPackets();
+            clientId = ensureClientId();
+            connected = networkManager.connect();
+            initialized = true;
+        }
+        return connected;
+    }
+
+    public void registerUser() {
+        if (!connected) {
+            networkManager.registerUser(authToken, player, clientId, sessionKey);
+        }
     }
 
     public boolean disconnectToServer() throws InterruptedException {
         logger.enter("disconnectToServer");
-        return client.disconnect();
+        return networkManager.disconnect();
     }
 
     public boolean isConnected() throws InterruptedException {
         logger.enter("isConnected");
-        return client.isConnected();
+        return networkManager.isConnected();
     }
 
     public boolean isWinner() {
@@ -159,7 +223,7 @@ public class SessionService {
         //client.requestTables(currentLoungeName, currentRoomName);
     }
 
-    public void asyncCreateGameRequest(YipeeTableGDX.ACCESS_TYPE accessType, boolean isRated) throws InterruptedException {
+    public void asyncCreateGameRequest(ACCESS_TYPE accessType, boolean isRated) throws InterruptedException {
         //client.requestCreateGame(currentLoungeName, currentRoomName, accessType, isRated);
     }
 
@@ -292,10 +356,6 @@ public class SessionService {
         this.currentLoungeName = currentLoungeName;
     }
 
-    public String getCurrentLoungeName(){
-        return currentLoungeName;
-    }
-
     public void setCurrentError(Throwable cause, String message) {
         currentErrorMessage = message;
     }
@@ -317,7 +377,7 @@ public class SessionService {
         return player;
     }
 
-    public void handlePlayerInput(GameManager game) {
+    public void handlePlayerInput(ClientGameManager game) {
         logger.enter("handleLocalPlayerInput");
         int currentSeat = getCurrentSeat();
         logger.debug("currentSeat={}", currentSeat);
@@ -326,36 +386,36 @@ public class SessionService {
 
         //TODO: Remove, moves test player's key to the right
         if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
-            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.O_MEDUSA, currentSeat, 10, null));
+            game.addAction(new GameSeatActionPair(currentSeat, new PlayerAction(currentSeat, PlayerAction.ActionType.O_MEDUSA, currentSeat, null), 10));
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.X)) {
-            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.O_MIDAS, currentSeat, 10, null));
+            game.addAction(new GameSeatActionPair(currentSeat, new PlayerAction(currentSeat, PlayerAction.ActionType.O_MIDAS, currentSeat, null), 10));
         }
 
         if (Gdx.input.isKeyJustPressed(keyMap.getRightKey())) {
-            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.P_MOVE_RIGHT, currentSeat, 10, null));
+            game.addAction(new GameSeatActionPair(currentSeat, new PlayerAction(currentSeat, PlayerAction.ActionType.P_MOVE_RIGHT, currentSeat, null), 10));
         }
         if (Gdx.input.isKeyJustPressed(keyMap.getLeftKey())) {
-            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.P_MOVE_LEFT, currentSeat, 10, null));
+            game.addAction(new GameSeatActionPair(currentSeat, new PlayerAction(currentSeat, PlayerAction.ActionType.P_MOVE_LEFT, currentSeat, null), 10));
         }
         if (Gdx.input.isKeyJustPressed(keyMap.getCycleDownKey())) {
             soundFXService.playCycleClickSound();
-            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.P_CYCLE_DOWN, currentSeat, 10, null));
+            game.addAction(new GameSeatActionPair(currentSeat, new PlayerAction(currentSeat, PlayerAction.ActionType.P_CYCLE_DOWN, currentSeat, null), 10));
         }
         if (Gdx.input.isKeyJustPressed(keyMap.getCycleUpKey())) {
             soundFXService.playCycleClickSound();
-            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.P_CYCLE_UP, currentSeat, 10, null));
+            game.addAction(new GameSeatActionPair(currentSeat, new PlayerAction(currentSeat, PlayerAction.ActionType.P_CYCLE_UP, currentSeat, null), 10));
         }
         if (Gdx.input.isKeyPressed(keyMap.getDownKey())) {
             if(!downKeyPressed){
                 downKeyPressed = true;
             }
             soundFXService.playBlockDownSound();
-            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.P_MOVE_DOWN_START, currentSeat, 10, null));
+            game.addAction(new GameSeatActionPair(currentSeat, new PlayerAction(currentSeat, PlayerAction.ActionType.P_MOVE_DOWN_START, currentSeat, null), 10));
         }
         if (!Gdx.input.isKeyPressed(keyMap.getDownKey())) {
             downKeyPressed = false;
-            game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.P_MOVE_DOWN_END, currentSeat, 10, null));
+            game.addAction(new GameSeatActionPair(currentSeat, new PlayerAction(currentSeat, PlayerAction.ActionType.P_MOVE_DOWN_END, currentSeat, null), 10));
         }
         if (Gdx.input.isKeyJustPressed(keyMap.getRandomAttackKey())) {
             //game.applyLocalPlayerAction(new PlayerAction(currentSeat, PlayerAction.ActionType.P_MOVE_LEFT, currentSeat, 10, null));

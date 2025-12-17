@@ -10,7 +10,7 @@ import com.github.czyzby.lml.scene2d.ui.reflected.AnimatedImage;
 
 import java.util.Objects;
 
-import asg.games.yipee.libgdx.objects.Copyable;
+import asg.games.yipee.common.enums.Copyable;
 import asg.games.yokel.client.utils.UIUtil;
 import asg.games.yokel.client.utils.YokelUtilities;
 

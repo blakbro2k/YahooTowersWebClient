@@ -35,7 +35,7 @@ dependencies {
 
     api 'ch.qos.logback:logback-classic:1.2.11'
 
-    api files("U:/Yipee/yipee-parent/yipee-libgdx/target/yipee-libgdx-$yipeeVersion" + ".jar")
-    api files("U:/Yipee/yipee-parent/yipee-net/target/yipee-net-$yipeeVersion" + ".jar")
-    api files("U:/Yipee/yipee-parent/yipee-common/target/yipee-common-$yipeeVersion" + ".jar")
+    api files("C:\\Users\\Blakbro2k\\.m2\\repository\\asg\\games\\yipee-libgdx\\$yipeeVersion\\yipee-libgdx-$yipeeVersion" + ".jar")
+    api files("C:\\Users\\Blakbro2k\\.m2\\repository\\asg\\games\\yipee-net\\$yipeeVersion\\yipee-net-$yipeeVersion" + ".jar")
+    api files("C:\\Users\\Blakbro2k\\.m2\\repository\\asg\\games\\yipee-common\\$yipeeVersion\\yipee-common-$yipeeVersion" + ".jar")
 }

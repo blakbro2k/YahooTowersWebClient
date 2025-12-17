@@ -1,5 +1,5 @@
 <table oneColumn="true" defaultPad="2"  fillParent="true" defaultFillX="true">
-	<textButton onClick="goto:clientView" row="true">@debugClientView</textButton>
+	<textButton onClick="goto:clientViewTest" row="true">@debugClientView</textButton>
 	<textButton onClick="show:soundBoard" row="true">@debugSoundBoardBtn</textButton>
 	<textButton onClick="goto:spritesTest" row="true">@debugGameSprites</textButton>
 	<textButton onClick="goto:networkTest" row="true">@network</textButton>

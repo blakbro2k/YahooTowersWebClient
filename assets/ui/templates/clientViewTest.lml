@@ -1,11 +1,35 @@
 <window debug="true" defaultPad="2" width="800">
-    <table row="true">
-        <gameboard id="3:area" areanumber="3" preview="true"/>
-        <gameboard id="1:area" areanumber="1" preview="false"/>
-        <gameboard id="2:area" areanumber="2" preview="false" left="false"/>
-        <gameboard id="4:area" areanumber="4" preview="true"/>
-    </table>
-    <table row="true" width="800">
-        <textButton fill="true" onChange="goto:debug" row="true">@back</textButton>
+    <table>
+        <table row="true">
+            <table row="true">
+                <label>AccessToken</label>
+                <textField id="accessTokenField"
+                    message="client:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" row="true" />
+            </table>
+            <table row="true">
+                <label id="whoAmI" text="_notloaded_" />
+                <textButton onClick="getGameAuthToken">WhoAmI</textButton>
+            </table>
+            <table row="true">
+                <selectBox id="roomSelectBox">
+                    <:for value="$getRooms">
+                        {value}
+                    </:for>
+                </selectBox>
+                <textButton>Load Rooms</textButton>
+            </table>
+            <table row="true">
+                <selectBox id="tableSelectBox">
+                    <:for value="$getTables">
+                        {value}
+                    </:for>
+                </selectBox>
+                <textButton>Load Tables</textButton>
+            </table>
+        </table>
+        <table row="true">
+            <textButton onClick="startGame" row="true">Start Game</textButton>
+            <textButton onChange="goto:debug" row="true">@back</textButton>
+        </table>
     </table>
 </window>

@@ -15,6 +15,7 @@ import com.github.czyzby.lml.annotation.LmlActor;
 import com.github.czyzby.lml.parser.action.ActionContainer;
 import com.kotcrab.vis.ui.widget.VisTextField;
 
+import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
 import asg.games.yokel.client.GlobalConstants;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
 import asg.games.yokel.client.service.SessionService;
@@ -73,6 +74,8 @@ public class NetworkingTestController implements ViewRenderer, ViewInitializer, 
         try {
             logger.enter("netConnect");
             sessionService.connectToServer();
+            sessionService.setCurrentPlayer(new YipeePlayerGDX(username.getText(), Integer.parseInt(rating.getText()), 2));
+            sessionService.registerUser();
             logger.exit("netConnect");
         } catch (Exception e) {
             String errorMsg = "Error in netConnect()";

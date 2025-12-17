@@ -1,14 +1,16 @@
 package asg.games.yokel.client.service;
 
 import com.badlogic.gdx.utils.Array;
+import com.github.czyzby.autumn.annotation.Component;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxArrays;
 
 import java.util.Iterator;
 
-import asg.games.yipee.common.packets.PlayerAction;
+import asg.games.yipee.common.game.PlayerAction;
 import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
 import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
 import asg.games.yipee.libgdx.objects.YipeeTableGDX;
+import asg.games.yokel.client.utils.YokelUtilities;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,6 +26,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@Component
 public class ClientPredictionService {
     private YipeeGameBoardGDX authoritativeBoard;
     private YipeeGameBoardGDX predictedBoard;
@@ -77,7 +80,7 @@ public class ClientPredictionService {
     public void queueLocalAction(PlayerAction action, float delta) {
         pendingActions.add(new TimedAction(action, tick));
         predictedBoard.applyPlayerAction(action);
-        predictedBoard.updateGameState(delta, predictedBoard.exportGameState(), null);
+        predictedBoard.updateGameState(delta, YokelUtilities.getYipeeGDXGameState(predictedBoard.exportGameState()), null);
     }
 
     public void queueTickedLocalAction(PlayerAction action, float delta, int tick) {
@@ -94,13 +97,13 @@ public class ClientPredictionService {
     private void reSimulatePrediction(float delta) {
         YipeeGameBoardGDX authoritativeBoard = getAuthoritativeBoard();
         if (authoritativeBoard == null) return;
-        predictedBoard.updateGameState(delta, authoritativeBoard.exportGameState().deepCopy(), null);
+        predictedBoard.updateGameState(delta, YokelUtilities.getYipeeGDXGameState(authoritativeBoard.exportGameState()).deepCopy(), null);
 
         for (TimedAction action : pendingActions) {
             if (action != null) {
                 setTick(action.tick);
                 predictedBoard.applyPlayerAction(action.action);
-                predictedBoard.updateGameState(delta, predictedBoard.exportGameState(), null);
+                predictedBoard.updateGameState(delta, YokelUtilities.getYipeeGDXGameState(predictedBoard.exportGameState()), null);
             }
 
         }
@@ -121,7 +124,7 @@ public class ClientPredictionService {
      * Get predicted state for rendering
      */
     public YipeeGameBoardStateGDX getPredictedState() {
-        return predictedBoard.exportGameState();
+        return YokelUtilities.getYipeeGDXGameState(predictedBoard.exportGameState());
     }
 
     /** Reset everything (e.g. on reconnect) */

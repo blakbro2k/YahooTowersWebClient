@@ -55,12 +55,18 @@ dependencies {
     api "com.kotcrab.vis:vis-ui:$visUiVersion:sources"
     api "com.rafaskoberg.gdx:typing-label:$typingLabelVersion:sources"
 
-    api files("U:/Yipee/yipee-parent/yipee-libgdx/target/yipee-libgdx-$yipeeVersion" + ".jar")
-    api files("U:/Yipee/yipee-parent/yipee-libgdx/target/yipee-libgdx-$yipeeVersion-sources.jar")
-    api files("U:/Yipee/yipee-parent/yipee-net/target/yipee-net-$yipeeVersion" + ".jar")
-    api files("U:/Yipee/yipee-parent/yipee-net/target/yipee-net-$yipeeVersion-sources.jar")
-    api files("U:/Yipee/yipee-parent/yipee-common/target/yipee-common-$yipeeVersion" + ".jar")
-    api files("U:/Yipee/yipee-parent/yipee-common/target/yipee-common-$yipeeVersion-sources.jar")
+    //api files("U:/Yipee/yipee-parent/yipee-libgdx/target/yipee-libgdx-$yipeeVersion" + ".jar")
+    //api files("U:/Yipee/yipee-parent/yipee-libgdx/target/yipee-libgdx-$yipeeVersion-sources.jar")
+    //api files("U:/Yipee/yipee-parent/yipee-net/target/yipee-net-$yipeeVersion" + ".jar")
+    //api files("U:/Yipee/yipee-parent/yipee-net/target/yipee-net-$yipeeVersion-sources.jar")
+    //api files("U:/Yipee/yipee-parent/yipee-common/target/yipee-common-$yipeeVersion" + ".jar")
+    //api files("U:/Yipee/yipee-parent/yipee-common/target/yipee-common-$yipeeVersion-sources.jar")
+    api files("C:\\Users\\Blakbro2k\\.m2\\repository\\asg\\games\\yipee-libgdx\\$yipeeVersion\\yipee-libgdx-$yipeeVersion" + ".jar")
+    api files("C:\\Users\\Blakbro2k\\.m2\\repository\\asg\\games\\yipee-libgdx\\$yipeeVersion\\yipee-libgdx-$yipeeVersion-sources.jar")
+    api files("C:\\Users\\Blakbro2k\\.m2\\repository\\asg\\games\\yipee-net\\$yipeeVersion\\yipee-net-$yipeeVersion" + ".jar")
+    api files("C:\\Users\\Blakbro2k\\.m2\\repository\\asg\\games\\yipee-net\\$yipeeVersion\\yipee-net-$yipeeVersion-sources.jar")
+    api files("C:\\Users\\Blakbro2k\\.m2\\repository\\asg\\games\\yipee-common\\$yipeeVersion\\yipee-common-$yipeeVersion" + ".jar")
+    api files("C:\\Users\\Blakbro2k\\.m2\\repository\\asg\\games\\yipee-common\\$yipeeVersion\\yipee-common-$yipeeVersion-sources.jar")
 
     implementation project(':core')
 
