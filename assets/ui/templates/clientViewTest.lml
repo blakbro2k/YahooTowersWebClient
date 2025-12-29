@@ -11,21 +11,18 @@
                 <textButton onClick="getGameAuthToken">WhoAmI</textButton>
             </table>
             <table row="true">
-                <selectBox id="roomSelectBox">
-                    <:for value="$getRooms">
-                        {value}
-                    </:for>
-                </selectBox>
-                <textButton>Load Rooms</textButton>
-            </table>
-            <table row="true">
                 <selectBox id="tableSelectBox">
-                    <:for value="$getTables">
+                    <:for value="$getTableDetails">
                         {value}
                     </:for>
                 </selectBox>
                 <textButton>Load Tables</textButton>
             </table>
+        </table>
+        <table row="true">
+            <gameboard id="1:area" width="96" height="208" areanumber="1" preview="false" />
+            <gameboard id="2:area" width="96" height="208" areanumber="2" preview="false"
+                left="false" />
         </table>
         <table row="true">
             <textButton onClick="startGame" row="true">Start Game</textButton>

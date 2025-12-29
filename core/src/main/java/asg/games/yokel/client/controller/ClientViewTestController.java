@@ -40,6 +40,7 @@ import asg.games.yokel.client.managers.GameNetworkManager;
 import asg.games.yokel.client.net.WsEnvelope;
 import asg.games.yokel.client.service.SessionService;
 import asg.games.yokel.client.service.UserInterfaceService;
+import asg.games.yokel.client.ui.actors.GamePlayerBoard;
 import asg.games.yokel.client.utils.LogUtil;
 import asg.games.yokel.client.utils.YokelUtilities;
 
@@ -76,6 +77,11 @@ public class ClientViewTestController extends ApplicationAdapter implements View
     @LmlActor("whoAmI")
     private VisLabel whoAmI;
     private boolean showGameOver;
+
+    @LmlActor("1:area")
+    private GamePlayerBoard uiArea1;
+    @LmlActor("2:area")
+    private GamePlayerBoard uiArea2;
 
     @Override
     public void initialize(Stage stage, ObjectMap<String, Actor> actorMappedByIds) {
@@ -139,8 +145,8 @@ public class ClientViewTestController extends ApplicationAdapter implements View
         return GdxArrays.newArray("Room1", "Room2", "Room3");
     }
 
-    @LmlAction("getTables")
-    public Array<String> getTables() {
+    @LmlAction("getTableDetails")
+    public Array<String> getTableDetails() {
         return GdxArrays.newArray("Tables1", "Tables2", "Tables3");
     }
 
