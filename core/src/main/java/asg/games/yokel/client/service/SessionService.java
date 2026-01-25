@@ -20,9 +20,11 @@ import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 
 import asg.games.yipee.common.enums.ACCESS_TYPE;
 import asg.games.yipee.common.game.PlayerAction;
+import asg.games.yipee.libgdx.net.GdxTableDetailsResponse;
 import asg.games.yipee.libgdx.objects.YipeeKeyMapGDX;
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
 import asg.games.yipee.libgdx.objects.YipeeTableGDX;
+import asg.games.yipee.net.packets.GameAuthTokenResponse;
 import asg.games.yokel.client.configuration.Configuration;
 import asg.games.yokel.client.controller.dialog.ErrorController;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
@@ -63,9 +65,15 @@ public class SessionService {
 
     private final String CONNECT_MSG = "Connecting...";
     private GameNetworkManager networkManager;
+    @Setter
     private String currentLoungeName;
+    @Setter
     private String currentRoomName;
+    @Setter
+    @Getter
     private YipeeTableGDX currentTable;
+    @Setter
+    @Getter
     private int currentSeat;
     private String userName;
     private YipeePlayerGDX player;
@@ -91,15 +99,63 @@ public class SessionService {
 
     @Setter
     @Getter
+    private String launchToken = null;
+
+    @Setter
+    @Getter
+    private GameAuthTokenResponse gameAuth = null;
+
+    @Setter
+    @Getter
+    private String currentTableId = null;
+
+    @Setter
+    @Getter
+    private GdxTableDetailsResponse tableDetails = null;
+
+    @Setter
+    @Getter
+    private String currentGameId = null;
+
+    @Setter
+    @Getter
     private String playerId = null;
 
     @Setter
     @Getter
-    private String rating = null;
+    private int rating = -1;
 
     @Setter
     @Getter
-    private String icon = null;
+    private int icon = -1;
+
+    @Setter
+    @Getter
+    public String serverId;
+
+    @Setter
+    @Getter
+    public String gameId;
+
+    @Setter
+    @Getter
+    public String sessionId;
+
+    @Setter
+    @Getter
+    public long serverTimestamp;
+
+    @Setter
+    @Getter
+    public int tickRate;
+
+    @Setter
+    @Getter
+    public String tableId;
+
+    @Setter
+    @Getter
+    public String roomName;
 
     private static final String PREF_CLIENT_ID = "clientId";
 
@@ -319,22 +375,6 @@ public class SessionService {
         return userName;
     }
 
-    public void setCurrentSeat(int currentSeat){
-        this.currentSeat = currentSeat;
-    }
-
-    public int getCurrentSeat(){
-        return currentSeat;
-    }
-
-    public void setCurrentTable(YipeeTableGDX currentTable) {
-        this.currentTable = currentTable;
-    }
-
-    public YipeeTableGDX getCurrentTable() {
-        return currentTable;
-    }
-
     public String getCurrentTableNumber(){
         currentTable = getCurrentTable();
         if(currentTable != null){
@@ -344,16 +384,8 @@ public class SessionService {
         }
     }
 
-    public void setCurrentRoomName(String currentRoomName){
-        this.currentRoomName = currentRoomName;
-    }
-
     public String getCurrentRoomName(){
         return currentRoomName;
-    }
-
-    public void setCurrentLoungeName(String currentLoungeName){
-        this.currentLoungeName = currentLoungeName;
     }
 
     public void setCurrentError(Throwable cause, String message) {

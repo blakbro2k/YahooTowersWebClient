@@ -31,7 +31,7 @@ import com.github.czyzby.lml.parser.action.ActionContainer;
 import java.util.Iterator;
 
 import asg.games.yipee.common.enums.Constants;
-import asg.games.yipee.libgdx.objects.YipeeBrokenBlockGDX;
+import asg.games.yipee.common.game.BrokenBlock;
 import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
 import asg.games.yipee.libgdx.objects.YipeeSeatGDX;
@@ -282,7 +282,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
 
     private void addBrokenBlocksToAnimationQueue(ClientGameManager game) throws Exception {
         for (int boardSeat = 0; boardSeat < 8; boardSeat++) {
-            for (YipeeBrokenBlockGDX cellBroken : UIUtil.getYipeeBoardState(game, boardSeat).getBrokenCells()) {
+            for (BrokenBlock cellBroken : UIUtil.getYipeeBoardState(game, boardSeat).getBrokenCells()) {
                 GameBlock gameBlock = UIUtil.getInstance().getGameBlock(cellBroken.getBlock(), uiAreas[boardSeat].isPreview());
                 addBrokenBlockActorToQueue(brokenBlocksQueue1, gameBlock, uiAreas[boardSeat].getGrid(), cellBroken.getRow(), cellBroken.getCol());
             }
@@ -535,7 +535,7 @@ public class ClientViewController extends ApplicationAdapter implements ViewRend
                     if (gameBoardState.isPieceSet()) {
                         soundFXService.playPiecePlacedSound();
                     }
-                    Iterable<YipeeBrokenBlockGDX> brokenCells = gameBoardState.getBrokenCells();
+                    Iterable<BrokenBlock> brokenCells = gameBoardState.getBrokenCells();
                     logger.error("gameboard Name={}: gameboard broken cells={}", gameBoardState.getName(), brokenCells);
                     if (!YokelUtilities.isEmpty(brokenCells)) {
                         //Play broken cell sound

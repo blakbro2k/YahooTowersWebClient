@@ -4,19 +4,30 @@
             <table row="true">
                 <label>AccessToken</label>
                 <textField id="accessTokenField"
-                    message="client:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" row="true" />
+                    message="client:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+                <textButton onClick="loadTableDetails">Load Table</textButton>
             </table>
             <table row="true">
-                <label id="whoAmI" text="_notloaded_" />
-                <textButton onClick="getGameAuthToken">WhoAmI</textButton>
+                <table row="true">
+                    <label id="whoAmI" text="UserName: " />
+                    <textField id="whoAmIText" readOnly="true">_notloaded_</textField>
+                </table>
+                <table row="true">
+                    <label id="playerRating" text="Rating: " />
+                    <textField id="playerRatingText" readOnly="true">_notloaded_</textField>
+                </table>
+                <table row="true">
+                    <label id="playerIcon" text="Icon#: " />
+                    <textField id="playerIconText" readOnly="true">_notloaded_</textField>
+                </table>
             </table>
             <table row="true">
-                <selectBox id="tableSelectBox">
-                    <:for value="$getTableDetails">
-                        {value}
-                    </:for>
-                </selectBox>
-                <textButton>Load Tables</textButton>
+                <label id="roomLabel" text="Room: " />
+                <label id="tableRoom" text="_null_" row="true" />
+                <label id="tableLabel" text="Table: " />
+                <label id="tableNumber" text="_null_" row="true" />
+                <label id="seatLabel" text="Player Seat: " />
+                <label id="playerSeatNumber" text="_null_" row="true" />
             </table>
         </table>
         <table row="true">

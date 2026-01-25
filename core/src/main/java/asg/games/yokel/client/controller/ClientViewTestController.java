@@ -2,13 +2,9 @@ package asg.games.yokel.client.controller;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Net;
-import com.badlogic.gdx.net.HttpRequestBuilder;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.GdxRuntimeException;
-import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.reflect.ReflectionException;
 import com.github.czyzby.autumn.annotation.Inject;
@@ -27,20 +23,18 @@ import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTextField;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
-import asg.games.yipee.net.packets.GameAuthTokenResponse;
 import asg.games.yipee.net.packets.GameStartRequest;
 import asg.games.yokel.client.GlobalConstants;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
 import asg.games.yokel.client.managers.GameNetFactory;
 import asg.games.yokel.client.managers.GameNetworkManager;
 import asg.games.yokel.client.net.WsEnvelope;
+import asg.games.yokel.client.service.ServerGameServices;
 import asg.games.yokel.client.service.SessionService;
 import asg.games.yokel.client.service.UserInterfaceService;
 import asg.games.yokel.client.ui.actors.GamePlayerBoard;
+import asg.games.yokel.client.utils.JWTUtil;
 import asg.games.yokel.client.utils.LogUtil;
 import asg.games.yokel.client.utils.YokelUtilities;
 
@@ -50,6 +44,8 @@ public class ClientViewTestController extends ApplicationAdapter implements View
     private UserInterfaceService uiService;
     @Inject
     private SessionService sessionService;
+    @Inject
+    private ServerGameServices serverGameServices;
     @Inject
     private InterfaceService interfaceService;
     @Inject
@@ -61,7 +57,6 @@ public class ClientViewTestController extends ApplicationAdapter implements View
 
     private Log4LibGDXLogger logger;
 
-    private final Json json = new Json();
     private GameNetworkManager networkManager;
 
     @LmlActor("accessTokenField")
@@ -74,8 +69,25 @@ public class ClientViewTestController extends ApplicationAdapter implements View
     private VisSelectBox<String> roomSelectBox;
     @LmlActor("tableSelectBox")
     private VisSelectBox<String> tableSelectBox;
-    @LmlActor("whoAmI")
-    private VisLabel whoAmI;
+
+    @LmlActor("whoAmIText")
+    private VisTextField whoAmIText;
+
+    @LmlActor("playerRatingText")
+    private VisTextField playerRatingText;
+
+    @LmlActor("playerIconText")
+    private VisTextField playerIconText;
+
+    @LmlActor("tableRoom")
+    private VisLabel tableRoom;
+
+    @LmlActor("tableNumber")
+    private VisLabel tableNumber;
+
+    @LmlActor("playerSeatNumber")
+    private VisLabel playerSeatNumber;
+
     private boolean showGameOver;
 
     @LmlActor("1:area")
@@ -88,6 +100,7 @@ public class ClientViewTestController extends ApplicationAdapter implements View
         logger = LogUtil.getLogger(loggerService, this.getClass());
         try {
             initiate();
+            sendJWTValue();
         } catch (Exception e) {
             String errorMsg = "error initialize()";
             logger.error(errorMsg, e);
@@ -109,6 +122,7 @@ public class ClientViewTestController extends ApplicationAdapter implements View
     @Override
     public void render(Stage stage, float delta) {
         try {
+            renderTable();
             //Render
             stage.act(delta);
             stage.draw();
@@ -126,28 +140,23 @@ public class ClientViewTestController extends ApplicationAdapter implements View
 
     public String getAccessTokenFieldValue() {
         if (accessTokenField != null) {
-            return trimToEmpty(accessTokenField.getText());
+            return JWTUtil.trimToEmpty(accessTokenField.getText());
         } else {
             return "";
         }
     }
 
     public void sessionIdChanged() {
-        sessionService.setSessionKey(trimToNull(sessionIdField.getText()));
+        sessionService.setSessionKey(JWTUtil.trimToNull(sessionIdField.getText()));
     }
 
     public void playerIdChanged() {
-        sessionService.setPlayerId(trimToNull(playerIdField.getText()));
+        sessionService.setPlayerId(JWTUtil.trimToNull(playerIdField.getText()));
     }
 
     @LmlAction("getRooms")
     public Array<String> getRooms() {
         return GdxArrays.newArray("Room1", "Room2", "Room3");
-    }
-
-    @LmlAction("getTableDetails")
-    public Array<String> getTableDetails() {
-        return GdxArrays.newArray("Tables1", "Tables2", "Tables3");
     }
 
     /**
@@ -158,77 +167,49 @@ public class ClientViewTestController extends ApplicationAdapter implements View
         YipeePlayerGDX player = sessionService.getCurrentPlayer();
         String playerId = sessionService.getPlayerId();
         String username = sessionService.getCurrentUserName(); // or pull from another field
-        String rating = sessionService.getRating();          // if you track it
-        String icon = sessionService.getIcon();            // if you track it
+        int rating = sessionService.getRating();          // if you track it
+        int icon = sessionService.getIcon();            // if you track it
 
         // If you don't have username/rating/icon in this debug screen yet:
         if (username == null) username = "debug";
-        if (rating == null) rating = "0";
-        if (icon == null) icon = "0";
 
-        String jwt = createMockJwt(playerId, username, rating, icon);
+        String jwt = JWTUtil.createMockJwt(playerId, username, rating + "", icon + "");
+        System.out.println("JWT: " + jwt);
         sessionService.setAuthToken(jwt);
 
         // optionally show it somewhere or log it
         Gdx.app.log("JWT", "Generated dev JWT for playerId=" + playerId);
     }
 
-    @LmlAction("getGameAuthToken")
-    public void getGameAuthToken() {
-        System.out.println("Enter getGameAuthToken()");
-        final String launchToken = getAccessTokenFieldValue();
-        System.out.println("launchToken=" + launchToken);
-        if (launchToken.trim().isEmpty()) {
-            //gameWhoamiOut.setText("Paste a launchToken first.");
-            return;
-        }
-        final String apiBase = "http://localhost:8080"; // NO trailing slash
-        final String url = apiBase + "/api/game/whoami";
+    @LmlAction("loadTableDetails")
+    public void loadTableDetails() {
+        String accessTokenString = getAccessTokenFieldValue();
 
-        Net.HttpRequest req = new HttpRequestBuilder()
-                .newRequest()
-                .method(Net.HttpMethods.GET)
-                .url(url)
-                .header("Authorization", "Bearer " + launchToken)
-                .header("Accept", "application/json")
-                .timeout(10_000) // 10s
-                .build();
+        serverGameServices.bootWithLaunchToken(
+                accessTokenString,
+                tableDetailsResponse -> {
+                    // build game context / switch screen
+                    //interfaceService.show(GameScreen.ID);
+                },
+                err -> sessionService.handleException(logger, err)
+        );
+    }
 
-        Gdx.net.sendHttpRequest(req, new Net.HttpResponseListener() {
-            @Override
-            public void handleHttpResponse(Net.HttpResponse httpResponse) {
-                final int status = httpResponse.getStatus().getStatusCode();
-                final String body = httpResponse.getResultAsString();
-
-                // UI updates should happen on the render thread
-                Gdx.app.postRunnable(() -> {
-                    if (status == 200) {
-                        GameAuthTokenResponse resp = YokelUtilities.getObjectFromJsonString(GameAuthTokenResponse.class, body);
-                        if (resp == null) {
-                            throw new GdxRuntimeException("GameAuthTokenResponse was malformed or invalid!");
-                        }
-
-                        Gdx.app.log("AUTH", "playerId=" + resp.playerId + " tableId=" + resp.tableId);
-                        whoAmI.setText(resp.getName());
-                        System.out.println("Exit getGameAuthToken()=200" + ": " + body);
-                    } else {
-                        // gameWhoamiOut.setText("Error " + status + ": " + body);
-                        System.out.println("Exit getGameAuthToken()=" + "Error " + status + ": " + body);
-                    }
-                });
-            }
-
-            @Override
-            public void failed(Throwable t) {
-                sessionService.handleException(logger, t);
-            }
-
-            @Override
-            public void cancelled() {
-                //Gdx.app.postRunnable(() -> gameWhoamiOut.setText("Request cancelled."));
-            }
-        });
-        System.out.println("Exit getGameAuthToken()");
+    private void renderTable() {
+/*
+        System.out.println("whoAmIText: " + sessionService.getCurrentUserName());
+        System.out.println("playerRatingText: " + sessionService.getRating());
+        System.out.println("playerIconText: " + sessionService.getIcon());
+        System.out.println("tableRoom: " + sessionService.getCurrentTableNumber());
+        System.out.println("tableNumber: " + sessionService.getCurrentTableNumber());
+        System.out.println("playerSeatNumber: " + sessionService.getCurrentSeat());
+*/
+        whoAmIText.setText(sessionService.getCurrentUserName());
+        playerRatingText.setText(sessionService.getRating() + "");
+        playerIconText.setText(sessionService.getIcon() + "");
+        tableRoom.setText(sessionService.getCurrentRoomName());
+        tableNumber.setText(sessionService.getCurrentTableNumber());
+        playerSeatNumber.setText(sessionService.getCurrentSeat());
     }
 
     @LmlAction("startGame")
@@ -249,7 +230,7 @@ public class ClientViewTestController extends ApplicationAdapter implements View
             // req.tableId = sessionService.getCurrentTableId();
             // req.seatNumber = sessionService.getCurrentSeat();
 
-            WsEnvelope env = new WsEnvelope("GameStartRequest", json.toJson(req));
+            WsEnvelope env = new WsEnvelope("GameStartRequest", YokelUtilities.getJsonString(GameStartRequest.class, req));
             networkManager.send(env);
         } catch (Exception e) {
             String errorMsg = "Error in setUpDefaultSeats()";
@@ -257,44 +238,4 @@ public class ClientViewTestController extends ApplicationAdapter implements View
             throw new ReflectionException(e);
         }
     }
-
-    // ----------------------
-    // JWT helpers
-    // ----------------------
-
-    private String createMockJwt(String playerId, String username, String rating, String icon) {
-        String header = base64UrlJson("{\"alg\":\"none\"}");
-        String payload = base64UrlJson(json.toJson(new JwtPayload(playerId, username, rating, icon)));
-        return header + "." + payload + ".dev";
-    }
-
-    private String base64UrlJson(String jsonStr) {
-        return Base64.getUrlEncoder().withoutPadding()
-                .encodeToString(jsonStr.getBytes(StandardCharsets.UTF_8));
-    }
-
-    private String trimToNull(String s) {
-        if (s == null) return null;
-        s = s.trim();
-        return s.isEmpty() ? null : s;
-    }
-
-    private String trimToEmpty(String s) {
-        return trimToNull(s) == null ? "" : s;
-    }
-
-    private static class JwtPayload {
-        public String sub;
-        public String username;
-        public String rating;
-        public String icon;
-
-        public JwtPayload(String sub, String username, String rating, String icon) {
-            this.sub = sub;
-            this.username = username;
-            this.rating = rating;
-            this.icon = icon;
-        }
-    }
-
 }

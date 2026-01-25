@@ -1,6 +1,7 @@
 package asg.games.yokel.client.managers;
 
-import asg.games.yipee.common.dto.NetYipeePlayer;
+
+import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
 
 public interface GameNetworkManager {
 
@@ -50,7 +51,7 @@ public interface GameNetworkManager {
      */
     Object pollMessage();
 
-    void registerUser(String authToken, NetYipeePlayer player, String clientId, String sessionKey);
+    void registerUser(String authToken, YipeePlayerGDX player, String clientId, String sessionKey);
 
     void registerPackets();
 }

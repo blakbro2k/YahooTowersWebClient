@@ -30,11 +30,11 @@ import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 
 import asg.games.yipee.common.enums.Constants;
+import asg.games.yipee.common.game.BrokenBlock;
 import asg.games.yipee.common.game.GameBoardState;
 import asg.games.yipee.common.game.PlayerAction;
 import asg.games.yipee.libgdx.game.YipeeBlockEvalGDX;
 import asg.games.yipee.libgdx.game.YipeeGameBoardGDX;
-import asg.games.yipee.libgdx.objects.YipeeBrokenBlockGDX;
 import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
 import asg.games.yipee.libgdx.objects.YipeeKeyMapGDX;
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
@@ -634,7 +634,7 @@ public class SpritesTestController extends ApplicationAdapter implements ViewRen
         boolean localYahoo = false;
         if (state != null && gameBoardGrid != null && brokenBlocksQueue != null) {
             localYahoo = state.getYahooDuration() > 0;
-            for (YipeeBrokenBlockGDX cell : state.getBrokenCells()) {
+            for (BrokenBlock cell : state.getBrokenCells()) {
                 GameBlock block = UIUtil.getInstance().getGameBlock(cell.getBlock(), gameBoardGrid.isPreview());
                 addBrokenBlockActorToQueue(brokenBlocksQueue, block, gameBoardGrid, cell.getRow(), cell.getCol());
             }

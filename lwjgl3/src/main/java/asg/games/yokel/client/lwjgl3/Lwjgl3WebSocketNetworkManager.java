@@ -7,7 +7,7 @@ import com.github.czyzby.websocket.WebSocketListener;
 import com.github.czyzby.websocket.WebSockets;
 import com.github.czyzby.websocket.data.WebSocketCloseCode;
 
-import asg.games.yipee.common.dto.NetYipeePlayer;
+import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
 import asg.games.yipee.net.packets.ClientHandshakeRequest;
 import asg.games.yokel.client.managers.GameNetworkManager;
 
@@ -106,7 +106,7 @@ public class Lwjgl3WebSocketNetworkManager implements GameNetworkManager {
     }
 
     @Override
-    public void registerUser(String authToken, NetYipeePlayer player, String clientId, String sessionKey) {
+    public void registerUser(String authToken, YipeePlayerGDX player, String clientId, String sessionKey) {
         ClientHandshakeRequest req = new ClientHandshakeRequest();
         req.setAuthToken(authToken);
         req.setPlayerId(player.getId());

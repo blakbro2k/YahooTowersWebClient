@@ -1,5 +1,13 @@
 <?xml version="1.0"?>
 <!DOCTYPE dialog SYSTEM "core/lml.dtd">
-<dialog style="dialog" closebutton="true">
-    <label>$getCurrentErrorMessage</label>
+<dialog style="dialog" closebutton="true" onecolumn="true">
+    <container size="500">
+        <scrollPane fadeScrollBars="false" scrollingDisabledX="true" scrollingDisabledY="false"
+            height="600">
+
+            <label wrap="true" width="700">
+                $getCurrentErrorMessage
+            </label>
+        </scrollPane>
+    </container>
 </dialog>

@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import asg.games.yipee.common.dto.NetYipeePlayer;
+import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
 import asg.games.yipee.net.packets.ClientHandshakeRequest;
 import asg.games.yipee.net.tools.PacketRegistrar;
 import asg.games.yokel.client.managers.GameNetworkManager;
@@ -142,7 +142,7 @@ public class KryoNetworkManager implements GameNetworkManager {
     }
 
     @Override
-    public void registerUser(String authToken, NetYipeePlayer player, String clientId, String sessionKey) {
+    public void registerUser(String authToken, YipeePlayerGDX player, String clientId, String sessionKey) {
         ClientHandshakeRequest requestPacket = new ClientHandshakeRequest();
         requestPacket.setAuthToken(authToken);
         requestPacket.setPlayerId(player.getId());
