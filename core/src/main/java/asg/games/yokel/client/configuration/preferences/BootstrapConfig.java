@@ -1,21 +1,30 @@
 package asg.games.yokel.client.configuration.preferences;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class BootstrapConfig {
+    @Setter
+    @Getter
     private static boolean debugMode = true;
+    @Setter
+    @Getter
     private static String jwtToken = null;
 
-    public static void setDebugMode(boolean debug) {
-        debugMode = debug;
-    }
-    public static boolean isDebugMode() {
-        return debugMode;
-    }
+    @Setter
+    @Getter
+    private static String apiToken = null;
 
-    public static void setJwtToken(String jwt) {
-        jwtToken = jwt;
-    }
+    @Setter
+    @Getter
+    private static String launchToken = null;
 
-    public static String getJwtToken() {
-        return jwtToken;
-    }
+    @Setter
+    @Getter
+    private static String clientId = null;
+
+    @Setter
+    @Getter
+    private static String sessionId = null;
+
 }

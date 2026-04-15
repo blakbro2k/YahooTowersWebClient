@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.github.czyzby.autumn.annotation.Component;
 import com.github.czyzby.autumn.annotation.Destroy;
@@ -20,12 +21,14 @@ import com.github.czyzby.kiwi.util.gdx.collection.GdxMaps;
 
 import asg.games.yipee.common.enums.ACCESS_TYPE;
 import asg.games.yipee.common.game.PlayerAction;
+import asg.games.yipee.common.net.wire.GameAuthTokenResponse;
 import asg.games.yipee.libgdx.net.GdxTableDetailsResponse;
 import asg.games.yipee.libgdx.objects.YipeeKeyMapGDX;
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
+import asg.games.yipee.libgdx.objects.YipeeSeatGDX;
 import asg.games.yipee.libgdx.objects.YipeeTableGDX;
-import asg.games.yipee.net.packets.GameAuthTokenResponse;
 import asg.games.yokel.client.configuration.Configuration;
+import asg.games.yokel.client.configuration.preferences.BootstrapConfig;
 import asg.games.yokel.client.controller.dialog.ErrorController;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
 import asg.games.yokel.client.game.ClientGameManager;
@@ -61,9 +64,12 @@ public class SessionService {
     private LoggerService loggerService;
     @Inject
     private PreferencesService preferencesService;
+    @Inject
+    private ServerGameService serverGameService;
     Log4LibGDXLogger logger;
 
     private final String CONNECT_MSG = "Connecting...";
+    @Getter
     private GameNetworkManager networkManager;
     @Setter
     private String currentLoungeName;
@@ -72,8 +78,8 @@ public class SessionService {
     @Setter
     @Getter
     private YipeeTableGDX currentTable;
+
     @Setter
-    @Getter
     private int currentSeat;
     private String userName;
     private YipeePlayerGDX player;
@@ -87,19 +93,22 @@ public class SessionService {
 
     @Setter
     @Getter
-    private String clientId = null;   // UUIDv4 string
+/**
+ * Browser-safe client identifier (GWT-compatible, not UUID).
+ */
+    private String clientId = null;
 
     @Setter
     @Getter
-    private String sessionKey = null; // Base64URL
-
-    @Setter
-    @Getter
-    private String authToken = null;  // server-signed JWT or dev token
+    private String apiToken = null;  // server-signed JWT or dev token
 
     @Setter
     @Getter
     private String launchToken = null;
+
+    @Setter
+    @Getter
+    private String gameToken = null;
 
     @Setter
     @Getter
@@ -135,10 +144,6 @@ public class SessionService {
 
     @Setter
     @Getter
-    public String gameId;
-
-    @Setter
-    @Getter
     public String sessionId;
 
     @Setter
@@ -151,10 +156,6 @@ public class SessionService {
 
     @Setter
     @Getter
-    public String tableId;
-
-    @Setter
-    @Getter
     public String roomName;
 
     private static final String PREF_CLIENT_ID = "clientId";
@@ -164,7 +165,8 @@ public class SessionService {
         logger = LogUtil.getLogger(loggerService, this.getClass());
         logger.setDebug();
         logger.enter("initialize");
-        networkManager = GameNetFactory.getClientManager();
+        networkManager = GameNetFactory.getManager();
+        applyBootstrapConfig();
 
         //connectToServer();
         //TODO: Create PHPSESSION token6
@@ -182,40 +184,156 @@ public class SessionService {
         logger.exit("destroy");
     }
 
+    public String getGameRequestToken() {
+        // Prefer game token once we have it
+        if (!YokelUtilities.isEmpty(gameToken)) return gameToken;
+
+        // Fallback during bootstrap / before whoami/auth completes
+        if (!YokelUtilities.isEmpty(launchToken)) return launchToken;
+
+        // Last resort: API token (lobby endpoints)
+        return apiToken;
+    }
+
+    private void applyBootstrapConfig() {
+        if (BootstrapConfig.isDebugMode()) {
+            setDebug(true);
+        }
+
+        if (BootstrapConfig.getJwtToken() != null) {
+            setApiToken(BootstrapConfig.getJwtToken());
+        }
+
+        if (BootstrapConfig.getApiToken() != null) {
+            setApiToken(BootstrapConfig.getApiToken());
+        }
+
+        if (BootstrapConfig.getLaunchToken() != null) {
+            setLaunchToken(BootstrapConfig.getLaunchToken());
+        }
+
+        if (BootstrapConfig.getClientId() != null) {
+            setClientId(BootstrapConfig.getClientId());
+        }
+
+        if (BootstrapConfig.getSessionId() != null) {
+            setSessionId(BootstrapConfig.getSessionId());
+        }
+    }
+
+    public void applyGameAuth(GameAuthTokenResponse resp) {
+        logger.enter("applyGameAuth");
+        if (resp != null) {
+            logger.debug("response={}", resp);
+            setGameAuth(resp);
+
+            // Important: this becomes your “request auth token” going forward
+            setGameToken(resp.getGameToken()); // or resp.jwt depending on your field
+
+            setPlayerId(resp.playerId);
+            setClientId(resp.clientId);
+
+            setSessionId(resp.getSessionId());  // you also store sessionId
+
+            setCurrentGameId(resp.getGameId());
+            setCurrentTableId(resp.getTableId());
+            setCurrentSeat(resp.getSeatIndex());
+            setCurrentLoungeName(resp.getLoungeName());
+            setCurrentRoomName(resp.getRoomName());
+
+            setServerId(resp.getServerId());
+            setServerTimestamp(resp.getServerTimestamp());
+            setTickRate(resp.getTickRate());
+
+            setRating(resp.rating);
+            setIcon(resp.icon);
+
+            // update player object
+            YipeePlayerGDX p = getCurrentPlayer();
+            setCurrentUserName(resp.name);
+            if (p == null) p = new YipeePlayerGDX();
+            p.setId(resp.playerId);
+            p.setName(resp.name);
+            p.setRating(resp.rating);
+            p.setIcon(resp.icon);
+            setCurrentPlayer(p);
+        }
+        logger.exit("applyGameAuth");
+    }
     private String ensureClientId() {
+        logger.enter("ensureClientId");
         Preferences prefs = preferencesService.getPreferences(Configuration.PREFERENCES);
         if (prefs != null) {
             clientId = prefs.getString(PREF_CLIENT_ID);
         }
 
         if (clientId == null || clientId.isEmpty()) {
-            clientId = java.util.UUID.randomUUID().toString();
+            clientId = generateClientId();
             if (prefs != null) {
                 prefs.putString(PREF_CLIENT_ID, clientId);
                 prefs.flush();
             }
         }
 
+        logger.exit("ensureClientId={}", clientId);
         return clientId;
     }
     public void closeClient() {
         networkManager.dispose();
     }
 
+    /**
+     * Generates a lightweight client identifier that is safe for GWT.
+     *
+     * <p>This replaces {@code java.util.UUID}, which is not available in the GWT
+     * compilation environment.
+     *
+     * <p>This ID is sufficient for client/session identification and is not intended
+     * for cryptographic use.
+     *
+     * @return a reasonably unique identifier string
+     */
+    private String generateClientId() {
+        long now = System.currentTimeMillis();
+        int rand = (int) (Math.random() * 1_000_000);
+        return "client-" + now + "-" + rand;
+    }
+
+    public int getCurrentSeat() {
+        //logger.enter("getCurrentSeat");
+        int returningSeat = -1;
+        YipeePlayerGDX currentPlayer = getCurrentPlayer();
+        YipeeTableGDX table = getCurrentTable();
+
+        if (currentPlayer != null && table != null) {
+            for (YipeeSeatGDX seat : table.getSeats()) {
+                if (seat != null && seat.isOccupied() && seat.getSeatedPlayer().getName().equals(currentPlayer.getName())) {
+                    returningSeat = seat.getSeatNumber();
+                    break;
+                }
+            }
+        }
+        //logger.exit("getCurrentSeat={}", returningSeat);
+        return returningSeat;
+    }
+
     public boolean connectToServer() throws InterruptedException {
         logger.enter("connectToServer");
-        if (!initialized) {
+        if (!networkManager.isConnected()) {
+            logger.debug("Not initialized");
             networkManager.registerPackets();
             clientId = ensureClientId();
+            networkManager.setRequestToken(apiToken);
             connected = networkManager.connect();
             initialized = true;
         }
+        logger.exit("connectToServer", connected);
         return connected;
     }
 
     public void registerUser() {
         if (!connected) {
-            networkManager.registerUser(authToken, player, clientId, sessionKey);
+            networkManager.registerUser(apiToken, player, clientId, sessionId);
         }
     }
 
@@ -564,5 +682,45 @@ public class SessionService {
     public void setDebug(boolean debug) {
         isDebug = debug;
         logger.error("debug={}", debug);
+    }
+
+    public void handleGameAuthTokenResponse() {
+        logger.enter("handleGameAuthTokenResponse");
+        logger.debug("resp={}", getGameAuth());
+
+        if (getGameAuth() == null) {
+            if (serverGameService.getPendingBootErr() != null) {
+                ServerGameService.onErrOnRenderThread(
+                        serverGameService.getPendingBootErr(),
+                        new GdxRuntimeException("GameAuthTokenResponse was null")
+                );
+            }
+            return;
+        }
+
+        serverGameService.getTableDetails(
+                td -> {
+                    if (serverGameService.getPendingBootOk() != null) {
+                        ServerGameService.onOkOnRenderThread(serverGameService.getPendingBootOk(), td);
+                    }
+                    serverGameService.setPendingBootErr(null);
+                    serverGameService.setPendingBootOk(null);
+                },
+                err -> {
+                    logger.error(err, "getTableDetails failed");
+
+                    if (serverGameService.getPendingBootErr() != null) {
+                        ServerGameService.onErrOnRenderThread(
+                                serverGameService.getPendingBootErr(),
+                                err
+                        );
+                    }
+
+                    serverGameService.setPendingBootErr(null);
+                    serverGameService.setPendingBootOk(null);
+                }
+        );
+
+        logger.exit("handleGameAuthTokenResponse");
     }
 }

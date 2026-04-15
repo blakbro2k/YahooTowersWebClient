@@ -1,10 +1,10 @@
 package asg.games.yokel.client.controller;
 
 import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.reflect.ReflectionException;
 import com.github.czyzby.autumn.annotation.Inject;
@@ -23,20 +23,21 @@ import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTextField;
 
-import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
-import asg.games.yipee.net.packets.GameStartRequest;
+import asg.games.yipee.common.net.wire.AbstractClientRequest;
+import asg.games.yipee.common.net.wire.GameStartRequest;
 import asg.games.yokel.client.GlobalConstants;
+import asg.games.yokel.client.configuration.preferences.BootstrapConfig;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
 import asg.games.yokel.client.managers.GameNetFactory;
 import asg.games.yokel.client.managers.GameNetworkManager;
 import asg.games.yokel.client.net.WsEnvelope;
-import asg.games.yokel.client.service.ServerGameServices;
+import asg.games.yokel.client.service.ServerGameService;
 import asg.games.yokel.client.service.SessionService;
 import asg.games.yokel.client.service.UserInterfaceService;
+import asg.games.yokel.client.service.WsMessageRouterService;
 import asg.games.yokel.client.ui.actors.GamePlayerBoard;
 import asg.games.yokel.client.utils.JWTUtil;
 import asg.games.yokel.client.utils.LogUtil;
-import asg.games.yokel.client.utils.YokelUtilities;
 
 @View(id = GlobalConstants.UI_DEBUG_CLIENT_VIEW, value = GlobalConstants.UI_TEST_CLIENT_VIEW_PATH)
 public class ClientViewTestController extends ApplicationAdapter implements ViewRenderer, ViewInitializer, ActionContainer {
@@ -45,7 +46,7 @@ public class ClientViewTestController extends ApplicationAdapter implements View
     @Inject
     private SessionService sessionService;
     @Inject
-    private ServerGameServices serverGameServices;
+    private ServerGameService serverGameService;
     @Inject
     private InterfaceService interfaceService;
     @Inject
@@ -54,13 +55,16 @@ public class ClientViewTestController extends ApplicationAdapter implements View
     private LoadingController assetController;
     @Inject
     private LoggerService loggerService;
-
+    @Inject
+    private WsMessageRouterService wsMessageRouterService;
     private Log4LibGDXLogger logger;
 
     private GameNetworkManager networkManager;
 
-    @LmlActor("accessTokenField")
-    private VisTextField accessTokenField;
+    @LmlActor("apiTokenField")
+    private VisTextField apiTokenField;
+    @LmlActor("launchTokenField")
+    private VisTextField launchTokenField;
     @LmlActor("sessionIdField")
     private VisTextField sessionIdField;
     @LmlActor("playerIdField")
@@ -100,7 +104,7 @@ public class ClientViewTestController extends ApplicationAdapter implements View
         logger = LogUtil.getLogger(loggerService, this.getClass());
         try {
             initiate();
-            sendJWTValue();
+            //sendJWTValue();
         } catch (Exception e) {
             String errorMsg = "error initialize()";
             logger.error(errorMsg, e);
@@ -113,7 +117,7 @@ public class ClientViewTestController extends ApplicationAdapter implements View
         try {
 
         } catch (Exception e) {
-            String errorMsg = "error destroy()";
+            String errorMsg = "error in destroy()";
             logger.error(errorMsg, e);
             sessionService.handleException(logger, e);
         }
@@ -122,32 +126,66 @@ public class ClientViewTestController extends ApplicationAdapter implements View
     @Override
     public void render(Stage stage, float delta) {
         try {
-            renderTable();
+            getWsMessages();
             //Render
+            renderTable();
             stage.act(delta);
             stage.draw();
         } catch (Exception e) {
-            String errorMsg = "Error in setUpDefaultSeats()";
+            String errorMsg = "Error in render()";
             logger.error(errorMsg, e);
             sessionService.handleException(logger, e);
             //throw new ReflectionException(e);
         }
     }
 
-    private void initiate() throws ReflectionException {
-        networkManager = GameNetFactory.getClientManager();
+    private void getWsMessages() {
+        wsMessageRouterService.pump(networkManager);
     }
 
-    public String getAccessTokenFieldValue() {
-        if (accessTokenField != null) {
-            return JWTUtil.trimToEmpty(accessTokenField.getText());
+    private void initiate() throws ReflectionException {
+        networkManager = GameNetFactory.getManager();
+        if (launchTokenField != null) {
+            String launchToken = BootstrapConfig.getLaunchToken();
+            logger.error("Bootstrap:launch={}", launchToken);
+            launchTokenField.setText(launchToken);
+        }
+
+        if (apiTokenField != null) {
+            String apiToken = BootstrapConfig.getApiToken();
+            logger.error("Bootstrap:api={}", apiToken);
+            apiTokenField.setText(apiToken);
+        }
+
+        wsMessageRouterService.on("GameStartedResponse", raw -> {
+            logger.debug("GameStartedResponse raw={}", raw);
+            // parse strongly typed if you want
+        });
+
+        wsMessageRouterService.on("GameStateTickResponse", raw -> {
+            logger.debug("GameStateTickResponse raw={}", raw);
+            // parse strongly typed if you want
+        });
+    }
+
+    public String getLaunchTokenFieldValue() {
+        if (launchTokenField != null) {
+            return JWTUtil.trimToEmpty(launchTokenField.getText());
+        } else {
+            return "";
+        }
+    }
+
+    public String getApiTokenFieldValue() {
+        if (apiTokenField != null) {
+            return JWTUtil.trimToEmpty(apiTokenField.getText());
         } else {
             return "";
         }
     }
 
     public void sessionIdChanged() {
-        sessionService.setSessionKey(JWTUtil.trimToNull(sessionIdField.getText()));
+        sessionService.setSessionId(JWTUtil.trimToNull(sessionIdField.getText()));
     }
 
     public void playerIdChanged() {
@@ -159,83 +197,84 @@ public class ClientViewTestController extends ApplicationAdapter implements View
         return GdxArrays.newArray("Room1", "Room2", "Room3");
     }
 
-    /**
-     * Same algorithm as yipee-lobby.html
-     */
-    @LmlAction("sendJWTValue")
-    public void sendJWTValue() {
-        YipeePlayerGDX player = sessionService.getCurrentPlayer();
-        String playerId = sessionService.getPlayerId();
-        String username = sessionService.getCurrentUserName(); // or pull from another field
-        int rating = sessionService.getRating();          // if you track it
-        int icon = sessionService.getIcon();            // if you track it
-
-        // If you don't have username/rating/icon in this debug screen yet:
-        if (username == null) username = "debug";
-
-        String jwt = JWTUtil.createMockJwt(playerId, username, rating + "", icon + "");
-        System.out.println("JWT: " + jwt);
-        sessionService.setAuthToken(jwt);
-
-        // optionally show it somewhere or log it
-        Gdx.app.log("JWT", "Generated dev JWT for playerId=" + playerId);
-    }
-
     @LmlAction("loadTableDetails")
     public void loadTableDetails() {
-        String accessTokenString = getAccessTokenFieldValue();
+        logger.enter("loadTableDetails");
 
-        serverGameServices.bootWithLaunchToken(
-                accessTokenString,
+        String apiTokenString = getApiTokenFieldValue();
+        if (apiTokenString == null) {
+            throw new GdxRuntimeException("api token cannot be null;");
+        }
+        sessionService.setApiToken(apiTokenString);
+
+        String launchTokenString = getLaunchTokenFieldValue();
+        if (launchTokenString == null) {
+            throw new GdxRuntimeException("launch token cannot be null");
+        }
+        sessionService.setLaunchToken(launchTokenString);
+
+        logger.error("Enter bootWithLaunchToken()");
+        serverGameService.bootWithLaunchToken(
+                launchTokenString,
                 tableDetailsResponse -> {
                     // build game context / switch screen
                     //interfaceService.show(GameScreen.ID);
                 },
                 err -> sessionService.handleException(logger, err)
         );
+        logger.error("Exit bootWithLaunchToken()");
+
+        logger.exit("loadTableDetails");
     }
 
     private void renderTable() {
-/*
-        System.out.println("whoAmIText: " + sessionService.getCurrentUserName());
-        System.out.println("playerRatingText: " + sessionService.getRating());
-        System.out.println("playerIconText: " + sessionService.getIcon());
-        System.out.println("tableRoom: " + sessionService.getCurrentTableNumber());
-        System.out.println("tableNumber: " + sessionService.getCurrentTableNumber());
-        System.out.println("playerSeatNumber: " + sessionService.getCurrentSeat());
-*/
         whoAmIText.setText(sessionService.getCurrentUserName());
         playerRatingText.setText(sessionService.getRating() + "");
         playerIconText.setText(sessionService.getIcon() + "");
         tableRoom.setText(sessionService.getCurrentRoomName());
         tableNumber.setText(sessionService.getCurrentTableNumber());
         playerSeatNumber.setText(sessionService.getCurrentSeat());
+
+        if (sessionService.getCurrentSeat() % 2 == 0) {
+            uiArea1.sitPlayerDown(sessionService.getCurrentPlayer());
+        } else {
+            uiArea2.sitPlayerDown(sessionService.getCurrentPlayer());
+        }
     }
 
     @LmlAction("startGame")
     public void startGame() throws ReflectionException {
+        logger.enter("startGame");
         try {
             // Ensure you are connected first
             if (!networkManager.isConnected()) {
-                sessionService.connectToServer(); // or networkManager.connect()
+                logger.debug("Not connected"); // or networkManager.connect()
+                logger.debug("connected={}", sessionService.connectToServer()); // or networkManager.connect()
             }
 
-            GameStartRequest req = new GameStartRequest();
-            req.setClientId(sessionService.getClientId());
-            req.setSessionId(sessionService.getSessionKey());
-            req.setPlayerId(sessionService.getPlayerId());
-            req.setAuthToken(sessionService.getAuthToken());
-
-            // If your server requires tableId/seatNumber, set them too:
-            // req.tableId = sessionService.getCurrentTableId();
-            // req.seatNumber = sessionService.getCurrentSeat();
-
-            WsEnvelope env = new WsEnvelope("GameStartRequest", YokelUtilities.getJsonString(GameStartRequest.class, req));
+            WsEnvelope env = getWsEnvelope(GameStartRequest.class);
             networkManager.send(env);
+            logger.exit("startGame");
         } catch (Exception e) {
             String errorMsg = "Error in setUpDefaultSeats()";
             logger.error(errorMsg, e);
             throw new ReflectionException(e);
         }
+    }
+
+    private WsEnvelope getWsEnvelope(Class<? extends AbstractClientRequest> clazz) {
+        logger.enter("getWsEnvelope");
+
+        WsEnvelope env = null;
+        if (clazz == GameStartRequest.class) {
+            GameStartRequest req = new GameStartRequest();
+            req.setClientId(sessionService.getClientId());
+            req.setSessionId(sessionService.getSessionId());
+            req.setPlayerId(sessionService.getPlayerId());
+            req.setAuthToken(sessionService.getApiToken()); // NOT launch token
+            env = new WsEnvelope(GameStartRequest.class.getSimpleName(), req);
+        }
+        logger.exit("getWsEnvelope", env);
+        return env;
     }
 }

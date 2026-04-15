@@ -32,13 +32,13 @@ import java.util.Iterator;
 
 import asg.games.yipee.common.enums.Constants;
 import asg.games.yipee.common.game.BrokenBlock;
+import asg.games.yipee.common.game.GameManager;
 import asg.games.yipee.libgdx.objects.YipeeGameBoardStateGDX;
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
 import asg.games.yipee.libgdx.objects.YipeeSeatGDX;
 import asg.games.yipee.libgdx.objects.YipeeTableGDX;
 import asg.games.yipee.libgdx.tools.LibGDXUtil;
 import asg.games.yipee.libgdx.tools.NetUtil;
-import asg.games.yipee.net.game.GameManager;
 import asg.games.yokel.client.GlobalConstants;
 import asg.games.yokel.client.controller.action.PlaySoundAction;
 import asg.games.yokel.client.controller.dialog.NextGameController;

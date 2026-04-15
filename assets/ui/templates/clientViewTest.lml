@@ -2,8 +2,13 @@
     <table>
         <table row="true">
             <table row="true">
-                <label>AccessToken</label>
-                <textField id="accessTokenField"
+                <label>API Token</label>
+                <textField id="apiTokenField"
+                    message="token:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+            </table>
+            <table row="true">
+                <label>Launch Token</label>
+                <textField id="launchTokenField"
                     message="client:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
                 <textButton onClick="loadTableDetails">Load Table</textButton>
             </table>

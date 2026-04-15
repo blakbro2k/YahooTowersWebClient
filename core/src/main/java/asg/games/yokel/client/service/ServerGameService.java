@@ -12,26 +12,41 @@ import com.github.czyzby.autumn.annotation.Inject;
 import com.github.czyzby.kiwi.log.LoggerService;
 import com.github.czyzby.kiwi.util.gdx.collection.GdxSets;
 
+import asg.games.yipee.common.net.wire.GameAuthTokenResponse;
 import asg.games.yipee.libgdx.net.GdxNetYipeePlayerDTO;
 import asg.games.yipee.libgdx.net.GdxSeatStateUpdateResponse;
 import asg.games.yipee.libgdx.net.GdxTableDetailsResponse;
+import asg.games.yipee.libgdx.net.GdxTableDetailsSummary;
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
 import asg.games.yipee.libgdx.objects.YipeeSeatGDX;
 import asg.games.yipee.libgdx.objects.YipeeTableGDX;
-import asg.games.yipee.net.packets.GameAuthTokenResponse;
 import asg.games.yokel.client.factories.Log4LibGDXLogger;
-import asg.games.yokel.client.utils.JWTUtil;
+import asg.games.yokel.client.managers.GameNetworkManager;
 import asg.games.yokel.client.utils.LogUtil;
+import asg.games.yokel.client.utils.PayloadUtil;
 import asg.games.yokel.client.utils.YokelUtilities;
+import lombok.Getter;
+import lombok.Setter;
 
 @Component
-public class ServerGameServices {
+public class ServerGameService {
+    @Inject
+    private WsMessageRouterService wsMessageRouterService;
 
     @Inject
     private SessionService sessionService;
     @Inject
     private LoggerService loggerService;
     Log4LibGDXLogger logger;
+
+
+    @Setter
+    @Getter
+    private Ok<GdxTableDetailsResponse> pendingBootOk;
+
+    @Setter
+    @Getter
+    private Err pendingBootErr;
 
     /**
      * Small functional callback type.
@@ -57,122 +72,28 @@ public class ServerGameServices {
     // High-level boot (reusable)
     // ----------------------------
 
-    /**
-     * Boot: session JWT -> launch token -> whoami -> table details.
-     */
-    public void boot(Ok<GdxTableDetailsResponse> onOk, Err onErr) {
-        logger.enter("boot");
-
-        try {
-            ensureSessionJwt(); // sync (no network)
-            logger.exit("boot");
-        } catch (Throwable t) {
-            onErr.run(t);
-            logger.error("boot", t);
-            return;
-        }
-
-        requestLaunchToken(
-                launch -> getGameAuthToken(
-                        auth -> getTableDetails(
-                                tableDetails -> onOkOnRenderThread(onOk, tableDetails),
-                                onErr
-                        ),
-                        onErr
-                ),
-                onErr
-        );
-    }
-
-    public void bootWithLaunchToken(
-            String launchToken,
-            Ok<GdxTableDetailsResponse> onOk,
-            Err onErr
-    ) {
+    public void bootWithLaunchToken(String launchToken, Ok<GdxTableDetailsResponse> onOk, Err onErr) {
         logger.enter("bootWithLaunchToken");
-        System.out.println("Enter bootWithLaunchToken()");
-        if (launchToken == null || launchToken.isEmpty()) {
-            onErr.run(new IllegalArgumentException("Missing launchToken"));
+
+        if (launchToken == null) {
             logger.error("bootWithLaunchToken", new IllegalArgumentException("Missing launchToken"));
+            onErrOnRenderThread(onErr, new IllegalStateException("Missing launchToken"));
             return;
         }
 
-        // Store it once; everything else derives from this
-        sessionService.setLaunchToken(launchToken);
-        logJwtPayload("Before: AUTH_TOKEN", sessionService.getAuthToken());      // dev JWT
-        logJwtPayload("Before: LAUNCH_TOKEN", sessionService.getLaunchToken());  // game_session JWT
+        this.pendingBootOk = onOk;
+        this.pendingBootErr = onErr;
 
-        getGameAuthToken(
-                auth -> getTableDetails(
-                        table -> onOkOnRenderThread(onOk, table),
-                        onErr
-                ),
-                onErr
-        );
-        logJwtPayload("Before: AUTH_TOKEN", sessionService.getAuthToken());      // dev JWT
-        logJwtPayload("Before: LAUNCH_TOKEN", sessionService.getLaunchToken());  // game_session JWT
-        System.out.println("Exit bootWithLaunchToken()");
+        GameNetworkManager nm = sessionService.getNetworkManager();
+        logger.error("connectWithLaunchToken()");
+        nm.connectWithLaunchToken(launchToken);
+
         logger.exit("bootWithLaunchToken");
-    }
-
-    private static void logJwtPayload(String label, String token) {
-        try {
-            String[] parts = token.split("\\.");
-            String payload = new String(java.util.Base64.getUrlDecoder().decode(parts[1]));
-            System.out.println("JWT:" + label + " payload=" + payload);
-        } catch (Exception e) {
-            System.err.println("JWT:" + label + " not decodable");
-        }
     }
 
     // ----------------------------
     // Step 0: create session JWT
     // ----------------------------
-
-    public void ensureSessionJwt() {
-        ensureSessionJwt(false);
-    }
-
-    public void ensureSessionJwt(boolean force) {
-        logger.enter("ensureSessionJwt");
-        System.out.println("Enter ensureSessionJwt()=" + force);
-
-        if (!force) {
-            String existing = sessionService.getAuthToken();
-            if (existing != null && !existing.isEmpty()) return;
-        }
-
-        String playerId = sessionService.getPlayerId();
-        if (playerId == null || playerId.isEmpty()) {
-            throw new IllegalStateException("Missing playerId in SessionService");
-        }
-
-        String username = defaultIfBlank(sessionService.getCurrentUserName(), "debug");
-
-        Integer ratingObj = sessionService.getRating();   // or String if yours is String
-        String rating = String.valueOf(ratingObj);
-
-        Integer iconObj = sessionService.getIcon();
-        String icon = String.valueOf(iconObj);
-
-        System.out.println("Creating new Token ensureSessionJwt()");
-        System.out.println("playerId=" + playerId);
-        System.out.println("username=" + username);
-        System.out.println("rating=" + rating);
-        System.out.println("icon=" + icon);
-
-        String token = JWTUtil.createMockJwt(playerId, username, rating, icon);
-        System.out.println("token=" + token);
-        sessionService.setAuthToken(token);
-        System.out.println("sessionService.token=" + sessionService.getAuthToken());
-        System.out.println("same?=" + (token.equals(sessionService.getAuthToken())));
-
-        Gdx.app.log("JWT", "Generated dev JWT for playerId=" + playerId
-                + " username=" + username + " rating=" + rating + " icon=" + icon);
-
-        System.out.println("Exit ensureSessionJwt()");
-        logger.exit("ensureSessionJwt");
-    }
 
 
     // ----------------------------
@@ -182,9 +103,9 @@ public class ServerGameServices {
     public void requestLaunchToken(Ok<String> onOk, Err onErr) {
         logger.enter("requestLaunchToken");
         final String apiBase = "http://localhost:8080";
-        final String url = apiBase + "/api/game/launch";
+        final String url = apiBase + "/api/game/getlaunchToken";
 
-        final String sessionJwt = sessionService.getAuthToken();
+        final String sessionJwt = sessionService.getApiToken();
         if (sessionJwt == null || sessionJwt.isEmpty()) {
             logger.error("requestLaunchToken", new IllegalArgumentException("Missing session JWT"));
             onErrOnRenderThread(onErr, new IllegalStateException("Missing session JWT"));
@@ -198,7 +119,7 @@ public class ServerGameServices {
                 .header("Authorization", "Bearer " + sessionJwt)
                 .header("Accept", "application/json")
                 .header("Content-Type", "application/json")
-                .content("{}")
+                .content("{\"tableId\":\"" + sessionService.getCurrentTableId() + "\"}")
                 .timeout(10_000)
                 .build();
 
@@ -215,8 +136,7 @@ public class ServerGameServices {
                 }
 
                 LaunchTokenResponse resp = YokelUtilities.getObjectFromJsonString(LaunchTokenResponse.class, body);
-                System.out.println("body: " + body);
-                System.out.println("resp: " + resp);
+
                 if (resp == null || resp.launchToken == null || resp.launchToken.isEmpty()) {
                     logger.error("requestLaunchToken", new IllegalArgumentException("LaunchTokenResponse malformed: " + body));
                     onErrOnRenderThread(onErr, new GdxRuntimeException("LaunchTokenResponse malformed: " + body));
@@ -242,6 +162,8 @@ public class ServerGameServices {
 
     public static class LaunchTokenResponse {
         public String launchToken;
+        public long expiresAt;
+        public String wsUrl;
     }
 
     // ----------------------------
@@ -251,6 +173,7 @@ public class ServerGameServices {
     public void getGameAuthToken(Ok<GameAuthTokenResponse> onOk, Err onErr) {
         logger.enter("getGameAuthToken");
         final String launchToken = sessionService.getLaunchToken();
+
         if (launchToken == null || launchToken.isEmpty()) {
             logger.error("getGameAuthToken", new IllegalArgumentException("Missing launchToken"));
             onErrOnRenderThread(onErr, new IllegalStateException("Missing launchToken"));
@@ -269,6 +192,8 @@ public class ServerGameServices {
                 .timeout(10_000)
                 .build();
 
+        logger.debug("launchToken={}", launchToken);
+        logger.debug("req={}", req);
         Gdx.net.sendHttpRequest(req, new Net.HttpResponseListener() {
             @Override
             public void handleHttpResponse(Net.HttpResponse httpResponse) {
@@ -281,22 +206,16 @@ public class ServerGameServices {
                     return;
                 }
 
+                System.out.println("body: " + body);
                 GameAuthTokenResponse resp = YokelUtilities.getObjectFromJsonString(GameAuthTokenResponse.class, body);
+                System.out.println("resp: " + resp);
+                sessionService.setGameAuth(resp);
+
                 if (resp == null) {
                     logger.error("getGameAuthToken", new GdxRuntimeException("GameAuthTokenResponse malformed: " + body));
                     onErrOnRenderThread(onErr, new GdxRuntimeException("GameAuthTokenResponse malformed: " + body));
                     return;
                 }
-
-                sessionService.setGameAuth(resp);
-                sessionService.setCurrentTableId(resp.getTableId());
-                sessionService.setCurrentGameId(resp.getGameId());
-                sessionService.setCurrentPlayer(new YipeePlayerGDX(resp.name, resp.rating, resp.icon));
-                sessionService.setPlayerId(resp.playerId);
-                sessionService.setCurrentUserName(resp.name);
-                sessionService.setIcon(resp.icon);
-                sessionService.setRating(resp.rating);
-                ensureSessionJwt(true);
 
                 onOkOnRenderThread(onOk, resp);
             }
@@ -319,28 +238,35 @@ public class ServerGameServices {
 
     public void getTableDetails(Ok<GdxTableDetailsResponse> onOk, Err onErr) {
         logger.enter("getTableDetails");
-        String launchToken = sessionService.getLaunchToken();
-        String tableId = sessionService.getCurrentTableId();
 
-        if (launchToken == null || launchToken.isEmpty()) {
-            logger.error("getTableDetails", new IllegalStateException("Missing launchToken"));
-            onErrOnRenderThread(onErr, new IllegalStateException("Missing launchToken"));
+        String tableId = sessionService.getCurrentTableId();
+        String apiToken = sessionService.getApiToken();
+
+        if (tableId == null || tableId.isEmpty()) {
+            IllegalStateException ex = new IllegalStateException("Missing tableId");
+            logger.error("getTableDetails", ex);
+            onErrOnRenderThread(onErr, ex);
             return;
         }
-        if (tableId == null || tableId.isEmpty()) {
-            logger.error("getTableDetails", new IllegalStateException("Missing tableId"));
-            onErrOnRenderThread(onErr, new IllegalStateException("Missing tableId"));
+
+        if (apiToken == null || apiToken.isEmpty()) {
+            IllegalStateException ex = new IllegalStateException("Missing apiToken");
+            logger.error("getTableDetails", ex);
+            onErrOnRenderThread(onErr, ex);
             return;
         }
 
         final String apiBase = "http://localhost:8080";
-        final String url = apiBase + "/api/game/table";
+        final String url = apiBase + "/api/tables/" + tableId;
+
+        logger.debug("tableId={}", tableId);
+        logger.debug("url={}", url);
 
         Net.HttpRequest req = new HttpRequestBuilder()
                 .newRequest()
                 .method(Net.HttpMethods.GET)
                 .url(url)
-                .header("Authorization", "Bearer " + launchToken)
+                .header("Authorization", "Bearer " + apiToken)
                 .header("Accept", "application/json")
                 .timeout(10_000)
                 .build();
@@ -351,107 +277,80 @@ public class ServerGameServices {
                 int status = httpResponse.getStatus().getStatusCode();
                 String body = httpResponse.getResultAsString();
 
+                logger.debug("getTableDetails status={}", status);
+                logger.debug("getTableDetails body={}", body);
+
                 if (status != 200) {
-                    onErrOnRenderThread(onErr, new GdxRuntimeException("Table error " + status + ": " + body));
+                    onErrOnRenderThread(onErr,
+                            new GdxRuntimeException("Table error " + status + ": " + body));
                     return;
                 }
-
-                System.out.println("Received Body from Server: " + body);
-                System.out.println("Received Body from Server: " + body.getClass());
-                body = body.replace("rated", "isRated");
-                //body = body.replace("ready", "isReady");
-                body = body.replace("soundOn", "isSoundOn");
 
                 GdxTableDetailsResponse tableDetails = YokelUtilities.getObjectFromJsonString(GdxTableDetailsResponse.class, body);
+
                 if (tableDetails == null) {
-                    onErrOnRenderThread(onErr, new GdxRuntimeException("TableDetailsResponse malformed: " + body));
+                    onErrOnRenderThread(onErr,
+                            new GdxRuntimeException("TableDetailsResponse malformed: " + body));
                     return;
                 }
-                System.out.println("tableDetails: " + tableDetails);
-                System.out.println("tableDetails: " + tableDetails.getClass());
+                logger.debug("tableDetails={}", tableDetails);
 
                 refreshSession(tableDetails);
-
                 onOkOnRenderThread(onOk, tableDetails);
             }
 
             @Override
             public void failed(Throwable t) {
+                logger.error(t, "getTableDetails failed");
                 onErrOnRenderThread(onErr, t);
             }
 
             @Override
             public void cancelled() {
+                logger.debug("getTableDetails message cancelled");
                 onErrOnRenderThread(onErr, new GdxRuntimeException("Table cancelled"));
             }
         });
     }
 
     private void refreshSession(GdxTableDetailsResponse tableDetails) {
+        logger.enter("refreshSession");
         if (tableDetails != null) {
-            sessionService.setTableDetails(tableDetails);
-            sessionService.setServerId(tableDetails.serverId);
-            sessionService.setGameId(tableDetails.gameId);
-            sessionService.setSessionId(tableDetails.sessionId);
-            sessionService.setServerTimestamp(tableDetails.serverTimestamp);
-            sessionService.setTickRate(tableDetails.tickRate);
-            sessionService.setTableId(tableDetails.tableId);
-            sessionService.setCurrentRoomName(tableDetails.roomName);
-            YipeeTableGDX table = buildTable(tableDetails);
-            sessionService.setCurrentTable(table);
-            sessionService.setCurrentTableId(table.getId());
-            //sessionService.setCurrentPlayer(YipeePlayerGDX(resp.name, resp.rating, resp.icon));
-            //sessionService.setPlayerId(resp.playerId);
-            //sessionService.setCurrentUserName(resp.name);
-            //sessionService.setIcon(resp.icon);
-            //sessionService.setRating(resp.rating);
-        }
-    }
+            GdxTableDetailsSummary tableDetailsSummary = tableDetails.getTableDetailsSummary();
 
-    private YipeeTableGDX buildTable(GdxTableDetailsResponse tableDetails) {
-        YipeeTableGDX table = new YipeeTableGDX();
-        if (tableDetails != null) {
-            table.setId(tableDetails.tableId);
-            table.setName("#" + tableDetails.tableNumber);
-            table.setSoundOn(tableDetails.isSoundOn);
-            table.setRated(tableDetails.isRated);
-            table.setAccessType(tableDetails.tableAccessType);
-            table.setSeats(buildSeats(tableDetails.seats));
-            table.setWatchers(buildWatches(tableDetails.watchers));
-        }
-        return table;
-    }
-
-    private YipeePlayerGDX toGdxPlayer(GdxNetYipeePlayerDTO dto) {
-        YipeePlayerGDX player = new YipeePlayerGDX();
-        player.setId(dto.id);
-        player.setName(dto.name);
-        player.setCreated(dto.created);
-        player.setModified(dto.modified);
-        player.setIcon(dto.icon);
-        player.setRating(dto.rating);
-        return player;
-    }
-
-    private YipeeSeatGDX toGdxSeat(GdxSeatStateUpdateResponse dto) {
-        YipeeSeatGDX seat = new YipeeSeatGDX();
-        seat.setName("seatNumber_" + dto.seatIndex);
-        seat.setParentTableId(dto.tableId);
-        if (dto.occupied) {
-            YipeePlayerGDX player = toGdxPlayer(dto.player);
-            seat.setSeatedPlayer(player);
-            if (dto.ready) {
-                seat.setSeatReady(true);
+            if (tableDetailsSummary != null) {
+                sessionService.setTableDetails(tableDetails);/*
+               sessionService.setServerId(tableDetails.serverId);
+               sessionService.setCurrentGameId(tableDetails.gameId);
+               sessionService.setSessionId(tableDetails.sessionId);
+               sessionService.setServerTimestamp(tableDetails.serverTimestamp);
+               sessionService.setTickRate(tableDetails.tickRate);*/
+                sessionService.setCurrentRoomName(tableDetails.getRoomName());
+                YipeeTableGDX table = PayloadUtil.getTableFromTableDetailsResponse(tableDetails);
+                sessionService.setCurrentTable(table);
+                sessionService.setCurrentTableId(table.getId());
+                sessionService.setCurrentTableId(table.getId());
+                sessionService.setCurrentSeat(getSeatFromTable(sessionService.getCurrentPlayer(), table));
             }
+
+
+        }
+        logger.exit("refreshSession");
+    }
+
+    private int getSeatFromTable(YipeePlayerGDX currentPlayer, YipeeTableGDX table) {
+        int seat = -1;
+        if (currentPlayer != null && table != null) {
+
         }
         return seat;
     }
 
-    private Iterable<YipeePlayerGDX> buildWatches(Array<GdxNetYipeePlayerDTO> watchers) {
+    private Iterable<YipeePlayerGDX> buildWatchers(Array<GdxNetYipeePlayerDTO> watchers) {
         ObjectSet<YipeePlayerGDX> localWatchers = GdxSets.newSet();
 
         if (watchers != null) {
-            watchers.forEach(dto -> localWatchers.add(toGdxPlayer(dto)));
+            watchers.forEach(dto -> localWatchers.add(PayloadUtil.toGdxPlayer(dto)));
         }
 
         return localWatchers;
@@ -461,7 +360,7 @@ public class ServerGameServices {
         ObjectSet<YipeeSeatGDX> localSeats = GdxSets.newSet();
 
         if (seats != null) {
-            seats.forEach(dto -> localSeats.add(toGdxSeat(dto)));
+            seats.forEach(dto -> localSeats.add(PayloadUtil.toGdxSeat(dto)));
         }
 
         return localSeats;
@@ -471,17 +370,17 @@ public class ServerGameServices {
     // helpers
     // ----------------------------
 
-    private static <T> void onOkOnRenderThread(Ok<T> ok, T value) {
+    public static <T> void onOkOnRenderThread(Ok<T> ok, T value) {
         if (ok == null) return;
         Gdx.app.postRunnable(() -> ok.run(value));
     }
 
-    private static void onErrOnRenderThread(Err err, Throwable t) {
+    public static void onErrOnRenderThread(Err err, Throwable t) {
         if (err == null) return;
         Gdx.app.postRunnable(() -> err.run(t));
     }
 
-    private static String defaultIfBlank(String s, String def) {
+    public static String defaultIfBlank(String s, String def) {
         return (s == null || s.trim().isEmpty()) ? def : s.trim();
     }
 }

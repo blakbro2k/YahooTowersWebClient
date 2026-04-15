@@ -22,7 +22,7 @@ import asg.games.yokel.client.utils.UIUtil;
 public class GwtLauncher extends GwtApplication {
     @Override
     public void onModuleLoad() {
-        GameNetFactory.registerClientManager(new WebSocketNetworkManager("wss://server", 8080));
+        GameNetFactory.registerClientManager(new WebSocketNetworkManager("localhost", 8080));
         super.onModuleLoad();
     }
 
@@ -44,9 +44,13 @@ public class GwtLauncher extends GwtApplication {
 	}
 
     private void parseUrlForBootstrapConfig() {
-        String href = Window.Location.getHref(); // entire URL
+        //String href = Window.Location.getHref(); // entire URL
         String debugParam = Window.Location.getParameter("debug");
         String jwtParam = Window.Location.getParameter("jwt");
+        String apiTokenParam = Window.Location.getParameter("apiToken");
+        String launchTokenParam = Window.Location.getParameter("launchToken");
+        String clientIdParam = Window.Location.getParameter("clientId");
+        String sessionIdParam = Window.Location.getParameter("sessionId");
 
 		boolean setDebug = false;
 		boolean isDebugParamSet = "true".equalsIgnoreCase(debugParam);
@@ -54,15 +58,47 @@ public class GwtLauncher extends GwtApplication {
 		if (isDebugMode() || isDebugParamSet) {
 			Gdx.app.log("DEBUG", "Debug mode enabled via URL");
 			BootstrapConfig.setDebugMode(true);
+        } else {
+            BootstrapConfig.setJwtToken(getFromSessionStorage("debug"));
 		}
 
 		if (jwtParam != null && !jwtParam.trim().isEmpty()) {
             BootstrapConfig.setJwtToken(jwtParam);
+        } else {
+            BootstrapConfig.setJwtToken(getFromSessionStorage("jwt"));
+        }
+
+        if (apiTokenParam != null && !apiTokenParam.trim().isEmpty()) {
+            BootstrapConfig.setApiToken(apiTokenParam);
+        } else {
+            BootstrapConfig.setApiToken(getFromSessionStorage("apiToken"));
+        }
+
+        if (launchTokenParam != null && !launchTokenParam.trim().isEmpty()) {
+            BootstrapConfig.setLaunchToken(launchTokenParam);
+        } else {
+            BootstrapConfig.setLaunchToken(getFromSessionStorage("launchToken"));
+        }
+
+        if (clientIdParam != null && !clientIdParam.trim().isEmpty()) {
+            BootstrapConfig.setClientId(clientIdParam);
+        } else {
+            BootstrapConfig.setClientId(getFromSessionStorage("clientId"));
+        }
+
+        if (sessionIdParam != null && !sessionIdParam.trim().isEmpty()) {
+            BootstrapConfig.setSessionId(sessionIdParam);
+        } else {
+            BootstrapConfig.setSessionId(getFromSessionStorage("sessionId"));
         }
 
         // Log it if you want
         //Gdx.app.log("BootstrapConfig", "Parsed from URL - debug: " + debug + ", jwt: " + jwtParam);
     }
+
+    private static native String getFromSessionStorage(String key) /*-{
+    	return $wnd.sessionStorage.getItem(key);
+	}-*/;
 
 	public static native boolean isDebugMode() /*-{
 		try {

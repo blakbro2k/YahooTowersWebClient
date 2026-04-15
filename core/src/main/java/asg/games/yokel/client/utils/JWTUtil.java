@@ -1,26 +1,11 @@
 package asg.games.yokel.client.utils;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-
 public class JWTUtil {
     private JWTUtil() {
     }
 
     // ----------------------
     // JWT helpers
-    // ----------------------
-
-    public static String createMockJwt(String playerId, String username, String rating, String icon) {
-        String header = base64UrlJson("{\"alg\":\"none\"}");
-        String payload = base64UrlJson(YokelUtilities.getJsonString(JwtPayload.class, new JwtPayload(playerId, username, rating, icon)));
-        return header + "." + payload + ".dev";
-    }
-
-    public static String base64UrlJson(String jsonStr) {
-        return Base64.getUrlEncoder().withoutPadding()
-                .encodeToString(jsonStr.getBytes(StandardCharsets.UTF_8));
-    }
 
     public static String trimToNull(String s) {
         if (s == null) return null;
@@ -36,6 +21,7 @@ public class JWTUtil {
         public String sub;
         public String username;
         public String rating;
+
         public String icon;
 
         public JwtPayload(String sub, String username, String rating, String icon) {

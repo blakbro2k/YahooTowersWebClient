@@ -3,11 +3,8 @@
 <module rename-to="asg.games.yokel.client">
     <source path="asg/games/yokel/client" />
 
-    <inherits name="asg.games.yipee.libgdx.yipee-libgdx" />
-    <inherits name="asg.games.yipee.net.yipee-net" />
-    <inherits name="asg.games.yipee.common.yipee-common" />
-    <inherits name="com.github.czyzby.lml.GdxLml" />
-    <inherits name="com.github.czyzby.lml.vis.GdxLmlVis" />
+    <inherits name="asg.games.yipee.common.YipeeCommon" />
+    <inherits name="asg.games.yipee.libgdx.YipeeLibgdx" />
 
     <!-- Logging module inherits                                      -->
     <inherits name="com.google.gwt.logging.Logging" />
@@ -36,7 +33,6 @@
         value="asg.games.yokel.client.ui.provider.tags" />
     <extend-configuration-property name="gdx.reflect.include"
         value="asg.games.yokel.client.managers" />
-
     <extend-configuration-property name="gdx.reflect.include" value="java.lang.Long" />
 
     <!-- Sometimes you'll get a cryptic "Couldn't find Type for class" GWT error - this is because Autumn relies on reflection:
@@ -67,6 +63,13 @@
         value="com.badlogic.gdx.utils.I18NBundle$Reader" />
     <extend-configuration-property name="gdx.reflect.include"
         value="com.badlogic.gdx.utils.I18NBundle$PropertiesReader" />
+
+    <extend-configuration-property name="gdx.reflect.include"
+        value="asg.games.yipee.common.net.wire" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="asg.games.yipee.common.net.packets" />
+    <extend-configuration-property name="gdx.reflect.include" value="asg.games.yipee.common.dto" />
+
     <!-- Autumn / LML / Kiwi fixes -->
     <extend-configuration-property name="gdx.reflect.include"
         value="com.github.czyzby.lml.parser.impl.tag.AbstractLmlTag" />

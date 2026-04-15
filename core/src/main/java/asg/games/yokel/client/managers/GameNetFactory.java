@@ -9,21 +9,10 @@ public class GameNetFactory {
         instance = manager;
     }
 
-    public static GameNetworkManager getClientManager() {
+    public static GameNetworkManager getManager() {
         if (instance == null) {
             throw new IllegalStateException("GameNetworkManager not registered!");
         }
         return instance;
-    }
-
-    public static void registerWebClientManager(GameNetworkManager newInstance) {
-        webInstance = newInstance;
-    }
-
-    public static GameNetworkManager getDesktopWebClientManager() {
-        if (webInstance == null) {
-            throw new IllegalStateException("DesktopWebClientManager not registered!");
-        }
-        return webInstance;
     }
 }

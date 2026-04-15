@@ -12,16 +12,17 @@ import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import asg.games.yipee.common.net.wire.ClientHandshakeRequest;
+import asg.games.yipee.common.net.wire.GameAuthTokenResponse;
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
-import asg.games.yipee.net.packets.ClientHandshakeRequest;
 import asg.games.yipee.net.tools.PacketRegistrar;
 import asg.games.yokel.client.managers.GameNetworkManager;
 
 public class KryoNetworkManager implements GameNetworkManager {
-
     private final Queue<Object> messageQueue = new ConcurrentLinkedQueue<>();
     private final Client client = new Client();
     private final int connectTimeoutMs;
@@ -76,6 +77,26 @@ public class KryoNetworkManager implements GameNetworkManager {
         } catch (ParserConfigurationException | IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void setRequestToken(String tokenString) {
+
+    }
+
+    @Override
+    public boolean connectWithLaunchToken(String launchToken) {
+        return false;
+    }
+
+    @Override
+    public void setOnAuthenticated(Consumer<GameAuthTokenResponse> listener) {
+
+    }
+
+    @Override
+    public void setOnError(Consumer<Throwable> listener) {
+
     }
 
     @Override

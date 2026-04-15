@@ -1,6 +1,9 @@
 package asg.games.yokel.client.managers;
 
 
+import java.util.function.Consumer;
+
+import asg.games.yipee.common.net.wire.GameAuthTokenResponse;
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
 
 public interface GameNetworkManager {
@@ -54,4 +57,20 @@ public interface GameNetworkManager {
     void registerUser(String authToken, YipeePlayerGDX player, String clientId, String sessionKey);
 
     void registerPackets();
+
+    void setRequestToken(String tokenString);
+
+    boolean connectWithLaunchToken(String launchToken);
+
+    interface AuthListener {
+        void onAuth(asg.games.yipee.common.net.wire.GameAuthTokenResponse auth);
+    }
+
+    interface ErrListener {
+        void onErr(Throwable t);
+    }
+
+    void setOnAuthenticated(Consumer<GameAuthTokenResponse> listener);
+
+    void setOnError(Consumer<Throwable> listener);
 }

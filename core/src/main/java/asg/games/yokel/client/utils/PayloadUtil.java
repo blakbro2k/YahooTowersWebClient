@@ -2,7 +2,19 @@ package asg.games.yokel.client.utils;
 
 import com.badlogic.gdx.utils.Array;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import asg.games.yipee.libgdx.net.GdxNetYipeePlayerDTO;
+import asg.games.yipee.libgdx.net.GdxPlayerSummary;
+import asg.games.yipee.libgdx.net.GdxSeatDetailSummary;
+import asg.games.yipee.libgdx.net.GdxSeatStateUpdateResponse;
+import asg.games.yipee.libgdx.net.GdxTableDetailsResponse;
+import asg.games.yipee.libgdx.net.GdxTableDetailsSummary;
+import asg.games.yipee.libgdx.net.GdxTableSummary;
 import asg.games.yipee.libgdx.objects.YipeePlayerGDX;
+import asg.games.yipee.libgdx.objects.YipeeSeatGDX;
+import asg.games.yipee.libgdx.objects.YipeeTableGDX;
 
 
 public class PayloadUtil {
@@ -155,5 +167,99 @@ public class PayloadUtil {
         return ret;
     }
 
+    public static YipeeTableGDX getTableFromTableDetailsResponse(GdxTableDetailsResponse tableDetails) {
+        YipeeTableGDX table = null;
+        if (tableDetails != null) {
+            table = toGdxTable(tableDetails.getTableDetailsSummary());
+        }
+        return table;
+    }
+
+    public static YipeeTableGDX toGdxTable(GdxTableDetailsSummary tableDetailsSummary) {
+        GdxTableSummary tableSummary = tableDetailsSummary.getTable();
+        YipeeTableGDX table = new YipeeTableGDX();
+
+        if (tableSummary != null) {
+            table.setId(tableSummary.getTableId());
+            table.setName("#" + tableSummary.getTableNumber());
+            table.setSoundOn(tableSummary.isSoundOn());
+            table.setRated(tableSummary.isRated());
+            table.setAccessType(tableSummary.getAccessType());
+            table.setSeats(buildSeats(tableDetailsSummary.getSeats()));
+            table.setWatchers(buildWatchers(tableDetailsSummary.getWatchers()));
+        }
+
+        return table;
+    }
+
+    private static Iterable<YipeePlayerGDX> buildWatchers(List<GdxPlayerSummary> watchSummaries) {
+        List<YipeePlayerGDX> watchers = new ArrayList<>();
+        for (GdxPlayerSummary playerSummary : YokelUtilities.safeIterable(watchSummaries)) {
+            if (playerSummary != null) {
+                watchers.add(toGdxPlayer(playerSummary));
+            }
+        }
+        return watchers;
+    }
+
+    private static Iterable<YipeeSeatGDX> buildSeats(List<GdxSeatDetailSummary> seatDetailSummaries) {
+        List<YipeeSeatGDX> seats = new ArrayList<>();
+        for (GdxSeatDetailSummary seatDetailSummary : YokelUtilities.safeIterable(seatDetailSummaries)) {
+            if (seatDetailSummary != null) {
+                seats.add(toGdxSeat(seatDetailSummary));
+            }
+        }
+        return seats;
+    }
+
+    public static YipeePlayerGDX toGdxPlayer(GdxPlayerSummary playerSummary) {
+        YipeePlayerGDX player = new YipeePlayerGDX();
+        player.setId(playerSummary.getPlayerId());
+        player.setName(playerSummary.getName());
+        player.setIcon(playerSummary.getIcon());
+        player.setRating(playerSummary.getRating());
+        return player;
+    }
+
+    public static YipeePlayerGDX toGdxPlayer(GdxNetYipeePlayerDTO dto) {
+        YipeePlayerGDX player = new YipeePlayerGDX();
+        player.setId(dto.id);
+        player.setName(dto.name);
+        player.setCreated(dto.created);
+        player.setModified(dto.modified);
+        player.setIcon(dto.icon);
+        player.setRating(dto.rating);
+        return player;
+    }
+
+    public static YipeeSeatGDX toGdxSeat(GdxSeatDetailSummary seatDetailSummary) {
+        YipeeSeatGDX seat = new YipeeSeatGDX();
+        seat.setName("seatNumber_" + seatDetailSummary.getSeatSummary().getSeatNumber());
+        seat.setSeatNumber(seatDetailSummary.getSeatSummary().getSeatNumber());
+        seat.setParentTableId(seatDetailSummary.getSeatSummary().getParentTableId());
+        if (seatDetailSummary.getSeatSummary().isOccupied()) {
+            YipeePlayerGDX player = toGdxPlayer(seatDetailSummary.getPlayerSummary());
+            seat.setSeatedPlayer(player);
+            if (seatDetailSummary.getSeatSummary().isSeatReady()) {
+                seat.setSeatReady(true);
+            }
+        }
+        return seat;
+    }
+
+    public static YipeeSeatGDX toGdxSeat(GdxSeatStateUpdateResponse dto) {
+        YipeeSeatGDX seat = new YipeeSeatGDX();
+        seat.setName("seatNumber_" + dto.seatIndex);
+        seat.setSeatNumber(dto.seatIndex);
+        seat.setParentTableId(dto.tableId);
+        if (dto.occupied) {
+            YipeePlayerGDX player = toGdxPlayer(dto.player);
+            seat.setSeatedPlayer(player);
+            if (dto.ready) {
+                seat.setSeatReady(true);
+            }
+        }
+        return seat;
+    }
 
 }
