@@ -147,13 +147,13 @@ public class ClientViewTestController extends ApplicationAdapter implements View
         networkManager = GameNetFactory.getManager();
         if (launchTokenField != null) {
             String launchToken = BootstrapConfig.getLaunchToken();
-            logger.error("Bootstrap:launch={}", launchToken);
+            logger.debug("Bootstrap:launch={}", launchToken);
             launchTokenField.setText(launchToken);
         }
 
         if (apiTokenField != null) {
             String apiToken = BootstrapConfig.getApiToken();
-            logger.error("Bootstrap:api={}", apiToken);
+            logger.debug("Bootstrap:api={}", apiToken);
             apiTokenField.setText(apiToken);
         }
 

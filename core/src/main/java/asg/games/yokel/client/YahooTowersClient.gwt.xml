@@ -46,14 +46,6 @@
     <extend-configuration-property name="gdx.reflect.include"
         value="com.badlogic.gdx.ApplicationAdapter" />
     <extend-configuration-property name="gdx.reflect.include"
-        value="com.github.czyzby.lml.parser.impl.tag.ImageButtonLmlTag" />
-    <extend-configuration-property name="gdx.reflect.include"
-        value="com.github.czyzby.lml.parser.impl.tag.ButtonLmlTag" />
-    <extend-configuration-property name="gdx.reflect.include"
-        value="com.github.czyzby.lml.parser.impl.tag.TableLmlTag" />
-    <extend-configuration-property name="gdx.reflect.include"
-        value="com.github.czyzby.lml.parser.impl.tag.LabelLmlTag" />
-    <extend-configuration-property name="gdx.reflect.include"
         value="com.github.czyzby.kiwi.log.LoggerService" />
     <extend-configuration-property name="gdx.reflect.include"
         value="jsinterop.annotations.JsType" />
@@ -69,7 +61,8 @@
     <extend-configuration-property name="gdx.reflect.include"
         value="asg.games.yipee.common.net.packets" />
     <extend-configuration-property name="gdx.reflect.include" value="asg.games.yipee.common.dto" />
-
+    <extend-configuration-property name="gdx.reflect.include"
+        value="asg.games.yipee.common.net.wire.GameAuthTokenResponse" />
     <!-- Autumn / LML / Kiwi fixes -->
     <extend-configuration-property name="gdx.reflect.include"
         value="com.github.czyzby.lml.parser.impl.tag.AbstractLmlTag" />
@@ -83,4 +76,16 @@
         value="com.github.czyzby.kiwi.log.impl.DefaultLogger" />
     <extend-configuration-property name="gdx.reflect.include"
         value="com.github.czyzby.kiwi.util.common.UtilitiesClass" />
+
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.github.czyzby.kiwi.log.impl.AbstractLogger" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.github.czyzby.lml.parser.impl.tag.actor.ImageButtonLmlTag" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.github.czyzby.lml.parser.impl.tag.actor.TableLmlTag" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.github.czyzby.lml.parser.impl.tag.actor.LabelLmlTag" />
+    <extend-configuration-property name="gdx.reflect.include"
+        value="com.github.czyzby.lml.parser.impl.tag.actor.ButtonLmlTag" />
+
 </module>

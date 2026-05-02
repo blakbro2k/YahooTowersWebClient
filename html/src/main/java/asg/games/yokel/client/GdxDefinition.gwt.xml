@@ -5,6 +5,7 @@
     <inherits name="com.badlogic.gdx.backends.gdx_backends_gwt" />
     <inherits name="com.github.czyzby.autumn.gwt.GdxAutumnGwt" />
     <inherits name="com.github.czyzby.autumn.mvc.GdxAutumnMvc" />
+    <inherits name="com.github.czyzby.autumn.GdxAutumn" />
     <inherits name="com.github.czyzby.websocket.GdxWebSocket" />
     <inherits name="com.github.czyzby.websocket.GdxWebSocketGwt" />
     <inherits name="com.github.czyzby.websocket.GdxWebSocketSerialization" />
